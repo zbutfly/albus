@@ -1,12 +1,14 @@
 *.class
-bin
+# maven
+
 target
+# eclipse
+bin
 .metadata
 .settings
-.svn
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# svn
+.svn
 
 # Package Files #
 *.jar
@@ -15,4 +17,3 @@ target
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-
