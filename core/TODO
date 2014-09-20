@@ -1,0 +1,11 @@
+Release 2.0.1
+1. JSON style servlet for js front-end invoking.
+2. MangoDB persistence support.
+3. Config/Console/Monitor as bus node.
+DONE: 4. Caching node routing in bus.
+DONE: 5. Remote invoking test. 
+6. ssl auth:
+	1. auto geneate keystore file (in a bus-default path).
+	2. create private cert on a GET request (based on current bus-default keystore file).
+	3. determinate user accessing bus by private cert.
+	4. control TX access permittion by private cert (current user) -- maybe use a Filter to compare with User DB? 
