@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus id="bus-console">
+	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter"
+		enabled="true" />
+	<filter title="thread-control-filter" class="net.butfly.bus.filter.ThreadControlFilter"
+		enabled="false">
+		<init>
+			<param name="throughput" value="200" />
+		</init>
+	</filter>
+	<filter title="exception-logger-filter" class="net.butfly.bus.filter.LoggerFilter"
+		enabled="true" />
+	<filter title="exception-handler" class="net.butfly.bus.filter.ExceptionHandleFilter"
+		enabled="true" />
+	<router type="net.butfly.bus.policy.SimpleRouter" />
+	<node id="albus-console" tx="BUS_CSL-*">
+		<invoker type="net.butfly.bus.invoker.SpringInvoker">
+			<files>net/butfly/bus/console/spring/beans.xml</files>
+		</invoker>
+	</node>
+</bus>

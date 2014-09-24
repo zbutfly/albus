@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus id="">
+	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter"
+		enabled="true" />
+	<node id="albus-console" tx="BUS_CSL-*">
+		<invoker type="net.butfly.bus.invoker.HessianInvoker">
+			<path>http://127.0.0.1:9876/bus</path>
+			<typeTranslator>net.butfly.bus.utils.EnumFactory
+			</typeTranslator>
+		</invoker>
+	</node>
+</bus>

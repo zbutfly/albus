@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus>
+	<router type="net.butfly.bus.policy.SingleRouter" />
+	<invoker type="net.butfly.bus.invoker.SpringInvoker" id="albus-default"
+		tx="*">
+		<files>beans.xml</files>
+	</invoker>
+</bus>
