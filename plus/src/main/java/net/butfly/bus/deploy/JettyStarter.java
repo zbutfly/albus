@@ -190,7 +190,7 @@ public class JettyStarter implements Runnable {
 
 			JettyStarter j = new JettyStarter(conf.port, conf.thread);
 			j.addBusInstance(conf.context, conf.config, conf.resBase, conf.servletClass, conf.serverClass);
-			if (null != conf.jdbc) j.addJNDI(conf.jdbc);
+			if (null != conf.jdbc) addJNDI(conf.jdbc);
 			j.run(conf.fork);
 		}
 	}
@@ -200,7 +200,7 @@ public class JettyStarter implements Runnable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void addJNDI(String contextXML) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
+	public static void addJNDI(String contextXML) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
 			NamingException, DocumentException {
 		URL url = Thread.currentThread().getContextClassLoader().getResource(contextXML);
 		if (null == contextXML) return;
