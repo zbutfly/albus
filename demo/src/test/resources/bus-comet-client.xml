@@ -11,6 +11,7 @@
 		<path>http://127.0.0.1:9876/bus</path>
 		<typeTranslator>net.butfly.bus.hessian.serialize.EnumFactory
 		</typeTranslator>
-		<continuousSupported>true</continuousSupported>
+		<!-- <continuousSupported>true</continuousSupported> -->
+		<auth username="user" password="pass" />
 	</invoker>
 </bus>

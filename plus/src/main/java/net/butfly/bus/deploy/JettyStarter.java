@@ -200,8 +200,8 @@ public class JettyStarter implements Runnable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void addJNDI(String contextXML) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
-			NamingException, DocumentException {
+	public static void addJNDI(String contextXML) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException, NamingException, DocumentException {
 		URL url = Thread.currentThread().getContextClassLoader().getResource(contextXML);
 		if (null == contextXML) return;
 		for (Element resource : (List<Element>) new SAXReader().read(url).getRootElement().selectNodes("Resource")) {
@@ -253,9 +253,11 @@ public class JettyStarter implements Runnable {
 			if (cmd.hasOption('h')) {
 				StringBuilder footer = new StringBuilder();
 				footer.append("Environment variables: \n");
-				footer.append("    bus.class=<Class name for the core bus instance>\n");
+				footer.append("    bus.server.class=<Class name for the core bus instance>\n");
 				footer.append("        (Default: net.butfly.bus.Bus)\n");
-				footer.append("    servlet.class=<Class name for the servlet of container of bus deployment>\n");
+				footer.append("    bus.server.base=<Static resource root for bus server, such as index.html>\n");
+				footer.append("        (Default: none)");
+				footer.append("    bus.servlet.class=<Class name for the servlet of container of bus deployment>\n");
 				footer.append("        (Default: net.butfly.bus.deploy.BusJSONServlet)");
 				new HelpFormatter().printHelp("java <" + Thread.currentThread().getStackTrace()[1].getClassName()
 						+ "> [-option]", "", options, footer.toString());
@@ -276,19 +278,26 @@ public class JettyStarter implements Runnable {
 		private Class<? extends Bus> serverClass;
 
 		@SuppressWarnings("unchecked")
-		public StarterConfiguration(CommandLine cmd) throws ClassNotFoundException {
+		public StarterConfiguration(CommandLine cmd) {
 			this.port = cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : DEFAULT_PORT;
 			this.thread = cmd.hasOption('t') ? Integer.parseInt(cmd.getOptionValue('t')) : DEFAULT_THREAD_POOL_SIZE;
 			this.context = cmd.hasOption('c') ? cmd.getOptionValue('c') : DEFAULT_CONTEXT_PATH;
 			this.config = cmd.hasOption('f') ? cmd.getOptionValue('f') : null;
 			this.jdbc = cmd.hasOption('d') ? cmd.getOptionValue('d') : null;
 			this.fork = cmd.hasOption('k') ? Boolean.parseBoolean(cmd.getOptionValue('k')) : false;
-			String servletClassName = System.getProperty("servlet.class");// cmd.getOptionValue('e');
-			String serverClassName = System.getProperty("bus.class");// cmd.getOptionValue('b');
-			this.resBase = System.getProperty("server.base");
-			this.servletClass = null == servletClassName ? scanServletClass() : (Class<? extends BusServlet>) Class
-					.forName(servletClassName);
-			this.serverClass = null == serverClassName ? Bus.class : (Class<? extends Bus>) Class.forName(serverClassName);
+			this.resBase = System.getProperty("bus.server.base");
+			try {
+				// cmd.getOptionValue('e');
+				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));
+			} catch (Throwable t) {
+				this.servletClass = scanServletClass();
+			}
+			try {
+				// cmd.getOptionValue('b');
+				this.serverClass = (Class<? extends Bus>) Class.forName(System.getProperty("bus.server.class"));
+			} catch (Throwable t) {
+				this.serverClass = Bus.class;
+			}
 		}
 	}
 }

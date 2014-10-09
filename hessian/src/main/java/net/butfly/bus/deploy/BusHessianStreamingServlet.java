@@ -1,5 +1,6 @@
 package net.butfly.bus.deploy;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
@@ -53,7 +54,12 @@ public class BusHessianStreamingServlet extends BusHessianServlet {
 	@Override
 	protected void invoke(AbstractHessianOutput out, Invoker invoker, HessianExceptionHandler handler) throws IOException {
 		while (true)
-			super.invoke(out, invoker, handler);
+			try {
+				super.invoke(out, invoker, handler);
+			} catch (EOFException ex) {
+				logger.warn("Connection lost.");
+				break;
+			}
 	}
 
 	@Override

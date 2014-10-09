@@ -6,6 +6,6 @@
 		enabled="true" />
 	<filter title="exception-filter" class="net.butfly.bus.filter.ExceptionHandleFilter"
 		enabled="true" />
-	<invoker type="net.butfly.bus.invoker.BeanFactoryInvoker" id="albus-test-comet"
+	<invoker type="net.butfly.bus.demo.invoker.BeanFactoryInvoker" id="albus-test-comet"
 		tx="TST_CMT-*" />
 </bus>

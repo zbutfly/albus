@@ -1,6 +1,7 @@
-package net.butfly.bus.invoker;
+package net.butfly.bus.demo.invoker;
 
 import net.butfly.bus.comet.facade.CometFacadeImpl;
+import net.butfly.bus.invoker.AbstractBeanFactoryInvoker;
 
 
 public class BeanFactoryInvoker extends AbstractBeanFactoryInvoker {

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.butfly.albacore.base.Unit;
-
+import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.invoker.SpringInvokerConfig;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -18,9 +18,9 @@ public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> imp
 	private String files;
 
 	@Override
-	public void initialize(SpringInvokerConfig config) {
+	public void initialize(SpringInvokerConfig config, Token token) {
 		this.files = config.getFiles();
-		super.initialize(config);
+		super.initialize(config, token);
 	}
 
 	@Override

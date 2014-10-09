@@ -48,10 +48,6 @@ public class AsyncRequest extends Request {
 		return this.continuous;
 	}
 
-	public Request request() {
-		return new Request(this.code(), this.version(), this.context(), this.arguments());
-	}
-
 	public boolean retry() {
 		return this.retried++ <= this.retries;
 	}

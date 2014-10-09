@@ -21,12 +21,12 @@ public class ContinuousHessianProxyFactory extends HessianProxyFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T, R> T create(Class<T> api, String path, AsyncCallback<R> callback, AsyncRequest request)
+	public <T, R> T create(Class<T> api, String path, AsyncRequest request)
 			throws MalformedURLException {
 		URL url = new URL(path);
 		if (api == null) throw new NullPointerException("api must not be null for HessianProxyFactory.create()");
 		InvocationHandler handler = null;
-		handler = new ContinuousHessianProxy<R>(url, this, api, callback, request);
+		handler = new ContinuousHessianProxy<R>(url, this, api, (AsyncCallback<R>) request.callback(), request);
 		return (T) Proxy.newProxyInstance(this._loader, new Class[] { api, HessianRemoteObject.class }, handler);
 	}
 

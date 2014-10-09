@@ -32,7 +32,7 @@ public class InvokerFactory {
 		if (INVOKER_POOL.containsKey(key)) return (Invoker<C>) INVOKER_POOL.get(key);
 		try {
 			Invoker<C> invoker = clazz.newInstance();
-			invoker.initialize(config);
+			invoker.initialize(config, bean.getToken());
 			INVOKER_POOL.put(key, invoker);
 			return invoker;
 		} catch (Throwable e) {

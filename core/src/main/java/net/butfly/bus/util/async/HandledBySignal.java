@@ -6,7 +6,6 @@ public abstract class HandledBySignal {
 	protected AsyncRequest request;
 
 	public HandledBySignal(AsyncRequest request) {
-		super();
 		this.request = request;
 	}
 

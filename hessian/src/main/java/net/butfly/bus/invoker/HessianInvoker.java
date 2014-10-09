@@ -8,6 +8,7 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.Constants;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
+import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.invoker.HessianInvokerConfig;
 import net.butfly.bus.deploy.entry.EntryPoint;
 import net.butfly.bus.ext.AsyncRequest;
@@ -29,19 +30,25 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 	private List<Class<? extends AbstractSerializerFactory>> translators;
 
 	private HessianProxyFactory factory;
+	private EntryPoint proxy;
 	private ContinuousHessianProxyFactory asyncFactory;
 
 	@Override
-	public void initialize(HessianInvokerConfig config) {
+	public void initialize(HessianInvokerConfig config, Token token) {
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
 		this.translators = config.getTypeTranslators();
-		super.initialize(config);
+		super.initialize(config, token);
 
 		this.factory = new HessianProxyFactory();
 		this.factory.setConnectTimeout(timeout);
 		for (AbstractSerializerFactory s : this.createSerializers())
 			this.factory.getSerializerFactory().addFactory(s);
+		try {
+			this.proxy = (EntryPoint) this.factory.create(EntryPoint.class, path);
+		} catch (MalformedURLException ex) {
+			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "Hessian url [" + path + "] invalid.", ex);
+		}
 
 		if (this.continuousSupported()) {
 			this.asyncFactory = new ContinuousHessianProxyFactory();
@@ -67,14 +74,8 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 	@Override
 	public Response invoke(Request request) {
 		logger.trace("Attemp hessian connection: " + path + ".");
-
 		try {
-			if (!(request instanceof AsyncRequest)) return singleInvoke(request);
-			AsyncRequest areq = (AsyncRequest) request;
-			if (!areq.continuous()) return singleInvoke(areq.request());
-			this.continuousInvoke(areq);
-		} catch (MalformedURLException ex) {
-			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "Hessian url [" + path + "] invalid.", ex);
+			return super.invoke(request);
 		} catch (HessianConnectionException ex) {
 			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "Hessian connection [" + path + "] invalid.",
 					ex);
@@ -82,18 +83,22 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "Hessian service [" + path + "] invalid.",
 					ex.getCause());
 		}
-		throw new IllegalAccessError("A continuous invoking should not end without exception.");
+
 	}
 
-	private void continuousInvoke(AsyncRequest request) throws MalformedURLException {
+	protected void continuousInvoke(AsyncRequest request) {
 		if (!this.continuousSupported())
 			throw new UnsupportedOperationException("Invoker not configurated as continuous supported.");
-		EntryPoint proxy = (EntryPoint) this.asyncFactory.create(EntryPoint.class, path, request.callback(), request);
-		proxy.invoke(request.request());
+		EntryPoint proxy;
+		try {
+			proxy = (EntryPoint) this.asyncFactory.create(EntryPoint.class, path, request);
+		} catch (MalformedURLException ex) {
+			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "Hessian url [" + path + "] invalid.", ex);
+		}
+		proxy.invoke(request.request(this.token));
 	}
 
-	private Response singleInvoke(Request request) throws MalformedURLException {
-		EntryPoint proxy = (EntryPoint) this.factory.create(EntryPoint.class, path);
+	protected Response singleInvoke(Request request) {
 		return proxy.invoke(request);
 	}
 }

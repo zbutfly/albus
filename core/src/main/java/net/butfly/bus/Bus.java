@@ -267,5 +267,5 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_COMMON_CONFIG);
 		if (l.load() != null) return l;
 		throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid: " + configLocation);
-	}
+	} 
 }

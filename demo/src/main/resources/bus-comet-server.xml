@@ -8,5 +8,5 @@
 		enabled="true" />
 	<router type="net.butfly.bus.policy.SimpleRouter" />
 	<invoker id="albus-test-comet" tx="TST_CMT-*"
-		type="net.butfly.bus.invoker.BeanFactoryInvoker" />
+		type="net.butfly.bus.demo.invoker.BeanFactoryInvoker" />
 </bus>

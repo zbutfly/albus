@@ -1,6 +1,9 @@
 package net.butfly.bus.config.parser;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +13,7 @@ import java.util.Map;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.bus.Constants;
+import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigParser;
 import net.butfly.bus.config.bean.FilterBean;
@@ -82,7 +86,30 @@ public class XMLConfigParser extends ConfigParser {
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
 		processConfigObj(config, element);
 		logger.trace("Node [" + id + "] enabled.");
-		return new InvokerBean(id, clazz, element.attributeValue("tx"), config);
+		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
+	}
+
+	private Token parseInvokerAuth(Element element) {
+		Element node = (Element) element.selectSingleNode("auth");
+		if (node == null) return null;
+		String token = node.attributeValue("token");
+		if (token != null) return new Token(token);
+		token = node.attributeValue("file");
+		if (token != null) {
+			BufferedReader r = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader()
+					.getResourceAsStream(token)));
+			String line;
+			StringBuilder sb = new StringBuilder();
+			try {
+				while ((line = r.readLine()) != null)
+					sb.append(line);
+			} catch (IOException e) {}
+			return new Token(sb.toString());
+		}
+		String user = node.attributeValue("username");
+		String pass = node.attributeValue("password");
+		if (user != null && pass != null) return new Token(user, pass);
+		return null;
 	}
 
 	public List<FilterBean> parseFilters(List<Element> filters) {
