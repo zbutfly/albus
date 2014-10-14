@@ -154,7 +154,7 @@ public class ContinuousHessianProxy<R> implements InvocationHandler, Serializabl
 	}
 
 	/**
-	 * Sends the HTTP request to the Hessian connection.
+	 * Sends the HTTP request to the HessianSerializer connection.
 	 */
 	protected HessianConnection sendRequest(String methodName, Object[] args) throws IOException {
 		HessianConnection conn = null;

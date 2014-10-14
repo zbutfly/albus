@@ -1,5 +1,6 @@
 package net.butfly.bus.deploy;
 
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -10,7 +11,6 @@ import java.util.Set;
 import javax.naming.NamingException;
 
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.albacore.utils.security.KeyStore;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Constants;
 
@@ -25,15 +25,21 @@ import org.dom4j.Attribute;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.plus.jndi.Resource;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.NetworkTrafficServerConnector;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.SecuredRedirectHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -46,21 +52,28 @@ public class JettyStarter implements Runnable {
 	protected final static Logger logger = LoggerFactory.getLogger(JettyStarter.class);
 	protected final int BUF_SIZE = 8 * 1024;
 	protected final static String DEFAULT_CONTEXT_PATH = "/bus/*";
-	protected final static int DEFAULT_PORT = 9876;
-	protected final static int DEFAULT_THREAD_POOL_SIZE = 10;
+	protected final static String DEFAULT_PORT = "19080";
+	protected final static String DEFAULT_SECURE_PORT = "19443";
+	protected final static String DEFAULT_THREAD_POOL_SIZE = "10";
+	private static final long DEFAULT_IDLE = 60000;
 	protected final Server server;
+	protected final ServletContextHandler context;
 	protected boolean running = false;
 
 	public JettyStarter() {
-		this(DEFAULT_PORT);
+		this(new StarterConfiguration(new String[] { null }, false));
 	}
 
-	public JettyStarter(int port) {
-		this(port, DEFAULT_THREAD_POOL_SIZE);
-	}
+	public JettyStarter(StarterConfiguration conf) {
+		this.server = conf.threads > 0 ? new Server(new QueuedThreadPool(conf.threads)) : new Server();
+		this.context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		this.context.setContextPath("/");
+		if (null != conf.resBase) context.setResourceBase(conf.resBase);
+		this.server.setHandler(context);
+		this.context.addServlet(DefaultServlet.class, "/");
+		if (conf.secure) createSSLServer(conf.port, conf.sslPort);
+		else createServer(conf.port);
 
-	public JettyStarter(int port, int threadPoolSize) {
-		this.server = createServer(port, threadPoolSize, false);
 	}
 
 	public void run(boolean fork) {
@@ -100,29 +113,23 @@ public class JettyStarter implements Runnable {
 		}
 	}
 
-	public JettyStarter addBusInstance(String contextPath, String config, String resBase,
-			Class<? extends BusServlet> servletClass, Class<? extends Bus> serverClass) throws IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath("/");
-		if (null != resBase) context.setResourceBase(resBase);
-		this.server.setHandler(context);
-
-		context.addServlet(DefaultServlet.class, "/");
-
-		ServletHolder servlet = new ServletHolder(servletClass);
-		servlet.setDisplayName("BusServlet[" + null == config ? "DEFAULT" : config + "]");
-		servlet.setInitOrder(0);
-		if (null != config) servlet.setInitParameter("config-file", config);
-		if (null != serverClass) servlet.setInitParameter("server-class", serverClass.getName());
-		Method method;
-		try {
-			method = servletClass.getMethod("initializeBusParameters", Object.class);
-		} catch (Exception e) {
-			method = null;
+	public JettyStarter addBusInstance(StarterConfiguration conf) throws IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException {
+		for (String cfg : conf.config) {
+			ServletHolder servlet = new ServletHolder(conf.servletClass);
+			servlet.setDisplayName("BusServlet[" + null == cfg ? "DEFAULT" : cfg + "]");
+			servlet.setInitOrder(0);
+			if (null != cfg) servlet.setInitParameter("config-file", cfg);
+			if (null != conf.serverClass) servlet.setInitParameter("server-class", conf.serverClass.getName());
+			Method method;
+			try {
+				method = conf.servletClass.getMethod("initializeBusParameters", Object.class);
+			} catch (Exception e) {
+				method = null;
+			}
+			if (null != method) method.invoke(null, servlet);
+			context.addServlet(servlet, conf.context);
 		}
-		if (null != method) method.invoke(null, servlet);
-		context.addServlet(servlet, contextPath);
 		return this;
 	}
 
@@ -140,16 +147,7 @@ public class JettyStarter implements Runnable {
 		return null;
 	}
 
-	protected Server createServer(int port, int threads, boolean https) {
-		Server jetty = threads > 0 ? new Server(new QueuedThreadPool(threads)) : new Server();
-
-		if (https) jetty.addConnector(this.httpsConnector(jetty, port, 60000, new KeyStore("/Users/butfly/.keystore", "123456",
-				"123456")));
-		else jetty.addConnector(this.httpConnector(jetty, port, 60000));
-		return jetty;
-	}
-
-	protected Connector httpConnector(Server server, int port, long idle) {
+	protected void createServer(int port) {
 		HttpConfiguration conf = new HttpConfiguration();
 		conf.setSecureScheme("http");
 		conf.setSecurePort(port);
@@ -157,40 +155,76 @@ public class JettyStarter implements Runnable {
 
 		ServerConnector http = new NetworkTrafficServerConnector(server);
 		http.setPort(port);
-		http.setIdleTimeout(idle);
-		return http;
+		http.setIdleTimeout(DEFAULT_IDLE);
+		this.server.addConnector(http);
 	}
 
-	protected Connector httpsConnector(Server server, int port, long idle, KeyStore keyStore) {
-		HttpConfiguration conf = new HttpConfiguration();
-		conf.setSecureScheme("https");
-		conf.setSecurePort(8443);
-		conf.setOutputBufferSize(8 * 1024);
-		conf.addCustomizer(new SecureRequestCustomizer());
+	protected void createSSLServer(int port, int sslPort) {
+		// Setup SSL
+		SslContextFactory sslContextFactory = new SslContextFactory();
+		sslContextFactory.setKeyStorePath(System.getProperty("bus.keystore.path", "keystore.jks"));
+		sslContextFactory.setKeyStorePassword(System.getProperty("bus.keystore.password"));
+		sslContextFactory.setKeyManagerPassword(System.getProperty("bus.keymanager.password"));
 
-		SslContextFactory factory = new SslContextFactory();
-		factory.setKeyStorePath(keyStore.getPath());
-		factory.setKeyStorePassword(keyStore.getPassword());
-		factory.setKeyManagerPassword(keyStore.getManagerPassword());
+		// Two-way SSL
+		// sslContextFactory.setNeedClientAuth(true);
+		// sslContextFactory.setTrustStorePath(System.getProperty("bus.trust.keystore.path",
+		// "truststore.jks"));
+		// sslContextFactory.setTrustStorePassword(System.getProperty("bus.trust.keystore.password"));
 
-		ServerConnector https = new NetworkTrafficServerConnector(server, new SslConnectionFactory(factory,
-				HttpVersion.HTTP_1_1.asString()), factory);
-		https.setPort(port);
-		https.setIdleTimeout(idle);
+		// Setup HTTP Configuration
+		HttpConfiguration httpConf = new HttpConfiguration();
+		httpConf.setSecurePort(sslPort);
+		httpConf.setSecureScheme("https");
 
-		return https;
+		ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConf));
+		httpConnector.setName("unsecured"); // named connector
+		httpConnector.setPort(port);
+
+		// Setup HTTPS Configuration
+		HttpConfiguration httpsConf = new HttpConfiguration(httpConf);
+		httpsConf.addCustomizer(new SecureRequestCustomizer());
+
+		ServerConnector httpsConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, "http/1.1"),
+				new HttpConnectionFactory(httpsConf));
+		httpsConnector.setName("secured"); // named connector
+		httpsConnector.setPort(sslPort);
+
+		// Add connectors
+		server.setConnectors(new Connector[] { httpConnector, httpsConnector });
+
+		// Wire up contexts for secure handling to named connector
+		// String secureHosts[] = new String[] { "@secured" };
+
+		// Wire up context for unsecure handling to only
+		// the named 'unsecured' connector
+		ContextHandler redirectHandler = new ContextHandler();
+		redirectHandler.setContextPath("/");
+		redirectHandler.setHandler(new SecuredRedirectHandler());
+		redirectHandler.setVirtualHosts(new String[] { "@unsecured" });
+
+		// Establish all handlers that have a context
+		ContextHandlerCollection contextHandlers = new ContextHandlerCollection();
+		contextHandlers.setHandlers(new Handler[] { redirectHandler });
+
+		// Create server level handler tree
+		HandlerList handlers = new HandlerList();
+		handlers.addHandler(contextHandlers);
+		handlers.addHandler(new DefaultHandler()); // round things out
+
+		server.setHandler(handlers);
 	}
 
-	public static void main(String args[]) throws Exception {
+	public static void main(String... args) throws Exception {
 		net.butfly.albacore.logger.LoggerFactory.initialize();
 		StarterParser parser = new StarterParser(PosixParser.class);
 		CommandLine cmd = parser.parse(args);
 		if (null != cmd) {
 			StarterConfiguration conf = new StarterConfiguration(cmd);
 
-			JettyStarter j = new JettyStarter(conf.port, conf.thread);
-			j.addBusInstance(conf.context, conf.config, conf.resBase, conf.servletClass, conf.serverClass);
-			if (null != conf.jdbc) addJNDI(conf.jdbc);
+			JettyStarter j = new JettyStarter(conf);
+			j.addBusInstance(conf);
+			if (null != conf.jndi) addJNDI(conf.jndi);
 			j.run(conf.fork);
 		}
 	}
@@ -231,61 +265,94 @@ public class JettyStarter implements Runnable {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			this.options = this.options();
+			options = new Options();
+			this.options();
 		}
 
-		private Options options() {
-			Options options = new Options();
-			options.addOption("p", "port", true, "Port of bus server (default 9876)");
-			options.addOption("t", "thread", true,
-					"Thread pool size of bus server (default 10, -1 for no thread pool in server)");
-			options.addOption("c", "context", true, "Context path of bus server (default \"" + DEFAULT_CONTEXT_PATH + "\")");
-			options.addOption("f", "config", true, "Config file of bus (default bus.xml in root of classpath)");
-			options.addOption("d", "jndi", true, "Jndi context definition file (default no jndi resource attached)");
-			options.addOption("k", "fork", true,
-					"Whether the bus server run in a forked thread (not daemon, the server will be stopped on main thread stopping, default false)");
+		private void options() {
+			options.addOption("p", "nonsecure", false,
+					"If presented, bus server will open http service (non-secure service) only");
+			options.addOption("k", "fork", false,
+					"If presented, bus server will run in a forked threads (not daemon, the server will be stopped on main threads stopping)");
+
 			options.addOption("h", "help", false, "Print help for command line sterter of bus server");
-			return options;
 		}
 
 		public CommandLine parse(String[] args) throws ParseException {
-			CommandLine cmd = this.parser.parse(this.options, args);
+			CommandLine cmd = this.parser.parse(this.options, args, true);
 			if (cmd.hasOption('h')) {
-				StringBuilder footer = new StringBuilder();
-				footer.append("Environment variables: \n");
-				footer.append("    bus.server.class=<Class name for the core bus instance>\n");
-				footer.append("        (Default: net.butfly.bus.Bus)\n");
-				footer.append("    bus.server.base=<Static resource root for bus server, such as index.html>\n");
-				footer.append("        (Default: none)");
-				footer.append("    bus.servlet.class=<Class name for the servlet of container of bus deployment>\n");
-				footer.append("        (Default: net.butfly.bus.deploy.BusJSONServlet)");
-				new HelpFormatter().printHelp("java <" + Thread.currentThread().getStackTrace()[1].getClassName()
-						+ "> [-option]", "", options, footer.toString());
+				PrintWriter pw = new PrintWriter(System.out);
+				HelpFormatter f = new HelpFormatter();
+				f.setWidth(94);
+				int width = f.getWidth();
+				String className = Thread.currentThread().getStackTrace()[2].getClassName();
+				f.printUsage(pw, width, "java " + className + " [OPTION] [CONFIG_FILE ...]");
+				f.printWrapped(pw, width, "Start bus server(s) with CONFIG_FILE(s) (default bus.xml in root of classpath).");
+
+				this.printWrapped(f, pw, "Example", "java -Dbus.jndi=context.xml " + className + " -k bus-server.xml");
+				this.printWrapped(f, pw, "Options", null);
+				f.printOptions(pw, width, options, f.getLeftPadding(), f.getDescPadding());
+				this.printWrapped(f, pw, "Environment variables", null);
+				this.printWrapped(f, pw, "bus.port", "Port of bus server (default " + DEFAULT_PORT + ")");
+				this.printWrapped(f, pw, "bus.port.secure", "Secure port of bus server (default " + DEFAULT_SECURE_PORT + ")");
+				this.printWrapped(f, pw, "bus.threadpool.size", "Thread pool size of bus server (default "
+						+ DEFAULT_THREAD_POOL_SIZE + ", -1 for no threads pool)");
+				this.printWrapped(f, pw, "bus.server.context", "Context path of bus server (default " + DEFAULT_CONTEXT_PATH
+						+ ")");
+				this.printWrapped(f, pw, "bus.jndi", "Jndi context definition file (default no jndi resource attached)");
+				this.printWrapped(f, pw, "bus.server.base",
+						"Static resource root for bus server, such as index.html (default none)");
+				this.printWrapped(f, pw, "bus.server.class",
+						"Class name for the core bus instance (default net.butfly.bus.Bus)");
+				this.printWrapped(f, pw, "bus.servlet.class",
+						"Class name for the servlet of container of bus deployment (default net.butfly.bus.deploy.BusJSONServlet)");
+				pw.flush();
 				return null;
 			} else return cmd;
+		}
+
+		private void printWrapped(final HelpFormatter f, final PrintWriter pw, String prefix, String desc) {
+			prefix = prefix + ": ";
+			if (desc != null) prefix = prefix + "\n\t" + desc;
+			f.printWrapped(pw, f.getWidth(), 8, prefix);
 		}
 	}
 
 	private static class StarterConfiguration {
-		private String resBase;
+		private boolean secure;
 		private int port;
-		private int thread;
-		private String context;
-		private String config;
-		private String jdbc;
+		private int sslPort;
+		private String resBase;
+		private int threads;
 		private boolean fork;
+		private String jndi;
+		private String context;
+		private String[] config;
 		private Class<? extends BusServlet> servletClass;
 		private Class<? extends Bus> serverClass;
 
-		@SuppressWarnings("unchecked")
 		public StarterConfiguration(CommandLine cmd) {
-			this.port = cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : DEFAULT_PORT;
-			this.thread = cmd.hasOption('t') ? Integer.parseInt(cmd.getOptionValue('t')) : DEFAULT_THREAD_POOL_SIZE;
-			this.context = cmd.hasOption('c') ? cmd.getOptionValue('c') : DEFAULT_CONTEXT_PATH;
-			this.config = cmd.hasOption('f') ? cmd.getOptionValue('f') : null;
-			this.jdbc = cmd.hasOption('d') ? cmd.getOptionValue('d') : null;
-			this.fork = cmd.hasOption('k') ? Boolean.parseBoolean(cmd.getOptionValue('k')) : false;
+			this.config = cmd.getArgs();
+			this.secure = !cmd.hasOption('p');
+			this.fork = cmd.hasOption('k');
+			this.loadSystemProperties();
+		}
+
+		public StarterConfiguration(String[] config, boolean fork) {
+			this.config = config;
+			this.fork = fork;
+			this.loadSystemProperties();
+		}
+
+		@SuppressWarnings("unchecked")
+		private void loadSystemProperties() {
+			this.port = Integer.parseInt(System.getProperty("bus.port", DEFAULT_PORT));
+			this.sslPort = Integer.parseInt(System.getProperty("bus.port.secure", DEFAULT_SECURE_PORT));
+			this.threads = Integer.parseInt(System.getProperty("bus.threadpool.size", DEFAULT_THREAD_POOL_SIZE));
+			this.context = System.getProperty("bus.server.context", DEFAULT_CONTEXT_PATH);
+			this.jndi = System.getProperty("bus.jndi");
 			this.resBase = System.getProperty("bus.server.base");
+
 			try {
 				// cmd.getOptionValue('e');
 				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));
@@ -298,6 +365,40 @@ public class JettyStarter implements Runnable {
 			} catch (Throwable t) {
 				this.serverClass = Bus.class;
 			}
+
+		}
+	}
+
+	private static class BusConfiguration {
+		private String[] config;
+		private Class<? extends BusServlet> servletClass;
+		private Class<? extends Bus> serverClass;
+
+		public BusConfiguration(CommandLine cmd) {
+			this.config = cmd.getArgs();
+			this.loadSystemProperties();
+		}
+
+		public BusConfiguration(String[] config) {
+			this.config = config;
+			this.loadSystemProperties();
+		}
+
+		@SuppressWarnings("unchecked")
+		private void loadSystemProperties() {
+			try {
+				// cmd.getOptionValue('e');
+				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));
+			} catch (Throwable t) {
+				this.servletClass = scanServletClass();
+			}
+			try {
+				// cmd.getOptionValue('b');
+				this.serverClass = (Class<? extends Bus>) Class.forName(System.getProperty("bus.server.class"));
+			} catch (Throwable t) {
+				this.serverClass = Bus.class;
+			}
+
 		}
 	}
 }

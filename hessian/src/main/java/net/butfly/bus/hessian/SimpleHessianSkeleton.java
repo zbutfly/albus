@@ -8,7 +8,7 @@ import com.caucho.services.server.AbstractSkeleton;
 import com.caucho.services.server.ServiceContext;
 
 /**
- * Proxy class for Hessian services.
+ * Proxy class for HessianSerializer services.
  */
 public class SimpleHessianSkeleton extends AbstractSkeleton implements HessianSkeleton {
 	public SimpleHessianSkeleton(Class<?> apiClass) {
@@ -23,7 +23,7 @@ public class SimpleHessianSkeleton extends AbstractSkeleton implements HessianSk
 		// the call type first
 		in.skipOptionalCall();
 
-		// Hessian 1.0 backward compatibility
+		// HessianSerializer 1.0 backward compatibility
 		String header;
 		while ((header = in.readHeader()) != null) {
 			Object value = in.readObject();

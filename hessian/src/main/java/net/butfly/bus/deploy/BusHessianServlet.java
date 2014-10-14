@@ -31,9 +31,9 @@ public class BusHessianServlet extends SimpleHessianServlet {
 		if (null != factoryClasses) for (String className : factoryClasses.split(","))
 			try {
 				super.getSerializerFactory().addFactory((AbstractSerializerFactory) Class.forName(className).newInstance());
-				logger.trace("Hessian servlet load serializer factory: " + className);
+				logger.trace("HessianSerializer servlet load serializer factory: " + className);
 			} catch (Exception e) {
-				logger.warn("Hessian servlet load serializer factory failure: " + className);
+				logger.warn("HessianSerializer servlet load serializer factory failure: " + className);
 			}
 		try {
 			logger.trace("Bus starting...");

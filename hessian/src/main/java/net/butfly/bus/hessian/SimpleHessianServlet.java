@@ -24,7 +24,7 @@ package net.butfly.bus.hessian;
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "Hessian", "Resin", and "Caucho" must not be used to
+ * 4. The names "HessianSerializer", "Resin", and "Caucho" must not be used to
  *    endorse or promote products derived from this software without prior
  *    written permission. For written permission, please contact
  *    info@caucho.com.
@@ -87,7 +87,7 @@ public abstract class SimpleHessianServlet extends BusServlet {
 
 	@Override
 	public String getServletInfo() {
-		return "Simple Hessian Servlet";
+		return "Simple HessianSerializer Servlet";
 	}
 
 	public SerializerFactory getSerializerFactory() {
@@ -171,7 +171,7 @@ public abstract class SimpleHessianServlet extends BusServlet {
 			in.readCall();
 			return in;
 		default:
-			throw new IllegalStateException(header + " is an unknown Hessian call");
+			throw new IllegalStateException(header + " is an unknown HessianSerializer call");
 		}
 
 	}
@@ -185,7 +185,7 @@ public abstract class SimpleHessianServlet extends BusServlet {
 		case HESSIAN_2:
 			return _hessianFactory.createHessian2Output(os);
 		default:
-			throw new IllegalStateException(header + " is an unknown Hessian call");
+			throw new IllegalStateException(header + " is an unknown HessianSerializer call");
 		}
 	}
 

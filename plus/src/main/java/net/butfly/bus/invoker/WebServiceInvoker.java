@@ -5,15 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.http.HttpClientFactory;
 import net.butfly.bus.Constants;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.auth.Token;
-import net.butfly.bus.config.invoker.HessianInvokerConfig;
+import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.deploy.entry.EntryPoint;
 import net.butfly.bus.ext.AsyncRequest;
-import net.butfly.bus.hessian.ContinuousHessianProxyFactory;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,22 +24,18 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
 import com.caucho.hessian.io.AbstractSerializerFactory;
 
-public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> implements Invoker<HessianInvokerConfig> {
-	private static Logger logger = LoggerFactory.getLogger(HessianInvoker.class);
+public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerConfig> implements Invoker<WebServiceInvokerConfig> {
+	private static Logger logger = LoggerFactory.getLogger(WebServiceInvoker.class);
 	private static long DEFAULT_TIMEOUT = 5000;
 	private String path;
 	private long timeout;
-	private List<Class<? extends AbstractSerializerFactory>> translators;
 
-	private HessianProxyFactory factory;
-	private EntryPoint proxy;
-	private ContinuousHessianProxyFactory asyncFactory;
+	private HttpClient client = HttpClientFactory.createSafeHttpClient();
 
 	@Override
-	public void initialize(HessianInvokerConfig config, Token token) {
+	public void initialize(WebServiceInvokerConfig config, Token token) {
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
-		this.translators = config.getTypeTranslators();
 		super.initialize(config, token);
 
 		this.factory = new HessianProxyFactory();
@@ -100,5 +98,11 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 
 	protected Response singleInvoke(Request request) {
 		return proxy.invoke(request);
+	}
+
+	private void initHttpClient() {
+        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
+                socketFactoryRegistry, connFactory, dnsResolver);
+
 	}
 }

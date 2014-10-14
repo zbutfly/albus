@@ -4,9 +4,12 @@ import net.butfly.bus.deploy.JettyStarter;
 
 public class CometServer {
 	public static void main(String[] args) throws Exception {
-		JettyStarter.main(new String[] { "-h" });
+		JettyStarter.main("-h");
 		System.setProperty("bus.server.class", "net.butfly.bus.ext.ContinuousBus");
-		System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.BusHessianStreamingServlet");
-		JettyStarter.main(new String[] { "-f", "bus-comet-server.xml" });
+		System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.BusHessianServlet");
+		System.setProperty("bus.keystore.password", "password");
+		System.setProperty("bus.keymanager.password", "password");
+//		System.setProperty("bus.trust.keystore.password", "");
+		JettyStarter.main("bus-comet-server.xml");
 	}
 }
