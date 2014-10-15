@@ -28,9 +28,9 @@ import net.butfly.bus.util.TXUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BusWSServlet extends BusServlet {
+public class BusWebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
-	private static Logger logger = LoggerFactory.getLogger(BusWSServlet.class);
+	private static Logger logger = LoggerFactory.getLogger(BusWebServiceServlet.class);
 	private Serializer serializer;
 	private ServerWrapper servers;
 	private Router router;
