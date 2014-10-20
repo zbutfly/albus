@@ -6,10 +6,6 @@ import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.ext.AsyncRequest;
 
 public abstract class AbstractRemoteInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
-	public AbstractRemoteInvoker() {
-		this.continuousSupported = false;
-	}
-
 	@Override
 	public Object[] getBeanList() {
 		return new Object[0];

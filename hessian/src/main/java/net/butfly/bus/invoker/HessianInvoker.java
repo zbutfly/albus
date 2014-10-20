@@ -47,16 +47,13 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 		try {
 			this.proxy = (EntryPoint) this.factory.create(EntryPoint.class, path);
 		} catch (MalformedURLException ex) {
-			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "HessianSerializer url [" + path + "] invalid.", ex);
+			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION,
+					"HessianSerializer url [" + path + "] invalid.", ex);
 		}
-
-		if (this.continuousSupported()) {
-			this.asyncFactory = new ContinuousHessianProxyFactory();
-			// this.asyncFactory.setConnectTimeout(timeout);
-			for (AbstractSerializerFactory s : this.createSerializers())
-				this.asyncFactory.getSerializerFactory().addFactory(s);
-		}
-
+		this.asyncFactory = new ContinuousHessianProxyFactory();
+		// this.asyncFactory.setConnectTimeout(timeout);
+		for (AbstractSerializerFactory s : this.createSerializers())
+			this.asyncFactory.getSerializerFactory().addFactory(s);
 	}
 
 	private List<AbstractSerializerFactory> createSerializers() {
@@ -77,23 +74,22 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 		try {
 			return super.invoke(request);
 		} catch (HessianConnectionException ex) {
-			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "HessianSerializer connection [" + path + "] invalid.",
-					ex);
+			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "HessianSerializer connection [" + path
+					+ "] invalid.", ex);
 		} catch (HessianRuntimeException ex) {
-			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "HessianSerializer service [" + path + "] invalid.",
-					ex.getCause());
+			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "HessianSerializer service [" + path
+					+ "] invalid.", ex.getCause());
 		}
 
 	}
 
 	protected void continuousInvoke(AsyncRequest request) {
-		if (!this.continuousSupported())
-			throw new UnsupportedOperationException("Invoker not configurated as continuous supported.");
 		EntryPoint proxy;
 		try {
 			proxy = (EntryPoint) this.asyncFactory.create(EntryPoint.class, path, request);
 		} catch (MalformedURLException ex) {
-			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION, "HessianSerializer url [" + path + "] invalid.", ex);
+			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION,
+					"HessianSerializer url [" + path + "] invalid.", ex);
 		}
 		proxy.invoke(request.request(this.token));
 	}

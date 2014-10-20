@@ -2,17 +2,18 @@ package net.butfly.bus.config.invoker;
 
 import java.util.List;
 
-import com.caucho.hessian.io.AbstractSerializerFactory;
-
-import net.butfly.albacore.utils.serialize.HessianSerializer;
+import net.butfly.albacore.utils.serialize.JSONSerializer;
 import net.butfly.albacore.utils.serialize.Serializer;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
+
+import com.caucho.hessian.io.AbstractSerializerFactory;
 
 public class WebServiceInvokerConfig extends InvokerConfigBean {
 	private static final long serialVersionUID = -7791541622206850647L;
 	private String path;
-	private long timeout;
+	private int timeout;
 	private List<Class<? extends AbstractSerializerFactory>> typeTranslators;
+	private Serializer serializer;
 
 	public List<Class<? extends AbstractSerializerFactory>> getTypeTranslators() {
 		return typeTranslators;
@@ -22,8 +23,6 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 		this.typeTranslators = typeTranslators;
 	}
 
-	private Class<? extends Serializer> serializer;
-
 	public String getPath() {
 		return path;
 	}
@@ -32,11 +31,11 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 		this.path = path;
 	}
 
-	public long getTimeout() {
+	public int getTimeout() {
 		return timeout;
 	}
 
-	public void setTimeout(long timeout) {
+	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}
 
@@ -50,17 +49,12 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 		return sb.toString();
 	}
 
-	public Class<? extends Serializer> getSerializer() {
-		return this.serializer;
+	public Serializer getSerializer() {
+		return this.serializer == null ? new JSONSerializer() : this.serializer;
 	}
 
-	@SuppressWarnings("unchecked")
-	public void setSerializer(String serializerClassname) {
-		try {
-			this.serializer = (Class<? extends Serializer>) Thread.currentThread().getContextClassLoader()
-					.loadClass(serializerClassname);
-		} catch (Exception e) {
-			this.serializer = HessianSerializer.class;
-		}
+	public void setSerializer(String serializerClassname) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		this.serializer = (Serializer) Class.forName(serializerClassname).newInstance();
 	}
 }

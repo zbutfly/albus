@@ -13,6 +13,4 @@ public interface Invoker<C extends InvokerConfigBean> {
 	Object[] getBeanList();
 
 	String[] getTXCodes();
-
-	boolean continuousSupported();
 }

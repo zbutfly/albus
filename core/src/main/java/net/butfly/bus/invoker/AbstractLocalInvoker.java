@@ -19,10 +19,6 @@ import net.butfly.bus.util.async.HandledBySignal;
 import net.butfly.bus.util.async.Signal;
 
 public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
-	public AbstractLocalInvoker() {
-		this.continuousSupported = true;
-	}
-
 	public Method getMethod(String code, String version) {
 		TXImpl key = this.scanTXInPools(TXUtils.TXImpl(code, version));
 		if (null == key)
@@ -46,9 +42,6 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	}
 
 	private void continuousInvoke(AsyncRequest areq) {
-		if (!this.continuousSupported())
-			throw new UnsupportedOperationException("Invoker not configurated as continuous supported.");
-
 		try {
 			AsyncInvokeUtils.handleBySignal(new HandledBySignal(areq) {
 				@Override

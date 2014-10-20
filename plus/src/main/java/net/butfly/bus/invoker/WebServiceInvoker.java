@@ -3,19 +3,21 @@ package net.butfly.bus.invoker;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.http.HttpClientUtils;
-import net.butfly.albacore.utils.serialize.HessianSerializer;
+import net.butfly.albacore.utils.http.HTTPAsyncUtils;
+import net.butfly.albacore.utils.http.HTTPUtils;
+import net.butfly.albacore.utils.serialize.HTTPStreamingSupport;
 import net.butfly.albacore.utils.serialize.Serializer;
+import net.butfly.albacore.utils.serialize.SerializerFactorySupport;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.ext.AsyncRequest;
 
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -31,11 +33,9 @@ import com.caucho.hessian.io.AbstractSerializerFactory;
 public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerConfig> implements
 		Invoker<WebServiceInvokerConfig> {
 	private static Logger logger = LoggerFactory.getLogger(WebServiceInvoker.class);
-	private static long DEFAULT_TIMEOUT = 5000;
+	private static int DEFAULT_TIMEOUT = 5000;
 	private String path;
-	private long timeout;
-	private AbstractSerializerFactory[] translators;
-	// private List<Class<? extends AbstractSerializerFactory>> translators;
+	private int timeout;
 
 	private Serializer serializer;
 	private CloseableHttpClient client;
@@ -45,60 +45,51 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	public void initialize(WebServiceInvokerConfig config, Token token) {
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
-		try {
-			this.serializer = config.getSerializer().newInstance();
-		} catch (Exception e) {
-			this.serializer = new HessianSerializer();
-		}
-		this.translators = this.createSerializers(config.getTypeTranslators());
+		this.serializer = config.getSerializer();
+		if (!(this.serializer instanceof HTTPStreamingSupport) || !((HTTPStreamingSupport) this.serializer).supportHTTPStream())
+			throw new SystemException("", "Serializer should support HTTP streaming mode.");
+		if (this.serializer instanceof SerializerFactorySupport)
+			for (Class<? extends AbstractSerializerFactory> f : config.getTypeTranslators())
+				try {
+					((SerializerFactorySupport) this.serializer).addFactory(f.newInstance());
+				} catch (Exception e) {
+					logger.error("Serializer factory instance construction failure for class: " + f.getName(), e);
+					logger.error("Invoker initialization continued but the factory is ignored.");
+				}
 
 		super.initialize(config, token);
 
-		if (this.continuousSupported()) {
-			this.asyncClient = HttpClientUtils.createAsync();
-		} else {
-			this.client = HttpClientUtils.create();
-		}
-
-	}
-
-	private AbstractSerializerFactory[] createSerializers(List<Class<? extends AbstractSerializerFactory>> translators) {
-		List<AbstractSerializerFactory> list = new ArrayList<AbstractSerializerFactory>(translators.size());
-		for (Class<? extends AbstractSerializerFactory> clazz : translators) {
-			try {
-				list.add(clazz.newInstance());
-			} catch (Exception ex) {
-				logger.error("Type translator for hessian [" + clazz.getName() + "] invalid, ignored.");
-			}
-		}
-		return list.toArray(new AbstractSerializerFactory[list.size()]);
+		this.asyncClient = HTTPAsyncUtils.create();
+		this.client = HTTPUtils.createFull(this.timeout, -1);
 	}
 
 	protected void continuousInvoke(AsyncRequest request) {}
 
 	protected Response singleInvoke(Request request) {
-		HttpPost httppost = new HttpPost(this.path);
+		HttpPost postReq = new HttpPost(this.path);
+		postReq.setHeader("X-BUS-TX", request.code());
+		postReq.setHeader("X-BUS-Version", request.version());
+		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
+			postReq.setHeader("X-BUS-" + ctx.getKey(), ctx.getValue());
+		postReq.setHeader(HttpHeaders.CONTENT_TYPE, ((HTTPStreamingSupport) this.serializer).getOutputContentType());
+
 		PipedOutputStream os = new PipedOutputStream();
 		try {
 			this.serializer.write(os, request.arguments());
-			InputStreamEntity reqEntity = new InputStreamEntity(new PipedInputStream(os), -1,
-					ContentType.APPLICATION_OCTET_STREAM);
-			reqEntity.setChunked(true);
-			httppost.setEntity(reqEntity);
-			System.out.println("Executing request: " + httppost.getRequestLine());
-			CloseableHttpResponse response = this.client.execute(httppost);
+			InputStreamEntity e = new InputStreamEntity(new PipedInputStream(os), -1, ContentType.APPLICATION_OCTET_STREAM);
+			e.setChunked(true);
+			postReq.setEntity(e);
+
+			CloseableHttpResponse postResp = this.client.execute(postReq);
 			try {
-				System.out.println("----------------------------------------");
-				System.out.println(response.getStatusLine());
-				Response r = this.serializer.read(response.getEntity().getContent(), Response.class);
-				EntityUtils.consume(response.getEntity());
+				Response r = this.serializer.read(postResp.getEntity().getContent(), Response.class);
+				EntityUtils.consume(postResp.getEntity());
 				return r;
 			} finally {
-				response.close();
+				postResp.close();
 			}
 		} catch (IOException e) {
 			throw new SystemException("", e);
 		}
-
 	}
 }

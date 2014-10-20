@@ -216,7 +216,7 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		protected Response doExecute(Request request) {
 			InvokerBean ivkb = Bus.this.router.route(request.code(), Bus.this.config.getInvokers());
 			Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
-			if (ivk.continuousSupported() && (request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
+			if ((request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
 				if (!(Bus.this instanceof ContinuousBus))
 					throw new UnsupportedOperationException(
 							"Only async routine supports continuous invoking, use ContinuousBus.xxx(..., callback).");
@@ -267,5 +267,5 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_COMMON_CONFIG);
 		if (l.load() != null) return l;
 		throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid: " + configLocation);
-	} 
+	}
 }

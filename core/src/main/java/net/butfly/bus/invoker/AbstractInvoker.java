@@ -27,13 +27,6 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected AuthFacade auth;
 	protected Token token;
 
-	protected boolean continuousSupported;
-
-	@Override
-	public boolean continuousSupported() {
-		return continuousSupported;
-	}
-
 	@Override
 	public String[] getTXCodes() {
 		return TX_POOL.keySet().toArray(new String[TX_POOL.keySet().size()]);
@@ -42,7 +35,6 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	@Override
 	public void initialize(C config, Token token) {
 		this.token = token;
-		this.continuousSupported = config == null || "true".equals(config.getContinuousSupported());
 		if (this.METHOD_POOL.isEmpty()) try {
 			logger.trace("Invoker parsing...");
 			for (Object bean : getBeanList()) {
