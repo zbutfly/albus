@@ -1,4 +1,4 @@
-package net.butfly.bus;
+package net.butfly.bus.argument;
 
 public interface Constants {
 	public enum Side {

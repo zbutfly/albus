@@ -1,4 +1,4 @@
-package net.butfly.bus;
+package net.butfly.bus.argument;
 
 import java.io.Serializable;
 import java.util.HashMap;

@@ -6,7 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
-import net.butfly.bus.ext.AsyncRequest;
+import net.butfly.bus.argument.AsyncRequest;
 
 import com.caucho.hessian.client.HessianConnectionFactory;
 import com.caucho.hessian.client.HessianProxyFactory;

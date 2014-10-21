@@ -11,8 +11,8 @@ import java.util.Set;
 import javax.naming.NamingException;
 
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.Bus;
-import net.butfly.bus.Constants;
+import net.butfly.bus.BasicBus;
+import net.butfly.bus.argument.Constants;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.cli.CommandLine;
@@ -81,7 +81,7 @@ public class JettyStarter implements Runnable {
 			running = true;
 			Thread th = new Thread(this);
 			th.setDaemon(true);
-			th.setName("Bus-Server-Jetty-Starter-Thread");
+			th.setName("BasicBus-Server-Jetty-Starter-Thread");
 			th.start();
 			while (running)
 				try {
@@ -303,7 +303,7 @@ public class JettyStarter implements Runnable {
 				this.printWrapped(f, pw, "bus.server.base",
 						"Static resource root for bus server, such as index.html (default none)");
 				this.printWrapped(f, pw, "bus.server.class",
-						"Class name for the core bus instance (default net.butfly.bus.Bus)");
+						"Class name for the core bus instance (default net.butfly.bus.BasicBus)");
 				this.printWrapped(f, pw, "bus.servlet.class",
 						"Class name for the servlet of container of bus deployment (default net.butfly.bus.deploy.BusJSONServlet)");
 				pw.flush();
@@ -329,7 +329,7 @@ public class JettyStarter implements Runnable {
 		private String context;
 		private String[] config;
 		private Class<? extends BusServlet> servletClass;
-		private Class<? extends Bus> serverClass;
+		private Class<? extends BasicBus> serverClass;
 
 		public StarterConfiguration(CommandLine cmd) {
 			this.config = cmd.getArgs();
@@ -361,9 +361,9 @@ public class JettyStarter implements Runnable {
 			}
 			try {
 				// cmd.getOptionValue('b');
-				this.serverClass = (Class<? extends Bus>) Class.forName(System.getProperty("bus.server.class"));
+				this.serverClass = (Class<? extends BasicBus>) Class.forName(System.getProperty("bus.server.class"));
 			} catch (Throwable t) {
-				this.serverClass = Bus.class;
+				this.serverClass = BasicBus.class;
 			}
 
 		}
@@ -372,7 +372,7 @@ public class JettyStarter implements Runnable {
 	private static class BusConfiguration {
 		private String[] config;
 		private Class<? extends BusServlet> servletClass;
-		private Class<? extends Bus> serverClass;
+		private Class<? extends BasicBus> serverClass;
 
 		public BusConfiguration(CommandLine cmd) {
 			this.config = cmd.getArgs();
@@ -394,9 +394,9 @@ public class JettyStarter implements Runnable {
 			}
 			try {
 				// cmd.getOptionValue('b');
-				this.serverClass = (Class<? extends Bus>) Class.forName(System.getProperty("bus.server.class"));
+				this.serverClass = (Class<? extends BasicBus>) Class.forName(System.getProperty("bus.server.class"));
 			} catch (Throwable t) {
-				this.serverClass = Bus.class;
+				this.serverClass = BasicBus.class;
 			}
 
 		}

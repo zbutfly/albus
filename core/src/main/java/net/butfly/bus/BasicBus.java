@@ -1,17 +1,20 @@
 package net.butfly.bus;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.Constants.Side;
+import net.butfly.bus.argument.AsyncRequest;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.argument.Response;
+import net.butfly.bus.argument.TX;
+import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
 import net.butfly.bus.config.ConfigParser;
@@ -20,8 +23,6 @@ import net.butfly.bus.config.loader.ClasspathConfigLoad;
 import net.butfly.bus.config.parser.XMLConfigParser;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
-import net.butfly.bus.ext.AsyncRequest;
-import net.butfly.bus.ext.ContinuousBus;
 import net.butfly.bus.facade.InternalFacade;
 import net.butfly.bus.filter.Filter;
 import net.butfly.bus.filter.FilterBase;
@@ -33,14 +34,14 @@ import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.RouterBase;
 import net.butfly.bus.policy.SingleRouter;
+import net.butfly.bus.support.InvokeSupport;
 import net.butfly.bus.util.TXUtils;
 import net.butfly.bus.util.async.Signal;
 
-public class Bus implements InternalFacade, Routeable, ClientFacade {
+public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 	private static final long serialVersionUID = -4835302344711170159L;
 
 	protected final String id;
-	protected final Side side;
 	protected Config config;
 	protected Router router;
 	protected FilterChain chain;
@@ -51,25 +52,18 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 
 	/* Routine for both client and server */
 
-	public Bus() {
-		this(null, Side.CLIENT);
+	public BasicBus() {
+		this(null);
 	}
 
-	public Bus(String configLoString) {
-		this(configLoString, Side.CLIENT);
-	}
-
-	public Bus(Side side) {
-		this(null, side);
-	}
-
-	public Bus(String configLocation, Side side) {
-		this.side = side;
-		this.initialize(configLocation);
+	public BasicBus(String configLocation) {
+		this.loader = scanLoader(configLocation);
+		this.parser = new XMLConfigParser(this.loader.load());
 		this.config = parser.parse();
+		if (this.config.side() == Side.CLIENT) Context.initialize(true);
 		this.router = RouterBase.createRouter(this.config);
 		if (this.router == null) this.router = new SingleRouter();
-		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter(), this.side);
+		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter(), this.config.side());
 		this.id = this.config.getBusID();
 
 		// initialize tx supporting status
@@ -95,7 +89,7 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 
 	@SuppressWarnings("rawtypes")
 	public Class<?>[] getParameterTypes(String code, String version) {
-		InvokerBean ivkb = Bus.this.router.route(code, Bus.this.config.getInvokers());
+		InvokerBean ivkb = BasicBus.this.router.route(code, BasicBus.this.config.getInvokers());
 		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by request.");
@@ -129,13 +123,8 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 
 	/* Routines for client */
 	@Override
-	public <F extends Facade> F getService(Class<F> facadeClass) {
-		return getService(facadeClass, null);
-	}
-
-	@Override
 	@SuppressWarnings("unchecked")
-	public <F extends Facade> F getService(Class<F> facadeClass, Map<String, Serializable> context) {
+	public <F extends Facade> F getService(Class<F> facadeClass) {
 		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass }, new ServiceProxy());
 	}
 
@@ -151,16 +140,19 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		return (T) resp.result();
 	}
 
-	private class ServiceProxy implements InvocationHandler {
+	protected class ServiceProxy implements InvocationHandler {
 		public Object invoke(Object obj, Method method, Object[] args) {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
 				Request request = new Request(tx.value(), tx.version(), args);
-				Response response = Bus.this.invoke(request);
+				Response response = this.invoke(request);
 				return response.result();
 			} else throw new SystemException(Constants.UserError.TX_NOT_EXIST, "Request tx code not found on method ["
 					+ method.toString() + "].");
+		}
 
+		protected Response invoke(Request request) {
+			return BasicBus.this.invoke(request);
 		}
 	}
 
@@ -214,12 +206,12 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		 * @return
 		 */
 		protected Response doExecute(Request request) {
-			InvokerBean ivkb = Bus.this.router.route(request.code(), Bus.this.config.getInvokers());
+			InvokerBean ivkb = BasicBus.this.router.route(request.code(), BasicBus.this.config.getInvokers());
 			Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
 			if ((request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
-				if (!(Bus.this instanceof ContinuousBus))
+				if (!(BasicBus.this instanceof RepeatBus))
 					throw new UnsupportedOperationException(
-							"Only async routine supports continuous invoking, use ContinuousBus.xxx(..., callback).");
+							"Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
 				ivk.invoke(request);
 				throw new IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
 			} else return ivk.invoke(request);
@@ -227,23 +219,11 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 
 	}
 
-	/**
-	 * @param configLocation
-	 * 
-	 * @TODO: enable multiply configuration styles.
-	 * @TODO: check debug to determinate whether to load internal configuration.
-	 */
-	private void initialize(String configLocation) {
-		if (this.side == Side.CLIENT) Context.initialize(true);
-		this.loader = scanLoader(configLocation);
-		this.parser = new XMLConfigParser(this.loader.load());
-	}
-
 	private ConfigLoader scanLoader(String configLocation) {
 		ConfigLoader l = new ClasspathConfigLoad(configLocation);
 		if (l.load() != null) return l;
 		// load default
-		switch (this.side) {
+		switch (this.config.side()) {
 		case CLIENT:
 			l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_CLIENT_CONFIG);
 			break;
@@ -255,7 +235,7 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_COMMON_CONFIG);
 		if (l.load() != null) return l;
 		// internal config
-		switch (this.side) {
+		switch (this.config.side()) {
 		case CLIENT:
 			l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_CLIENT_CONFIG);
 			break;
@@ -266,6 +246,6 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 		if (l.load() != null) return l;
 		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_COMMON_CONFIG);
 		if (l.load() != null) return l;
-		throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid: " + configLocation);
+		throw new SystemException(Constants.UserError.CONFIG_ERROR, "BasicBus configurations invalid: " + configLocation);
 	}
 }

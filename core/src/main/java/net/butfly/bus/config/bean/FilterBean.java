@@ -3,7 +3,7 @@ package net.butfly.bus.config.bean;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Constants;
+import net.butfly.bus.argument.Constants;
 import net.butfly.bus.filter.Filter;
 
 public class FilterBean extends ConfigBean {

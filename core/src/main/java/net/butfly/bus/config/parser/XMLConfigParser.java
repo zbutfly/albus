@@ -12,7 +12,8 @@ import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.Constants;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigParser;
@@ -43,16 +44,17 @@ public class XMLConfigParser extends ConfigParser {
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
 		config.setBusID(this.root.attributeValue("id"));
+		config.side(Side.valueOf(this.root.attributeValue("side", "CLIENT")));
 		return config;
 	}
 
 	public XMLConfigParser(InputStream source) {
 		super();
-		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.");
+		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "BasicBus configurations invalid.");
 		try {
 			this.document = new SAXReader().read(source);
 		} catch (DocumentException e) {
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.", e);
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "BasicBus configurations invalid.", e);
 		}
 		this.root = this.document.getRootElement();
 	}

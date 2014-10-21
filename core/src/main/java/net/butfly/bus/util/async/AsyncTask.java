@@ -2,8 +2,8 @@ package net.butfly.bus.util.async;
 
 import java.util.concurrent.Callable;
 
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.argument.Response;
 import net.butfly.bus.context.Context;
 
 @Deprecated

@@ -1,13 +1,13 @@
 package net.butfly.bus.comet;
 
 import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
-import net.butfly.bus.Bus;
+import net.butfly.bus.BasicBus;
+import net.butfly.bus.CallbackBus;
+import net.butfly.bus.RepeatBus;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.ext.CallbackBus;
-import net.butfly.bus.ext.ContinuousBus;
 
 public class CometClient {
 	public static void main(String args[]) throws Exception {
@@ -17,7 +17,7 @@ public class CometClient {
 
 	void normal() {
 		// final signal sig = new signal();
-		Bus client = new Bus("bus-comet-client.xml");
+		BasicBus client = new BasicBus("bus-comet-client.xml");
 		Context.sourceAppID("CometClientTest");
 		Context.token(new Token("user", "pass"));
 		CometFacade comet = client.getService(CometFacade.class);
@@ -36,7 +36,7 @@ public class CometClient {
 	};
 
 	void continuous() {
-		ContinuousBus client = new ContinuousBus("bus-comet-client.xml");
+		RepeatBus client = new RepeatBus("bus-comet-client.xml");
 		CometFacade comet = client.getService(CometFacade.class, callback);
 		CometEchoReponse echo = comet.continuableEcho1("hello, world!");
 		if (echo != null) System.err.println("Should be null: " + echo.toString());

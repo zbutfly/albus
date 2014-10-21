@@ -14,7 +14,7 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
-import net.butfly.bus.ext.AsyncRequest;
+import net.butfly.bus.argument.AsyncRequest;
 import net.butfly.bus.util.async.AsyncInvokeUtils;
 import net.butfly.bus.util.async.HandledBySignal;
 

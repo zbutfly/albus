@@ -18,13 +18,13 @@ import javax.servlet.http.HttpServletResponse;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.albacore.utils.serialize.HTTPStreamingSupport;
 import net.butfly.albacore.utils.serialize.Serializer;
-import net.butfly.bus.Bus;
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
-import net.butfly.bus.ServerWrapper;
-import net.butfly.bus.TX;
+import net.butfly.bus.BasicBus;
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.argument.Response;
+import net.butfly.bus.argument.TX;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
+import net.butfly.bus.util.ServerWrapper;
 import net.butfly.bus.util.TXUtils;
 
 import org.apache.http.HttpHeaders;
@@ -42,7 +42,7 @@ public class BusWebServiceServlet extends BusServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		logger.trace("Bus starting...");
+		logger.trace("BasicBus starting...");
 		servers = ServerWrapper.construct(this.getInitParameter("config-file"), this.getInitParameter("server-class"));
 		try {
 			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
@@ -57,7 +57,7 @@ public class BusWebServiceServlet extends BusServlet {
 				for (String ct : ((HTTPStreamingSupport) inst).getContentTypes())
 					this.serializerMap.put(ct, inst);
 			} catch (Exception e) {}
-		logger.info("Bus started.");
+		logger.info("BasicBus started.");
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class BusWebServiceServlet extends BusServlet {
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
 		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType());
-		Bus server = this.router.route(info.tx.value(), servers.servers());
+		BasicBus server = this.router.route(info.tx.value(), servers.servers());
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(),
 				server.getParameterTypes(info.tx.value(), info.tx.version()));
 		Response r = server.invoke(new Request(info.tx, info.context, arguments));

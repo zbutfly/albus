@@ -3,9 +3,9 @@ package net.butfly.bus.filter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.butfly.bus.Constants.Side;
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.argument.Response;
+import net.butfly.bus.argument.Constants.Side;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

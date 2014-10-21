@@ -3,7 +3,7 @@ package net.butfly.bus.context;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.bus.TX;
+import net.butfly.bus.argument.TX;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.util.TXUtils;
 

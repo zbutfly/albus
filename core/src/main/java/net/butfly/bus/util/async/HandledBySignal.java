@@ -1,6 +1,6 @@
 package net.butfly.bus.util.async;
 
-import net.butfly.bus.ext.AsyncRequest;
+import net.butfly.bus.argument.AsyncRequest;
 
 public abstract class HandledBySignal {
 	protected AsyncRequest request;

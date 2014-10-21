@@ -3,13 +3,13 @@ package net.butfly.bus.deploy;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import net.butfly.bus.ServerWrapper;
 import net.butfly.bus.deploy.entry.EntryPoint;
 import net.butfly.bus.deploy.entry.EntryPointImpl;
 import net.butfly.bus.hessian.SimpleHessianServlet;
 import net.butfly.bus.hessian.SimpleHessianSkeleton;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
+import net.butfly.bus.util.ServerWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ public class BusHessianServlet extends SimpleHessianServlet {
 				logger.warn("HessianSerializer servlet load serializer factory failure: " + className);
 			}
 		try {
-			logger.trace("Bus starting...");
+			logger.trace("BasicBus starting...");
 			ServerWrapper servers = ServerWrapper.construct(this.getInitParameter("config-file"),
 					this.getInitParameter("server-class"));
 			Router router;
@@ -46,9 +46,9 @@ public class BusHessianServlet extends SimpleHessianServlet {
 				router = new SimpleRouter();
 			}
 			super.putServiceTarget(new EntryPointImpl(servers, router));
-			logger.info("Bus started.");
+			logger.info("BasicBus started.");
 		} catch (Throwable ex) {
-			logger.error("Bus starting failed: ", ex);
+			logger.error("BasicBus starting failed: ", ex);
 			throw new ServletException(ex);
 		}
 	}

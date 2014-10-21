@@ -11,11 +11,11 @@ import net.butfly.albacore.utils.http.HTTPUtils;
 import net.butfly.albacore.utils.serialize.HTTPStreamingSupport;
 import net.butfly.albacore.utils.serialize.Serializer;
 import net.butfly.albacore.utils.serialize.SerializerFactorySupport;
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
+import net.butfly.bus.argument.AsyncRequest;
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.argument.Response;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
-import net.butfly.bus.ext.AsyncRequest;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;

@@ -1,4 +1,4 @@
-package net.butfly.bus;
+package net.butfly.bus.util;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,21 +7,23 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Constants.Side;
+import net.butfly.bus.BasicBus;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.policy.Routeable;
 
 public final class ServerWrapper implements Routeable {
 	private static final Set<ServerWrapper> ALL = new HashSet<ServerWrapper>();
-	private final Map<String, Bus> servers = new HashMap<String, Bus>();
+	private final Map<String, BasicBus> servers = new HashMap<String, BasicBus>();
 
 	@SuppressWarnings("unchecked")
 	public static ServerWrapper construct(String configLocations, String serverClassName) {
 		ServerWrapper wrapper = new ServerWrapper();
-		Class<? extends Bus> serverClass;
+		Class<? extends BasicBus> serverClass;
 		try {
-			serverClass = (Class<? extends Bus>) Class.forName(serverClassName);
+			serverClass = (Class<? extends BasicBus>) Class.forName(serverClassName);
 		} catch (Exception e) {
-			serverClass = Bus.class;
+			serverClass = BasicBus.class;
 		}
 		if (configLocations == null) wrapper.registerSingle(null, serverClass);
 		else for (String conf : configLocations.split(","))
@@ -30,12 +32,12 @@ public final class ServerWrapper implements Routeable {
 		return wrapper;
 	}
 
-	public Bus server(String serverId) {
+	public BasicBus server(String serverId) {
 		return servers.get(serverId);
 	}
 
-	public Bus[] servers() {
-		return servers.values().toArray(new Bus[servers.values().size()]);
+	public BasicBus[] servers() {
+		return servers.values().toArray(new BasicBus[servers.values().size()]);
 	}
 
 	@Override
@@ -46,13 +48,13 @@ public final class ServerWrapper implements Routeable {
 	@Override
 	public String[] supportedTXs() {
 		Set<String> all = new HashSet<String>();
-		for (Bus server : servers.values())
+		for (BasicBus server : servers.values())
 			all.addAll(Arrays.asList(server.supportedTXs()));
 		return all.toArray(new String[all.size()]);
 	}
 
-	private void registerSingle(String conf, Class<? extends Bus> serverClass) {
-		Bus server;
+	private void registerSingle(String conf, Class<? extends BasicBus> serverClass) {
+		BasicBus server;
 		try {
 			server = serverClass.getConstructor(String.class, Side.class).newInstance(conf, Side.SERVER);;
 		} catch (Exception e) {

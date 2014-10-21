@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.butfly.albacore.utils.UtilsBase;
-import net.butfly.bus.TX;
+import net.butfly.bus.argument.TX;
 
 public class TXUtils extends UtilsBase {
 	public static final TX TXImpl(final String tx) {

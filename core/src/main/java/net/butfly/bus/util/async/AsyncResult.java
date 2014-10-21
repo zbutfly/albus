@@ -2,7 +2,7 @@ package net.butfly.bus.util.async;
 
 import java.io.Serializable;
 
-import net.butfly.bus.Response;
+import net.butfly.bus.argument.Response;
 import net.butfly.bus.context.Context;
 
 @Deprecated

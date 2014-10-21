@@ -1,18 +1,13 @@
-package net.butfly.bus.ext;
-
-import java.io.Serializable;
-import java.util.Map;
+package net.butfly.bus.support;
 
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
-import net.butfly.bus.TX;
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.argument.Response;
+import net.butfly.bus.argument.TX;
 
-public interface CallbackClientFacade {
+public interface CallbackInvokeSupport extends InvokeSupport {
 	public <T, F extends Facade> F getService(Class<F> facadeClass, AsyncCallback<T> callback);
-
-	public <T, F extends Facade> F getService(Class<F> facadeClass, Map<String, Serializable> context, AsyncCallback<T> callback);
 
 	public void invoke(Request request, AsyncCallback<Response> callback);
 

@@ -1,8 +1,6 @@
-package net.butfly.bus.ext;
+package net.butfly.bus.argument;
 
 import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
 
 public class AsyncRequest extends Request {
 	private static final long serialVersionUID = -5649661894998681227L;

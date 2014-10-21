@@ -35,13 +35,13 @@ public class BusHessianStreamingServlet extends BusHessianServlet {
 		try {
 			super.doPost(request, response);
 		} catch (IOException ex) {
-			logger.error("Bus service failed: ", ex);
+			logger.error("BasicBus service failed: ", ex);
 			throw ex;
 		} catch (ServletException ex) {
-			logger.error("Bus service failed: ", ex);
+			logger.error("BasicBus service failed: ", ex);
 			throw ex;
 		} catch (Throwable ex) {
-			logger.error("Bus service failed: ", ex);
+			logger.error("BasicBus service failed: ", ex);
 			throw new ServletException(ex);
 		}
 	}
