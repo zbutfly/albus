@@ -34,7 +34,7 @@ public final class FlowNo implements Serializable, Cloneable {
 		this.code = code;
 		this.version = version;
 		Context.flowNo(this);
-		Context.tx(TXUtils.TXImpl(code, version));
+		Context.txInfo(TXUtils.TXImpl(code, version));
 	}
 
 	public FlowNo(String flowno) {

@@ -20,7 +20,7 @@ import net.butfly.bus.util.async.AsyncInvokeUtils.InvokeTask;
 import net.butfly.bus.util.async.AsyncInvokeUtils.InvokeTaskCallback;
 
 /**
- * BasicBus client implementation for continuous invoking.
+ * Bus client implementation for continuous invoking.
  * 
  * @author butfly
  */
@@ -57,7 +57,7 @@ public class RepeatBus extends AsyncBus implements RepeatInvokeSupport {
 	/**
 	 * Kernal invoking of continuous bus, overlay async bus. <br>
 	 * Does not start async here, <br>
-	 * but transfer it into BasicBus.InvokerFilter for handling.
+	 * but transfer it into Bus.InvokerFilter for handling.
 	 * 
 	 * @param request
 	 * @param callback
@@ -143,12 +143,13 @@ public class RepeatBus extends AsyncBus implements RepeatInvokeSupport {
 	}
 
 	private AsyncRequest createAsync(final Request request, final AsyncCallback<Response> callback, int retries) {
-		return new AsyncRequest(request, new AsyncCallback<Response>() {
+		AsyncCallback<Response> cb = new AsyncCallback<Response>() {
 			@Override
 			public void callback(Response result) {
 				RepeatBus.this.chain.executeAfter(request, result);
 				callback.callback(result);
 			}
-		}, true, retries);
+		};
+		return new AsyncRequest(request, cb, retries);
 	}
 }

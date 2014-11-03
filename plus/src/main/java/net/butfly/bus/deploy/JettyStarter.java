@@ -1,12 +1,15 @@
 package net.butfly.bus.deploy;
 
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import javax.naming.NamingException;
 
@@ -25,6 +28,7 @@ import org.dom4j.Attribute;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.eclipse.jetty.http.spi.DelegatingThreadPool;
 import org.eclipse.jetty.plus.jndi.Resource;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -45,6 +49,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +59,7 @@ public class JettyStarter implements Runnable {
 	protected final static String DEFAULT_CONTEXT_PATH = "/bus/*";
 	protected final static String DEFAULT_PORT = "19080";
 	protected final static String DEFAULT_SECURE_PORT = "19443";
-	protected final static String DEFAULT_THREAD_POOL_SIZE = "10";
+	protected final static String DEFAULT_THREAD_POOL_SIZE = "-1";
 	private static final long DEFAULT_IDLE = 60000;
 	protected final Server server;
 	protected final ServletContextHandler context;
@@ -65,7 +70,9 @@ public class JettyStarter implements Runnable {
 	}
 
 	public JettyStarter(StarterConfiguration conf) {
-		this.server = conf.threads > 0 ? new Server(new QueuedThreadPool(conf.threads)) : new Server();
+		ThreadPool pool = conf.threads > 0 ? new QueuedThreadPool(conf.threads) : new DelegatingThreadPool(
+				Executors.newWorkStealingPool());
+		this.server = new Server(pool);
 		this.context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		this.context.setContextPath("/");
 		if (null != conf.resBase) context.setResourceBase(conf.resBase);
@@ -81,7 +88,7 @@ public class JettyStarter implements Runnable {
 			running = true;
 			Thread th = new Thread(this);
 			th.setDaemon(true);
-			th.setName("BasicBus-Server-Jetty-Starter-Thread");
+			th.setName("Bus-Server-Jetty-Starter-Thread");
 			th.start();
 			while (running)
 				try {
@@ -121,13 +128,14 @@ public class JettyStarter implements Runnable {
 			servlet.setInitOrder(0);
 			if (null != cfg) servlet.setInitParameter("config-file", cfg);
 			if (null != conf.serverClass) servlet.setInitParameter("server-class", conf.serverClass.getName());
-			Method method;
-			try {
-				method = conf.servletClass.getMethod("initializeBusParameters", Object.class);
-			} catch (Exception e) {
-				method = null;
+			for (Field f : conf.servletClass.getDeclaredFields()) {
+				Object a = f.getAnnotation(ServletInitParams.class);
+				if (null != a && Map.class.isAssignableFrom(f.getType()) && Modifier.isStatic(f.getModifiers())) {
+					Map<String, String> params = ReflectionUtils.safeFieldGet(f, null);
+					for (String name : params.keySet())
+						servlet.setInitParameter(name, params.get(name));
+				}
 			}
-			if (null != method) method.invoke(null, servlet);
 			context.addServlet(servlet, conf.context);
 		}
 		return this;
@@ -270,8 +278,7 @@ public class JettyStarter implements Runnable {
 		}
 
 		private void options() {
-			options.addOption("p", "nonsecure", false,
-					"If presented, bus server will open http service (non-secure service) only");
+			options.addOption("s", "secure", false, "If presented, bus server will open https service (secure service).");
 			options.addOption("k", "fork", false,
 					"If presented, bus server will run in a forked threads (not daemon, the server will be stopped on main threads stopping)");
 
@@ -333,7 +340,7 @@ public class JettyStarter implements Runnable {
 
 		public StarterConfiguration(CommandLine cmd) {
 			this.config = cmd.getArgs();
-			this.secure = !cmd.hasOption('p');
+			this.secure = cmd.hasOption('s');
 			this.fork = cmd.hasOption('k');
 			this.loadSystemProperties();
 		}
@@ -353,39 +360,6 @@ public class JettyStarter implements Runnable {
 			this.jndi = System.getProperty("bus.jndi");
 			this.resBase = System.getProperty("bus.server.base");
 
-			try {
-				// cmd.getOptionValue('e');
-				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));
-			} catch (Throwable t) {
-				this.servletClass = scanServletClass();
-			}
-			try {
-				// cmd.getOptionValue('b');
-				this.serverClass = (Class<? extends BasicBus>) Class.forName(System.getProperty("bus.server.class"));
-			} catch (Throwable t) {
-				this.serverClass = BasicBus.class;
-			}
-
-		}
-	}
-
-	private static class BusConfiguration {
-		private String[] config;
-		private Class<? extends BusServlet> servletClass;
-		private Class<? extends BasicBus> serverClass;
-
-		public BusConfiguration(CommandLine cmd) {
-			this.config = cmd.getArgs();
-			this.loadSystemProperties();
-		}
-
-		public BusConfiguration(String[] config) {
-			this.config = config;
-			this.loadSystemProperties();
-		}
-
-		@SuppressWarnings("unchecked")
-		private void loadSystemProperties() {
 			try {
 				// cmd.getOptionValue('e');
 				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));

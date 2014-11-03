@@ -15,20 +15,26 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.albacore.utils.serialize.HTTPStreamingSupport;
-import net.butfly.albacore.utils.serialize.Serializer;
 import net.butfly.bus.BasicBus;
+import net.butfly.bus.argument.AsyncRequest;
 import net.butfly.bus.argument.Request;
 import net.butfly.bus.argument.Response;
 import net.butfly.bus.argument.TX;
+import net.butfly.bus.context.BusHttpHeaders;
+import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
+import net.butfly.bus.serialize.HTTPStreamingSupport;
+import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.util.ServerWrapper;
 import net.butfly.bus.util.TXUtils;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +48,7 @@ public class BusWebServiceServlet extends BusServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		logger.trace("BasicBus starting...");
+		logger.trace("Bus starting...");
 		servers = ServerWrapper.construct(this.getInitParameter("config-file"), this.getInitParameter("server-class"));
 		try {
 			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
@@ -54,28 +60,41 @@ public class BusWebServiceServlet extends BusServlet {
 		else for (String cn : serializerClassnameList.split(","))
 			try {
 				Serializer inst = (Serializer) Thread.currentThread().getContextClassLoader().loadClass(cn).newInstance();
-				for (String ct : ((HTTPStreamingSupport) inst).getContentTypes())
-					this.serializerMap.put(ct, inst);
+				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
+					this.serializerMap.put(ct.getMimeType(), inst);
 			} catch (Exception e) {}
-		logger.info("BasicBus started.");
+		logger.info("Bus started.");
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HeaderInfo info = this.header(request);
-		Serializer serializer = this.serializerMap.get(request.getContentType());
+		Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
 		if (serializer == null) throw new ServletException("Unmapped content type: " + request.getContentType());
-		if (!(serializer instanceof HTTPStreamingSupport) || ((HTTPStreamingSupport) serializer).supportHTTPStream())
+		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
-		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType());
+		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType().toString());
 		BasicBus server = this.router.route(info.tx.value(), servers.servers());
+		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(),
-				server.getParameterTypes(info.tx.value(), info.tx.version()));
-		Response r = server.invoke(new Request(info.tx, info.context, arguments));
-		response.setHeader(HttpHeaders.ETAG, r.id());
-		serializer.write(response.getOutputStream(), r);
-		response.flushBuffer();
+				pi.parametersTypes());
+		AsyncCallback<Response> acb = new AsyncCallback<Response>() {
+			@Override
+			public void callback(Response r) {
+				r.resultClass(pi.returnType());
+				response.setHeader(HttpHeaders.ETAG, r.id());
+				try {
+					serializer.write(response.getOutputStream(), r);
+					response.flushBuffer();
+				} catch (IOException ex) {
+					throw new SystemException("", ex);
+				}
+			}
+		};
+		Request req = new Request(info.tx, info.context, arguments);
+		if (info.continuous) server.invoke(new AsyncRequest(req, acb));
+		else acb.callback(server.invoke(req));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -107,12 +126,13 @@ public class BusWebServiceServlet extends BusServlet {
 	protected HeaderInfo header(HttpServletRequest request) throws ServletException {
 		HeaderInfo info = new HeaderInfo();
 		info.context = new HashMap<String, String>();
-		String[] reses = request.getPathInfo().substring(1).split("/");
+		String path = request.getPathInfo();
+		String[] reses = null != path && path.length() > 0 ? path.substring(1).split("/") : new String[0];
 		String code, version = null;
 		switch (reses.length) {
 		case 0: // anything in header.
-			code = request.getHeader("X-BUS-TX");
-			version = request.getHeader("X-BUS-TX-Version");
+			code = request.getHeader(BusHttpHeaders.HEADER_TX_CODE);
+			version = request.getHeader(BusHttpHeaders.HEADER_TX_VERSION);
 			break;
 		case 2:
 			version = reses[1];
@@ -126,16 +146,17 @@ public class BusWebServiceServlet extends BusServlet {
 
 		for (Enumeration<String> e = request.getHeaderNames(); e.hasMoreElements();) {
 			String name = e.nextElement();
-			if (name.startsWith("X-BUS-Context-")) {
-				String value = request.getHeader(name);
-				info.context.put(name, value);
-			}
+			if (name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
+				info.context.put(name.substring(BusHttpHeaders.HEADER_CONTEXT_PREFIX.length()), request.getHeader(name));
 		}
+		String cont = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS);
+		info.continuous = null != cont && Boolean.parseBoolean(cont);
 		return info;
 	}
 
 	protected static class HeaderInfo {
 		TX tx;
+		boolean continuous;
 		Map<String, String> context;
 	}
 
@@ -144,8 +165,8 @@ public class BusWebServiceServlet extends BusServlet {
 		for (Class<? extends Serializer> clazz : ReflectionUtils.getSubClasses(Serializer.class, "")) {
 			try {
 				Serializer inst = clazz.newInstance();
-				for (String ct : ((HTTPStreamingSupport) inst).getContentTypes())
-					this.serializerMap.put(ct, inst);
+				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
+					this.serializerMap.put(ct.getMimeType(), inst);
 			} catch (Exception e) {}
 		}
 	}

@@ -59,7 +59,7 @@ public class Error implements Serializable {
 	public String toString(int stackTraceLines) {
 		int l = 0;
 		StringBuilder sb = new StringBuilder();
-		sb.append("BasicBus error [").append(this.getCode()).append("]: ").append(this.getMessage()).append("\n");
+		sb.append("Bus error [").append(this.getCode()).append("]: ").append(this.getMessage()).append("\n");
 		if (this.getStackTraces() != null) for (StackTraceElement st : this.getStackTraces()) {
 			sb.append("\t").append(st.toString()).append("\n");
 			if (l++ >= stackTraceLines) {

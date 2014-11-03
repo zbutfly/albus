@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.butfly.bus.auth.Token;
-import net.butfly.bus.context.Context;
 
 public class Request implements Serializable {
 	private static final long serialVersionUID = -3216119686409193334L;
@@ -143,14 +142,8 @@ public class Request implements Serializable {
 		return this.arguments;
 	}
 
-	public Request request(Token token) {
-		Request req = new Request(this.code(), this.version(), this.arguments());
-		if (null == token) req.context(Context.serialize(Context.toMap()));
-		else {
-			Map<String, String> map = Context.serialize(Context.toMap());
-			map.putAll(token.toMap());
-			req.context(map);
-		}
-		return req;
+	public Request token(Token token) {
+		if (null != token) this.context.putAll(token.toMap());
+		return this;
 	}
 }

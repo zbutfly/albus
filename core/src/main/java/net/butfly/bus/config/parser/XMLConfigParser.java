@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
@@ -43,18 +44,18 @@ public class XMLConfigParser extends ConfigParser {
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
-		config.setBusID(this.root.attributeValue("id"));
-		config.side(Side.valueOf(this.root.attributeValue("side", "CLIENT")));
+		config.id(this.root.attributeValue("id", UUID.randomUUID().toString()));
+		config.side(Side.valueOf(this.root.attributeValue("side", "UNDEFINED").toUpperCase()));
 		return config;
 	}
 
 	public XMLConfigParser(InputStream source) {
 		super();
-		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "BasicBus configurations invalid.");
+		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.");
 		try {
 			this.document = new SAXReader().read(source);
 		} catch (DocumentException e) {
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "BasicBus configurations invalid.", e);
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.", e);
 		}
 		this.root = this.document.getRootElement();
 	}

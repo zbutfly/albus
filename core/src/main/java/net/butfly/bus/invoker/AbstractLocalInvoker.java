@@ -9,9 +9,7 @@ import net.butfly.bus.argument.Constants;
 import net.butfly.bus.argument.Request;
 import net.butfly.bus.argument.Response;
 import net.butfly.bus.argument.TX;
-import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
-import net.butfly.bus.context.Context;
 import net.butfly.bus.util.TXUtils;
 import net.butfly.bus.util.TXUtils.TXImpl;
 import net.butfly.bus.util.async.AsyncInvokeUtils;
@@ -29,14 +27,10 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 
 	@Override
 	public Response invoke(Request request) {
-		if (this.auth != null) {
-			Token t = Context.token();
-			if (null == t) t = this.token;
-			this.auth.login(t);
-		}
+		if (this.auth != null) this.auth.login(this.token());
 		if (!(request instanceof AsyncRequest)) return singleInvoke(request);
 		AsyncRequest areq = (AsyncRequest) request;
-		if (!areq.continuous()) return singleInvoke(areq.request(this.token));
+		if (!areq.continuous()) return singleInvoke(areq);
 		this.continuousInvoke(areq);
 		throw new IllegalAccessError("A continuous invoking should not end without exception.");
 	}
@@ -51,8 +45,7 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 
 				@Override
 				public void handle() throws Throwable {
-					areq.callback().callback(
-							AbstractLocalInvoker.this.singleInvoke(areq.request(AbstractLocalInvoker.this.token)));
+					areq.callback().callback(AbstractLocalInvoker.this.singleInvoke(areq));
 				}
 			});
 		} catch (SystemException e) {
@@ -95,7 +88,6 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 			} catch (Exception ex) {}
 			throw new SystemException(errorCode, message, cause);
 		}
-
 	}
 
 	private TXImpl scanTXInPools(TXImpl requestTX) {

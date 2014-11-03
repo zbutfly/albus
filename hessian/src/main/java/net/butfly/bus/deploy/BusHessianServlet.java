@@ -36,7 +36,7 @@ public class BusHessianServlet extends SimpleHessianServlet {
 				logger.warn("HessianSerializer servlet load serializer factory failure: " + className);
 			}
 		try {
-			logger.trace("BasicBus starting...");
+			logger.trace("Bus starting...");
 			ServerWrapper servers = ServerWrapper.construct(this.getInitParameter("config-file"),
 					this.getInitParameter("server-class"));
 			Router router;
@@ -46,9 +46,9 @@ public class BusHessianServlet extends SimpleHessianServlet {
 				router = new SimpleRouter();
 			}
 			super.putServiceTarget(new EntryPointImpl(servers, router));
-			logger.info("BasicBus started.");
+			logger.info("Bus [" + this.getClass().getName() + "] started.");
 		} catch (Throwable ex) {
-			logger.error("BasicBus starting failed: ", ex);
+			logger.error("Bus starting failed: ", ex);
 			throw new ServletException(ex);
 		}
 	}

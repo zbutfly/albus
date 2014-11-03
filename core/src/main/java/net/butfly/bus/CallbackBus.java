@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * BasicBus client implementation for callback invoking.
+ * Bus client implementation for callback invoking.
  * 
  * @author butfly
  */

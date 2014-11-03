@@ -2,24 +2,21 @@ package net.butfly.bus.config.invoker;
 
 import java.util.List;
 
-import net.butfly.albacore.utils.serialize.JSONSerializer;
-import net.butfly.albacore.utils.serialize.Serializer;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
-
-import com.caucho.hessian.io.AbstractSerializerFactory;
+import net.butfly.bus.serialize.JSONSerializer;
 
 public class WebServiceInvokerConfig extends InvokerConfigBean {
 	private static final long serialVersionUID = -7791541622206850647L;
 	private String path;
 	private int timeout;
-	private List<Class<? extends AbstractSerializerFactory>> typeTranslators;
-	private Serializer serializer;
+	private List<String> typeTranslators;
+	private String serializer;
 
-	public List<Class<? extends AbstractSerializerFactory>> getTypeTranslators() {
+	public List<String> getTypeTranslators() {
 		return typeTranslators;
 	}
 
-	public void setTypeTranslators(List<Class<? extends AbstractSerializerFactory>> typeTranslators) {
+	public void setTypeTranslators(List<String> typeTranslators) {
 		this.typeTranslators = typeTranslators;
 	}
 
@@ -43,18 +40,18 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[").append(path).append(":").append(timeout);
-		for (Class<? extends AbstractSerializerFactory> clazz : typeTranslators)
-			sb.append(":").append(clazz.getName());
+		for (String clazz : typeTranslators)
+			sb.append(":").append(clazz);
 		sb.append("]");
 		return sb.toString();
 	}
 
-	public Serializer getSerializer() {
-		return this.serializer == null ? new JSONSerializer() : this.serializer;
+	public String getSerializer() {
+		return this.serializer == null ? JSONSerializer.class.getName() : this.serializer;
 	}
 
 	public void setSerializer(String serializerClassname) throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		this.serializer = (Serializer) Class.forName(serializerClassname).newInstance();
+		this.serializer = serializerClassname;
 	}
 }

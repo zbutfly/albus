@@ -31,7 +31,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 		long now = (Long) params[0];
 		String prefix = (String) params[1];
 		long spent = System.currentTimeMillis() - now;
-		if (null != response && response.error() != null) logger.error("BasicBus error: \n" + response.error().toString());
+		if (null != response && response.error() != null) logger.error("Bus error: \n" + response.error().toString());
 		logger.info(prefix + " invoking ended in [" + spent + "ms].");
 		logger.info(prefix + getDebugDetail(response));
 	}

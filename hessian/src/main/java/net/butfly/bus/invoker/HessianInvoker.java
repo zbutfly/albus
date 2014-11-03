@@ -83,7 +83,7 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 
 	}
 
-	protected void continuousInvoke(AsyncRequest request) {
+	protected void asyncInvoke(AsyncRequest request) {
 		EntryPoint proxy;
 		try {
 			proxy = (EntryPoint) this.asyncFactory.create(EntryPoint.class, path, request);
@@ -91,10 +91,11 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 			throw new SystemException(Constants.SystemError.HESSIAN_CONNECTION,
 					"HessianSerializer url [" + path + "] invalid.", ex);
 		}
-		proxy.invoke(request.request(this.token));
+		request.token(this.token());
+		proxy.invoke(request);
 	}
 
-	protected Response singleInvoke(Request request) {
+	protected Response syncInvoke(Request request) {
 		return proxy.invoke(request);
 	}
 }

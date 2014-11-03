@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bus id="bus-console">
+<bus id="bus-console" side="server">
 	<filter title="async-filter" class="net.butfly.bus.filter.AsyncFilter"
 		enabled="false" />
 	<filter title="logger-filter" class="net.butfly.bus.filter.LoggerFilter"

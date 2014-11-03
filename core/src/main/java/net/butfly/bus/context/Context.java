@@ -11,7 +11,7 @@ public abstract class Context implements Map<String, Object> {
 	public static Context CURRENT = null;
 
 	public enum Key {
-		FlowNo, TX, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD;
+		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD;
 	}
 
 	private static boolean sharing() {
@@ -73,8 +73,8 @@ public abstract class Context implements Map<String, Object> {
 		return (String) CURRENT.get(Key.SourceHost);
 	}
 
-	public static TX tx() {
-		return (TX) CURRENT.get(Key.TX);
+	public static TX txInfo() {
+		return (TX) CURRENT.get(Key.TXInfo);
 	}
 
 	public static void flowNo(FlowNo flowNo) {
@@ -89,8 +89,8 @@ public abstract class Context implements Map<String, Object> {
 		CURRENT.put(Key.SourceHost.name(), sourceHost);
 	}
 
-	public static void tx(TX tx) {
-		CURRENT.put(Key.TX.name(), (TXUtils.TXImpl) TXUtils.TXImpl(tx));
+	public static void txInfo(TX tx) {
+		CURRENT.put(Key.TXInfo.name(), (TXUtils.TXImpl) TXUtils.TXImpl(tx));
 	}
 
 	/****************************************************/
@@ -140,7 +140,7 @@ public abstract class Context implements Map<String, Object> {
 			case FlowNo:
 				dst.put(key.name(), new FlowNo(src.get(key.name())));
 				continue;
-			case TX:
+			case TXInfo:
 				dst.put(key.name(), new TXUtils.TXImpl(src.get(key.name())));
 				continue;
 			default:

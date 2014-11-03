@@ -11,6 +11,7 @@ import net.butfly.bus.argument.Constants;
 import net.butfly.bus.argument.TX;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
+import net.butfly.bus.context.Context;
 import net.butfly.bus.facade.AuthFacade;
 import net.butfly.bus.util.TXUtils;
 import net.butfly.bus.util.TXUtils.TXImpl;
@@ -25,7 +26,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected Map<TXImpl, Object> INSTANCE_POOL = new HashMap<TXImpl, Object>();
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
 	protected AuthFacade auth;
-	protected Token token;
+	private Token token;
 
 	@Override
 	public String[] getTXCodes() {
@@ -78,5 +79,10 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 
 	public void setToken(Token token) {
 		this.token = token;
+	}
+
+	protected Token token() {
+		Token t = Context.token();
+		return null == t ? this.token : t;
 	}
 }

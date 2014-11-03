@@ -1,5 +1,8 @@
 package net.butfly.bus.argument;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public interface Constants {
 	public enum Side {
 		SERVER, CLIENT;
@@ -53,7 +56,13 @@ public interface Constants {
 		String INVOKE_ERROR = _PREFIX + "203";// 调用错误
 		String BUSI_NOT_FOUND = _PREFIX + "204";// 业务逻辑不存在
 		String SIMULATE_ERROR = _PREFIX + "299";// 业务模拟错误
-		String TCP_ERROR = _PREFIX + 210; // TCP错误
+		String TCP_ERROR = _PREFIX + "210"; // TCP错误
+
+		String AUTH_NOT_EXIST = _PREFIX + "300";
+		String AUTH_TOKEN_INVALID = _PREFIX + "301";
+		String AUTH_USER_INVALID = _PREFIX + "302";
+		String AUTH_PASS_INVALID = _PREFIX + "303";
+
 		String SIGNAL = _PREFIX + 999; // Async signal code.
 	}
 

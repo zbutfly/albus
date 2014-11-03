@@ -1,5 +1,6 @@
 package net.butfly.bus.util.async;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -162,6 +163,9 @@ public class AsyncInvokeUtils extends UtilsBase {
 					} else {
 						throw new SystemException("", ex);
 					}
+				} catch (EOFException ex) {
+					logger.info("Invoking repeated and consumer finished.");
+					return;			
 				} catch (Throwable th) {
 					throw new SystemException("", th);
 				}
@@ -195,12 +199,15 @@ public class AsyncInvokeUtils extends UtilsBase {
 
 	public static void invoke(final AsyncTask<Response> task, final InvokeOption producerOpt, final InvokeOption consumerOpt,
 			final int retries) {
-		PipedOutputStream pout = new PipedOutputStream();
+		PipedOutputStream pout = null;
+		PipedInputStream pin = null;
 		ObjectOutputStream os = null;
 		ObjectInputStream is = null;
 		try {
+			pout = new PipedOutputStream();
+			pin = new PipedInputStream(pout);
 			os = new ObjectOutputStream(pout);
-			is = new ObjectInputStream(new PipedInputStream(pout));
+			is = new ObjectInputStream(pin);
 			ProducerTask producer = new ProducerTask(os, task, Context.CURRENT, retries);
 			ConsumerTask consumer = new ConsumerTask(is, task, Context.CURRENT);
 			if (producerOpt != null && producerOpt.fork) AsyncUtils.invoke(producer, producerOpt.timeout);
@@ -208,18 +215,7 @@ public class AsyncInvokeUtils extends UtilsBase {
 			if (producerOpt == null || !producerOpt.fork) produce(os, task, retries);
 			if (consumerOpt == null || !consumerOpt.fork) consume(is, task);
 		} catch (Exception e) {
-			throw new SystemException("");
-		} finally {
-			// if (null != is) try {
-			// is.close();
-			// } catch (IOException e) {
-			// throw new SystemException("");
-			// }
-			// if (null != os) try {
-			// os.close();
-			// } catch (IOException e) {
-			// throw new SystemException("");
-			// }
+			throw new SystemException("", e);
 		}
 	}
 }

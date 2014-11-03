@@ -2,7 +2,8 @@ package net.butfly.bus.deploy;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -35,13 +36,13 @@ public class BusHessianStreamingServlet extends BusHessianServlet {
 		try {
 			super.doPost(request, response);
 		} catch (IOException ex) {
-			logger.error("BasicBus service failed: ", ex);
+			logger.error("Bus service failed: ", ex);
 			throw ex;
 		} catch (ServletException ex) {
-			logger.error("BasicBus service failed: ", ex);
+			logger.error("Bus service failed: ", ex);
 			throw ex;
 		} catch (Throwable ex) {
-			logger.error("BasicBus service failed: ", ex);
+			logger.error("Bus service failed: ", ex);
 			throw new ServletException(ex);
 		}
 	}
@@ -67,10 +68,9 @@ public class BusHessianStreamingServlet extends BusHessianServlet {
 		out.flush();
 	}
 
-	public static void initializeBusParameters(Object servlet) {
-		try {
-			Method method = servlet.getClass().getMethod("setInitParameter", String.class, String.class);
-			if (null != method) method.invoke(servlet, "async-supported", "true");
-		} catch (Exception e) {}
+	@ServletInitParams private static Map<String, String> params;
+	static {
+		params = new HashMap<String, String>();
+		params.put("async-supported", "true");
 	}
 }

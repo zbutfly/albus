@@ -1,51 +1,40 @@
 package net.butfly.bus.comet.facade;
 
+import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.FacadeBase;
+import net.butfly.bus.argument.Constants;
 import net.butfly.bus.auth.Token;
-import net.butfly.bus.comet.CometContext;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.facade.AuthFacade;
-import net.butfly.bus.util.async.Signal;
 
 public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFacade {
 	private static final long serialVersionUID = 4279578356782869791L;
 	private long count = 0;
 
+	private synchronized long count() {
+		long c = ++count;
+//		if (c % 3 == 0) CometContext.sleep(200);
+//		if (c % 5 == 0) throw new Signal.Suspend(7000);
+//		if (c % 8 == 0) throw new Signal.Timeout();
+//		if (c % 30 == 0) throw new Signal.Completed();
+		return c;
+	}
+
 	@Override
-	public String echo0(String echo) {
-		return echo + " [from echo0()]";
+	public CometEchoReponse echo0(String echo) {
+		return new CometEchoReponse(echo + " [from echo0][" + count() + "]");
 	}
 
 	@Override
 	public CometEchoReponse echo1(String echo, long... values) {
-		return new CometEchoReponse(echo + " [from echo1()]");
+		return new CometEchoReponse(echo + " [from echo1][" + count() + "]", values);
 	}
 
 	@Override
 	public CometEchoReponse echo2(CometEchoRequest echo) {
-		return new CometEchoReponse(echo.getValue() + " [from echo2()]");
-	}
-
-	@Override
-	public String continuableEcho0(String echo) {
-		CometContext.sleep(500);
-		long c = ++count;
-		if (c % 5 == 0) throw new Signal.Suspend(7000);
-		if (c % 8 == 0) throw new Signal.Timeout();
-		if (c % 30 == 0) throw new Signal.Completed();
-		return "[#" + c + "] " + echo + " [from continuableEcho0()]";
-	}
-
-	@Override
-	public CometEchoReponse continuableEcho1(String echo, long... values) {
-		CometContext.sleep(500);
-		long c = ++count;
-		if (c % 5 == 0) throw new Signal.Suspend(7000);
-		if (c % 8 == 0) throw new Signal.Timeout();
-		if (c % 30 == 0) throw new Signal.Completed();
-		return new CometEchoReponse("[#" + c + "] " + echo + " [from continuableEcho1()]");
+		return new CometEchoReponse(echo.getValue() + " [from echo2][" + count() + "]", echo.getValues());
 	}
 
 	@Override
@@ -55,18 +44,21 @@ public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFaca
 
 	@Override
 	public void login(Token token) {
-		if (null == token) throw new IllegalAccessError("Authorization failure for no token provided.");
+		if (null == token) throw new SystemException(Constants.BusinessError.AUTH_NOT_EXIST, "Authorization lost.");
 		if (null != token.getKey()) {
-			if (!"token".equals(token.getKey())) throw new IllegalAccessError("Authorization failure for invalid token.");;
+			if (!"token".equals(token.getKey()))
+				throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID,
+						"Authorization failure for invalid token.");;
 			Context.token(token);
 			return;
 		}
 		if (null != token.getUsername() && null != token.getPassword()) {
 			if (!"user".equals(token.getUsername()) || !"pass".equals(token.getPassword()))
-				throw new IllegalAccessError("Authorization failure for invalid username/password.");
+				throw new SystemException(Constants.BusinessError.AUTH_PASS_INVALID,
+						"Authorization failure for invalid username/password.");
 			Context.token(new Token("token"));
 			return;
 		}
-		throw new IllegalAccessError("Authorization failure for no token provided.");
+		throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID, "Authorization failure for no token provided.");
 	}
 }

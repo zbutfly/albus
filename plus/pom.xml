@@ -34,6 +34,21 @@
 			<artifactId>commons-cli</artifactId>
 			<version>1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.4-beta1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpasyncclient</artifactId>
+			<version>4.1-beta1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3</version>
+		</dependency>
 		<!-- jetty dependencies. -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -49,11 +64,6 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-http-spi</artifactId>
 			<version>9.3.0.M0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.4-alpha1</version>
 		</dependency>
 		<!-- <dependency> -->
 		<!-- <groupId>org.eclipse.jetty</groupId> -->

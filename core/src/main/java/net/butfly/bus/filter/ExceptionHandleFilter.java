@@ -2,9 +2,9 @@ package net.butfly.bus.filter;
 
 import java.util.Map;
 
+import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.argument.Request;
 import net.butfly.bus.argument.Response;
-import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.util.BusUtils;
 import net.butfly.bus.util.async.Signal;
 
@@ -29,8 +29,8 @@ public class ExceptionHandleFilter extends FilterBase implements Filter {
 		Response response = null;
 		try {
 			response = super.execute(request);
-		} catch (Signal sig) {
-			throw sig;
+		} catch (Signal signal) {
+			throw signal;
 		} catch (Exception ex) {
 			if (side == Side.SERVER) {
 				response = new Response(request);

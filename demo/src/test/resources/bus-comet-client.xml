@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bus id="">
+<bus side="client">
 	<filter title="async-filter" class="net.butfly.bus.filter.AsyncFilter"
 		enabled="false" />
 	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter"
 		enabled="true" />
 	<filter title="exception-filter" class="net.butfly.bus.filter.ExceptionHandleFilter"
 		enabled="true" />
-	<invoker type="net.butfly.bus.invoker.HessianInvoker" id="albus-test-comet"
-		tx="TST_CMT-*">
-		<path>http://127.0.0.1:9876/bus</path>
-		<typeTranslator>net.butfly.bus.hessian.serialize.EnumFactory
-		</typeTranslator>
-		<!-- <continuousSupported>true</continuousSupported> -->
+	<invoker id="albus-test-comet" tx="TST_CMT-*" type="net.butfly.bus.invoker.WebServiceInvoker">
+		<path>http://127.0.0.1:19080/bus</path>
+		<!-- <serializer>net.butfly.bus.serialize.HessianSerializer</serializer> -->
+		<typeTranslators>net.butfly.bus.hessian.serialize.EnumFactory</typeTranslators>
 		<auth username="user" password="pass" />
 	</invoker>
 </bus>

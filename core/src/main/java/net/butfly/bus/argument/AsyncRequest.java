@@ -5,32 +5,22 @@ import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
 public class AsyncRequest extends Request {
 	private static final long serialVersionUID = -5649661894998681227L;
 	private final AsyncCallback<Response> callback;
-	private final long timeout;
-	private final boolean continuous;
+	private final int timeout;
 	private final int retries;
 	private int retried = 0;
 
-	public AsyncRequest(Request request, AsyncCallback<Response> callback, long timeout) {
-		this(request, callback, timeout, 3);
+	public AsyncRequest(Request request, AsyncCallback<Response> callback) {
+		this(request, callback, -1);
 	}
 
-	public AsyncRequest(Request request, AsyncCallback<Response> callback, long timeout, int retries) {
+	public AsyncRequest(Request request, AsyncCallback<Response> callback, int retries) {
+		this(request, callback, 0, retries);
+	}
+
+	public AsyncRequest(Request request, AsyncCallback<Response> callback, int timeout, int retries) {
 		super(request.code(), request.version(), request.context(), request.arguments());
 		this.callback = callback;
 		this.timeout = timeout;
-		this.continuous = false;
-		this.retries = retries;
-	}
-
-	public AsyncRequest(Request request, AsyncCallback<Response> callback, boolean continuous) {
-		this(request, callback, continuous, -1);
-	}
-
-	public AsyncRequest(Request request, AsyncCallback<Response> callback, boolean continuous, int retries) {
-		super(request.id(), request.code(), request.version(), request.context(), request.arguments());
-		this.callback = callback;
-		this.timeout = 0;
-		this.continuous = continuous;
 		this.retries = retries;
 	}
 
@@ -38,12 +28,8 @@ public class AsyncRequest extends Request {
 		return this.callback;
 	}
 
-	public long timeout() {
+	public int timeout() {
 		return timeout;
-	}
-
-	public boolean continuous() {
-		return this.continuous;
 	}
 
 	public boolean retry() {
@@ -52,5 +38,13 @@ public class AsyncRequest extends Request {
 
 	public int retried() {
 		return this.retried;
+	}
+
+	public boolean continuous() {
+		return this.retries >= 0;
+	}
+
+	public int retries() {
+		return this.retries;
 	}
 }

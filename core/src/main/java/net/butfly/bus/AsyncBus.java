@@ -16,7 +16,7 @@ import net.butfly.bus.util.async.AsyncInvokeUtils.InvokeTask;
 import net.butfly.bus.util.async.AsyncInvokeUtils.InvokeTaskCallback;
 
 /**
- * BasicBus client implementation for async invoking.
+ * Bus client implementation for async invoking.
  * 
  * @author butfly
  */

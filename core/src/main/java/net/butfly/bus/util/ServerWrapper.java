@@ -8,8 +8,6 @@ import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.BasicBus;
-import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.policy.Routeable;
 
 public final class ServerWrapper implements Routeable {
@@ -56,7 +54,7 @@ public final class ServerWrapper implements Routeable {
 	private void registerSingle(String conf, Class<? extends BasicBus> serverClass) {
 		BasicBus server;
 		try {
-			server = serverClass.getConstructor(String.class, Side.class).newInstance(conf, Side.SERVER);;
+			server = serverClass.getConstructor(String.class).newInstance(conf);
 		} catch (Exception e) {
 			throw new SystemException("", "Could not construct bus server instance.", e);
 		}

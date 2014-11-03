@@ -15,9 +15,10 @@ public class CometLocal {
 			}
 		};
 		CometFacade comet = client.getService(CometFacade.class, callback);
-		comet.continuableEcho0("Hello, Comet!");
 		System.out.println("Comet facade return:" + comet.echo0("hello, world!"));
 		System.out.println("Comet facade return:" + comet.echo1("hello, world!", 1, 2, 3));
+		comet = client.getService(CometFacade.class, callback, 0, 0);
+		comet.echo0("Hello, Comet!");
 		System.out.println("finished.");
 	}
 }

@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public class Config {
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private String busID;
+	private String id;
 	private Map<String, InvokerBean> invokers = new HashMap<String, InvokerBean>();
 	private RouterBean router;
 	private List<FilterBean> filterBeanList;
@@ -49,12 +49,12 @@ public class Config {
 		this.router = router;
 	}
 
-	public void setBusID(String busID) {
-		this.busID = busID;
+	public void id(String id) {
+		this.id = id;
 	}
 
-	public String getBusID() {
-		return busID;
+	public String id() {
+		return id;
 	}
 
 	public String[] getAllNodeIDs() {

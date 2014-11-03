@@ -7,24 +7,43 @@ import net.butfly.bus.RepeatBus;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
+import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 import net.butfly.bus.context.Context;
 
 public class CometClient {
 	public static void main(String args[]) throws Exception {
 		CometClient app = new CometClient();
-		app.normal();
+		app.callback();
 	}
 
+	private BasicBus client;
+
 	void normal() {
-		// final signal sig = new signal();
-		BasicBus client = new BasicBus("bus-comet-client.xml");
+		this.client = new BasicBus("bus-comet-client.xml");
 		Context.sourceAppID("CometClientTest");
 		Context.token(new Token("user", "pass"));
 		CometFacade comet = client.getService(CometFacade.class);
-		System.out.println("Sync echo: " + comet.echo0("hello, world!"));
-		System.out.println("Sync echo: " + comet.echo0("hello, world!"));
-		System.out.println("Sync echo: " + comet.echo0("hello, world!"));
-		System.out.println("Sync echo: " + comet.echo0("hello, world!"));
+		for (int i = 0; i < 5; i++)
+			this.singletest(comet, i);
+	}
+
+	void callback() {
+		CallbackBus client = new CallbackBus("bus-comet-client.xml");
+		CometFacade comet = client.getService(CometFacade.class, callback);
+		for (int i = 0; i < 5; i++)
+			this.singletest(comet, i);
+		while (true)
+			CometContext.sleep(10000);
+	}
+
+	void continuous() {
+		RepeatBus client = new RepeatBus("bus-comet-client.xml");
+		CometFacade comet = client.getService(CometFacade.class, callback, 0, 0);
+		CometEchoReponse echo = comet.echo0("hello, world!");
+		if (echo != null) System.err.println("Should be null: " + echo.toString());
+		else System.out.println("Do be null.");
+		while (true)
+			CometContext.sleep(10000);
 	}
 
 	private final AsyncCallback<CometEchoReponse> callback = new AsyncCallback<CometEchoReponse>() {
@@ -35,27 +54,26 @@ public class CometClient {
 		}
 	};
 
-	void continuous() {
-		RepeatBus client = new RepeatBus("bus-comet-client.xml");
-		CometFacade comet = client.getService(CometFacade.class, callback);
-		CometEchoReponse echo = comet.continuableEcho1("hello, world!");
-		if (echo != null) System.err.println("Should be null: " + echo.toString());
-		else System.out.println("Do be null.");
-		while (true)
-			CometContext.sleep(10000);
-		// System.err.println("Should not be finished, except timeout/complete signal accept.");
-	}
+	void singletest(CometFacade comet, int time) {
+		CometEchoReponse resp;
 
-	void callback() {
-		CallbackBus client = new CallbackBus("bus-comet-client.xml");
-		CometFacade comet = client.getService(CometFacade.class, callback);
-		for (int i = 0; i < 5; i++) {
-			CometEchoReponse echo = comet.echo1("hello, world!", Math.round(Math.random() * 100),
-					Math.round(Math.random() * 100), Math.round(Math.random() * 100));
-			if (echo != null) System.out.println("ECHO: " + echo.toString());
-			else System.err.println("Do be null.");
-		}
-		while (true)
-			CometContext.sleep(10000);
+		resp = comet.echo0("hello, world!");
+		if (resp != null) System.out.println("ECHO: " + resp.toString());
+		else System.err.println("do be null.");
+
+		resp = comet.echo1("hello, world!", Math.round(Math.random() * 100), Math.round(Math.random() * 100),
+				Math.round(Math.random() * 100));
+		if (resp != null) System.out.println("ECHO: " + resp.toString());
+		else System.err.println("Do be null.");
+
+		CometEchoRequest req = new CometEchoRequest();
+		req.setValue("hello, world: [" + time + "]!");
+		long[] values = new long[time];
+		for (int i = 0; i < time; i++)
+			values[i] = Math.round(Math.random() * 100) * i;
+		req.setValues(values);
+		resp = comet.echo2(req);
+		if (resp != null) System.out.println("ECHO: " + resp.toString());
+		else System.err.println("Do be null.");
 	}
 }
