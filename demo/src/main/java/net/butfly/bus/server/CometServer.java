@@ -8,7 +8,6 @@ public class CometServer {
 		System.setProperty("bus.server.class", "net.butfly.bus.RepeatBus");
 		System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.BusWebServiceServlet");
 		System.setProperty("bus.server.base", "src/test/webapp");
-		///Users/butfly/Documents/workspaces/cominfo-repos/projects/albus/trunk/demo/
 		JettyStarter.main("bus-comet-server.xml");
 	}
 }

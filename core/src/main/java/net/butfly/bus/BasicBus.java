@@ -189,36 +189,38 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 			switch (this.side) {
 			case CLIENT:
 				request.context(Context.serialize(Context.toMap()));
-				response = this.doExecute(request);
+				response = realInvoke(request);
 				if (null != response) Context.merge(Context.deserialize(response.context()));
 				return response;
 			case SERVER:
 				Context.merge(Context.deserialize(request.context()));
-				response = this.doExecute(request);
+				response = realInvoke(request);
 				if (null != response) response.context(Context.serialize(Context.toMap()));
 				return response;
 			}
 			throw new SystemException("");
 		}
-
-		/**
-		 * Kernal invoking of this bus.
-		 * 
-		 * @param request
-		 * @return
-		 */
-		protected Response doExecute(Request request) {
-			InvokerBean ivkb = BasicBus.this.router.route(request.code(), BasicBus.this.config.getInvokers());
-			Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
-			if ((request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
-				if (!(BasicBus.this instanceof RepeatBus))
-					throw new UnsupportedOperationException(
-							"Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
-				ivk.invoke(request);
-				throw new IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
-			} else return ivk.invoke(request);
-		}
-
 	}
 
+	/**
+	 * Kernal invoking of this bus.
+	 * 
+	 * @param request
+	 * @return
+	 */
+	private Response realInvoke(Request request) {
+		Invoker<?> ivk = this.findInvoker(request.code());
+		if ((request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
+			if (!(BasicBus.this instanceof RepeatBus))
+				throw new UnsupportedOperationException(
+						"Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
+			ivk.invoke(request);
+			throw new IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
+		} else return ivk.invoke(request);
+	}
+
+	private Invoker<?> findInvoker(String txCode) {
+		InvokerBean ivkb = BasicBus.this.router.route(txCode, BasicBus.this.config.getInvokers());
+		return InvokerFactory.getInvoker(ivkb);
+	}
 }

@@ -21,6 +21,7 @@ public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> imp
 	public void initialize(SpringInvokerConfig config, Token token) {
 		this.files = config.getFiles();
 		super.initialize(config, token);
+		if (!config.isLazy()) this.getBeanList();
 	}
 
 	@Override
