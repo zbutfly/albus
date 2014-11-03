@@ -13,7 +13,7 @@ import net.butfly.bus.context.Context;
 public class CometClient {
 	public static void main(String args[]) throws Exception {
 		CometClient app = new CometClient();
-		app.callback();
+		app.normal();
 	}
 
 	private BasicBus client;
