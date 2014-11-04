@@ -40,9 +40,9 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
 		try {
-			this.serializer = (Serializer) Class.forName(config.getSerializer()).newInstance();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e1) {
-			this.serializer = new JSONSerializer();
+			this.serializer = (Serializer) Class.forName(config.getSerializer()).getConstructor(String[].class).newInstance(config.getTypeTranslators());
+		} catch (Exception e) {
+			this.serializer = new JSONSerializer(config.getTypeTranslators());
 		}
 		if (!(this.serializer instanceof HTTPStreamingSupport) || !((HTTPStreamingSupport) this.serializer).supportHTTPStream())
 			throw new SystemException("", "Serializer should support HTTP streaming mode.");
