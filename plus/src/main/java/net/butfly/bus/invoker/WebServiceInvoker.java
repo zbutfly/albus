@@ -42,7 +42,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		try {
 			this.serializer = (Serializer) Class.forName(config.getSerializer()).getConstructor(String[].class).newInstance(config.getTypeTranslators());
 		} catch (Exception e) {
-			this.serializer = new JSONSerializer(config.getTypeTranslators());
+			this.serializer = new JSONSerializer();
 		}
 		if (!(this.serializer instanceof HTTPStreamingSupport) || !((HTTPStreamingSupport) this.serializer).supportHTTPStream())
 			throw new SystemException("", "Serializer should support HTTP streaming mode.");
