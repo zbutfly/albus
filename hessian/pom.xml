@@ -2,13 +2,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>net.butfly.pom</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.0.0</version>
+		<groupId>net.butfly.bus</groupId>
+		<artifactId>albus</artifactId>
+		<version>2.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus-hessian</artifactId>
-	<version>2.0.1-SNAPSHOT</version>
 	<name>albus-hessian</name>
 	<build>
 		<finalName>albus-hessian</finalName>
@@ -22,7 +20,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.4-beta1</version>
+			<version>${deps.version.httpclient}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.caucho</groupId>
@@ -33,12 +31,12 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>4.4-beta1</version>
+			<version>${deps.version.httpclient}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient-cache</artifactId>
-			<version>4.4-beta1</version>
+			<version>${deps.version.httpclient}</version>
 		</dependency>
 	</dependencies>
 </project>

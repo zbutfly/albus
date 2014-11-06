@@ -174,7 +174,7 @@ public class HTTPUtils extends UtilsBase {
 		if (maxPerRoute > 0) connManager.setDefaultMaxPerRoute(maxPerRoute);
 		// XXX: connManager.setMaxPerRoute(new HttpRoute(new
 		// HttpHost("somehost", 80)), 20);
-		connManager.setValidateAfterInactivity(50);
+//		connManager.setValidateAfterInactivity(50);
 
 		// Use custom cookie store if necessary.
 		CookieStore cookieStore = new BasicCookieStore();
