@@ -26,13 +26,15 @@ public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> imp
 
 	@Override
 	public Object[] getBeanList() {
-		String[] filelist = files.split(";");
-		List<Resource> reses = new ArrayList<Resource>();
-		for (String file : filelist) {
-			reses.add(new ClassPathResource(file));
-			logger.trace("Invoker [SPRING:" + file + "] parsing...");
+		if (null == this.spring) {
+			String[] filelist = files.split(";");
+			List<Resource> reses = new ArrayList<Resource>();
+			for (String file : filelist) {
+				reses.add(new ClassPathResource(file));
+				logger.trace("Invoker [SPRING:" + file + "] parsing...");
+			}
+			this.spring = new GenericXmlApplicationContext(reses.toArray(new Resource[reses.size()]));
 		}
-		this.spring = new GenericXmlApplicationContext(reses.toArray(new Resource[reses.size()]));
 
 		List<Object> beans = new ArrayList<Object>();
 		for (String name : spring.getBeanDefinitionNames())
