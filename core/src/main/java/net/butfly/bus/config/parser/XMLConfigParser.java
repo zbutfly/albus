@@ -76,7 +76,7 @@ public class XMLConfigParser extends ConfigParser {
 		String id = element.attributeValue("id");
 		if (StringUtils.isEmpty(id))
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need id attribute.");
-		logger.trace("Invoker [" + id + "] parsing...");
+		logger.info("Invoker [" + id + "] parsing...");
 		if ("false".equals(element.attributeValue("enabled"))) {
 			logger.trace("Invoker [" + id + "] disabled.");
 			return null;
@@ -88,7 +88,7 @@ public class XMLConfigParser extends ConfigParser {
 		Class<? extends Invoker<?>> clazz = classForName(element.attributeValue("type"));
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
 		processConfigObj(config, element);
-		logger.trace("Node [" + id + "] enabled.");
+		logger.info("Node [" + id + "] enabled.");
 		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
 	}
 
@@ -142,7 +142,7 @@ public class XMLConfigParser extends ConfigParser {
 				throw new SystemException(Constants.UserError.FILTER_INVOKE, "Filter class invalid", e);
 			}
 			FilterBean f = new FilterBean(title, clazz, params);
-			logger.trace("Filter [" + title + "] enbled.");
+			logger.info("Filter [" + title + "] enbled.");
 			logAsXml(filter);
 			return f;
 		} else {
@@ -153,7 +153,7 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected static void logAsXml(Element element) {
-		logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+		logger.debug(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
 				.replaceAll("\n$$", ""));
 	}
 

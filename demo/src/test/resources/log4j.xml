@@ -8,8 +8,12 @@
 			<param name="ConversionPattern" value="%d{ABSOLUTE}[%5p][%c{1}][%t]: %m%n" />
 		</layout>
 	</appender>
+	<logger name="org.reflections" additivity="false">
+		<level value="error" />
+		<appender-ref ref="log-console-stdout" />
+	</logger>
 	<logger name="net.butfly" additivity="false">
-		<level value="debug" />
+		<level value="info" />
 		<appender-ref ref="log-console-stdout" />
 	</logger>
 <!-- 	<logger name="net.butfly.bus" additivity="false"> -->

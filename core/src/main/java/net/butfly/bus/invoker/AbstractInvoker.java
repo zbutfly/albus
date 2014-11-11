@@ -58,7 +58,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 				TX tx = m.getAnnotation(TX.class);
 				if (tx != null) {
 					TXImpl key = TXUtils.TXImpl(tx);
-					logger.trace("TX found: " + key + ".");
+					logger.info("TX found: " + key + ".");
 					if (METHOD_POOL.containsKey(key)) {
 						logger.warn("TX duplicated: " + key + ", ignored...");
 						continue;

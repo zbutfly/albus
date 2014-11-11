@@ -64,7 +64,7 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 			AsyncResult r = null;
 			if (timeout > 0) r = task.get(timeout, TimeUnit.MILLISECONDS);
 			else r = task.get();
-			logger.trace("Request completed.");
+			logger.debug("Request completed.");
 			return r.getResponse();
 		} catch (InterruptedException e) {
 			task.cancel(true);

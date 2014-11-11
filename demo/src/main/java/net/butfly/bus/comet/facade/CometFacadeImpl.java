@@ -15,25 +15,30 @@ public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFaca
 
 	private synchronized long count() {
 		long c = ++count;
-//		if (c % 3 == 0) CometContext.sleep(200);
-//		if (c % 5 == 0) throw new Signal.Suspend(7000);
-//		if (c % 8 == 0) throw new Signal.Timeout();
-//		if (c % 30 == 0) throw new Signal.Completed();
+		// if (c % 3 == 0) CometContext.sleep(200);
+		// if (c % 5 == 0) throw new Signal.Suspend(7000);
+		// if (c % 8 == 0) throw new Signal.Timeout();
+		// if (c % 30 == 0) throw new Signal.Completed();
 		return c;
 	}
 
 	@Override
-	public CometEchoReponse echo0(String echo) {
-		return new CometEchoReponse(echo + " [from echo0][" + count() + "]");
+	public String echoString(String echo) {
+		return echo + " [from echo0][" + count() + "]";
 	}
 
 	@Override
-	public CometEchoReponse echo1(String echo, long... values) {
+	public long echoArray(long... values) {
+		return values[(int) Math.floor(Math.random() * values.length)];
+	}
+
+	@Override
+	public CometEchoReponse echoCompose(String echo, long... values) {
 		return new CometEchoReponse(echo + " [from echo1][" + count() + "]", values);
 	}
 
 	@Override
-	public CometEchoReponse echo2(CometEchoRequest echo) {
+	public CometEchoReponse echoObject(CometEchoRequest echo) {
 		return new CometEchoReponse(echo.getValue() + " [from echo2][" + count() + "]", echo.getValues());
 	}
 
@@ -61,4 +66,5 @@ public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFaca
 		}
 		throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID, "Authorization failure for no token provided.");
 	}
+
 }

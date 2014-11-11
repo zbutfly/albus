@@ -70,7 +70,7 @@ public class HessianInvoker extends AbstractRemoteInvoker<HessianInvokerConfig> 
 
 	@Override
 	public Response invoke(Request request) {
-		logger.trace("Attemp hessian connection: " + path + ".");
+		logger.debug("Attemp hessian connection: " + path + ".");
 		try {
 			return super.invoke(request);
 		} catch (HessianConnectionException ex) {

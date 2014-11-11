@@ -31,7 +31,7 @@ import com.caucho.services.server.AbstractSkeleton;
 
 public class ContinuousHessianProxy<R> implements InvocationHandler, Serializable {
 	private static final long serialVersionUID = -8019595632297646789L;
-	private static final Logger log = LoggerFactory.getLogger(ContinuousHessianProxy.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContinuousHessianProxy.class);
 	protected ContinuousHessianProxyFactory _factory;
 	private WeakHashMap<Method, String> _mangleMap = new WeakHashMap<Method, String>();
 	private Class<?> _type;
@@ -129,12 +129,12 @@ public class ContinuousHessianProxy<R> implements InvocationHandler, Serializabl
 			if (iss != null) try {
 				iss.close();
 			} catch (Exception e) {
-				log.error(e.getMessage(), e);
+				logger.error(e.getMessage(), e);
 			}
 			if (conn != null) try {
 				conn.destroy();
 			} catch (Exception e) {
-				log.error(e.getMessage(), e);
+				logger.error(e.getMessage(), e);
 			}
 		}
 	}

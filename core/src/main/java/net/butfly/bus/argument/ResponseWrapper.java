@@ -4,7 +4,6 @@ import java.lang.reflect.Type;
 
 import com.google.common.reflect.TypeToken;
 
-
 public class ResponseWrapper extends Response {
 	private static final long serialVersionUID = 4569901861887755671L;
 	protected String resultClass;
@@ -19,7 +18,11 @@ public class ResponseWrapper extends Response {
 		else this.resultClass = null;
 	}
 
-	public Type resultClass() throws ClassNotFoundException {
-		return Class.forName(this.resultClass);
+	public Type resultClass() {
+		try {
+			return Class.forName(this.resultClass);
+		} catch (ClassNotFoundException e) {
+			return null;
+		}
 	}
 }

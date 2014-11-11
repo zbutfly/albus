@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
+@Deprecated
 public class AsyncFilter extends FilterBase implements Filter {
 	private static Logger logger = LoggerFactory.getLogger(AsyncFilter.class);
 	private ListeningExecutorService executor;

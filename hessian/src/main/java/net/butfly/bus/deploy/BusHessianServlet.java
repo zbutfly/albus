@@ -31,12 +31,12 @@ public class BusHessianServlet extends SimpleHessianServlet {
 		if (null != factoryClasses) for (String className : factoryClasses.split(","))
 			try {
 				super.getSerializerFactory().addFactory((AbstractSerializerFactory) Class.forName(className).newInstance());
-				logger.trace("HessianSerializer servlet load serializer factory: " + className);
+				logger.info("HessianSerializer servlet load serializer factory: " + className);
 			} catch (Exception e) {
 				logger.warn("HessianSerializer servlet load serializer factory failure: " + className);
 			}
 		try {
-			logger.trace("Bus starting...");
+			logger.debug("Bus starting...");
 			ServerWrapper servers = ServerWrapper.construct(this.getInitParameter("config-file"),
 					this.getInitParameter("server-class"));
 			Router router;

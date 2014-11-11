@@ -1,8 +1,13 @@
 package net.butfly.bus.serialize;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
+
 
 //import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
@@ -14,6 +19,26 @@ public abstract class HessianSupport extends HTTPStreamingSupport implements Ser
 	public static final ContentType HESSIAN_CONTENT_TYPE = ContentType.create("x-application/hessian"/*, Consts.ISO_8859_1*/);
 	public static final ContentType BURLAP_CONTENT_TYPE = ContentType.create("x-application/burlap"/*, Consts.ISO_8859_1*/);
 	protected SerializerFactory factory;
+
+	@Override
+	public byte[] serialize(Object obj) {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		try {
+			this.write(os, obj);
+		} catch (IOException ex) {
+			throw new SystemException("", ex);
+		}
+		return os.toByteArray();
+	}
+
+	@Override
+	public <T> T deserialize(byte[] data, Type... types) {
+		try {
+			return this.read(new ByteArrayInputStream(data), types);
+		} catch (IOException ex) {
+			throw new SystemException("", ex);
+		}
+	}
 
 	@Override
 	public void addFactoriesByClassName(List<String> classes) {

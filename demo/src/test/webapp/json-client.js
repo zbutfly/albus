@@ -17,7 +17,7 @@ var option = {
 	processData : false,
 	dataType : 'json',
 	headers : {
-		'X-BUS-TX' : 'TST_CMT-002',
+		'X-BUS-TX' : 'TST_CMT-003',
 		'X-BUS-Context-SourceAppID' : 'JSON-DEMO',
 		'X-BUS-Context-USERNAME' : 'user',
 		'X-BUS-Context-PASSWORD' : 'pass'

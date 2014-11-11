@@ -1,4 +1,4 @@
-package net.butfly.bus.server;
+package net.butfly.bus.comet;
 
 import net.butfly.bus.deploy.JettyStarter;
 

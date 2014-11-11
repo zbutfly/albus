@@ -22,7 +22,7 @@ public class SimulateFilter extends FilterBase implements Filter {
 		this.source = params.get("source");
 		if (null == this.source) throw new SystemException(Constants.UserError.CONFIG_ERROR,
 				"Parameter simulate-dir not found.");
-		else logger.trace("Simulate albus transaction with files in: " + source);
+		else logger.info("Simulate albus transaction with files in: " + source);
 	}
 
 	@Override

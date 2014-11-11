@@ -12,7 +12,7 @@ import com.caucho.hessian.client.HessianConnectionFactory;
 import com.caucho.hessian.client.HessianProxyFactory;
 
 public class ContinuousHessianURLConnectionFactory implements HessianConnectionFactory {
-	private static final Logger log = Logger.getLogger(ContinuousHessianURLConnectionFactory.class.getName());
+	private static final Logger logger = Logger.getLogger(ContinuousHessianURLConnectionFactory.class.getName());
 
 	private HessianProxyFactory _proxyFactory;
 
@@ -24,7 +24,7 @@ public class ContinuousHessianURLConnectionFactory implements HessianConnectionF
 	 * Opens a new or recycled connection to the HTTP server.
 	 */
 	public HessianConnection open(URL url) throws IOException {
-		if (log.isLoggable(Level.FINER)) log.finer(this + " open(" + url + ")");
+		if (logger.isLoggable(Level.FINER)) logger.finer(this + " open(" + url + ")");
 
 		URLConnection conn = url.openConnection();
 

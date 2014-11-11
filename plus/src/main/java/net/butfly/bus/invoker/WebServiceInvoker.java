@@ -2,8 +2,6 @@ package net.butfly.bus.invoker;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,6 @@ import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +64,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	protected void asyncInvoke(AsyncRequest request) throws IOException {
 		Map<String, String> headers = this.getHeaders(request, true);
-		byte[] data = this.data(request);
+		byte[] data = this.serializer.serialize(request.arguments());
 		do {
 			InputStream http = this.handler.post(this.path, data,
 					((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, true);
@@ -83,9 +80,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	protected Response syncInvoke(Request request) throws IOException {
 		Map<String, String> headers = this.getHeaders(request, false);
-		byte[] data = this.data(request);
-		InputStream http = this.handler.post(this.path, data, ((HTTPStreamingSupport) this.serializer).getOutputContentType(),
-				headers, false);
+		InputStream http = this.handler.post(this.path, this.serializer.serialize(request.arguments()),
+				((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, false);
 		Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer.read(http,
 				ResponseWrapper.class);
 		http.close();
@@ -95,20 +91,9 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	private Response convertResult(Response resp) {
 		Object r = resp.result();
 		if (null != r && resp instanceof ResponseWrapper) {
-			Type expected;
-			try {
-				expected = ((ResponseWrapper) resp).resultClass();
-			} catch (ClassNotFoundException e) {
-				throw new SystemException("", "Result type information invalid.", e);
-			}
+			Type expected = ((ResponseWrapper) resp).resultClass();
 			if (null != expected) {
-				PipedOutputStream os = new PipedOutputStream();
-				try {
-					PipedInputStream is = new PipedInputStream(os);
-					this.serializer.write(os, r);
-					os.close();
-					r = this.serializer.read(is, expected);
-				} catch (IOException ex) {}
+				r = this.serializer.deserialize(this.serializer.serialize(r), expected);
 				resp.result(r);
 			}
 		}
@@ -126,11 +111,4 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		return headers;
 	}
 
-	private byte[] data(Request request) throws IOException {
-		PipedOutputStream os = new PipedOutputStream();
-		PipedInputStream is = new PipedInputStream(os);
-		this.serializer.write(os, request.arguments());
-		os.close();
-		return IOUtils.toByteArray(is);
-	}
 }
