@@ -14,7 +14,6 @@
 	<modules>
 		<module>core</module>
 		<module>plus</module>
-		<module>hessian</module>
 		<!--<module>compability</module>-->
 		<module>demo</module>
 		<!--<module>console</module>-->

@@ -1,4 +1,4 @@
-package net.butfly.bus.hessian.serialize;
+package net.butfly.bus.serialize.converter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import com.caucho.hessian.io.HessianProtocolException;
 import com.caucho.hessian.io.Serializer;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class EnumFactory extends AbstractSerializerFactory {
+public class HessianEnumFactory extends AbstractSerializerFactory {
 	@Override
 	public Deserializer getDeserializer(Class clazz) throws HessianProtocolException {
 		if (EnumSupport.class.isAssignableFrom(clazz)) { return new EnumDeserializer(clazz); }

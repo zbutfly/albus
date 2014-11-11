@@ -56,28 +56,22 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>9.3.0.M0</version>
+			<version>9.3.0.M1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-plus</artifactId>
-			<version>9.3.0.M0</version>
+			<version>9.3.0.M1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-http-spi</artifactId>
-			<version>9.3.0.M0</version>
+			<version>9.3.0.M1</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.eclipse.jetty</groupId> -->
-		<!-- <artifactId>jetty-annotations</artifactId> -->
-		<!-- <version>9.2.2.v20140723</version> -->
-		<!-- </dependency> -->
-		<!-- implementations, to be decoupled -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.directwebremoting</groupId> -->
-		<!-- <artifactId>dwr</artifactId> -->
-		<!-- <version>3.0.M1</version> -->
-		<!-- </dependency> -->
+		<dependency>
+			<groupId>com.caucho</groupId>
+			<artifactId>hessian</artifactId>
+			<version>4.0.38</version>
+		</dependency>
 	</dependencies>
 </project>

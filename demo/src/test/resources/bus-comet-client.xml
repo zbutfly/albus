@@ -9,7 +9,7 @@
 	<invoker id="albus-test-comet" tx="TST_CMT-*" type="net.butfly.bus.invoker.WebServiceInvoker">
 		<path>http://127.0.0.1:19080/bus</path>
 		<!-- <serializer>net.butfly.bus.serialize.HessianSerializer</serializer> -->
-		<typeTranslators>net.butfly.bus.hessian.serialize.EnumFactory</typeTranslators>
+		<typeTranslators>net.butfly.bus.serialize.converter.HessianEnumFactory</typeTranslators>
 		<auth username="user" password="pass" />
 	</invoker>
 </bus>
