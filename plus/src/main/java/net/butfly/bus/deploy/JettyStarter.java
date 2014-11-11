@@ -229,6 +229,7 @@ public class JettyStarter implements Runnable {
 		CommandLine cmd = parser.parse(args);
 		if (null != cmd) {
 			StarterConfiguration conf = new StarterConfiguration(cmd);
+			logger.info(conf.toString());
 
 			JettyStarter j = new JettyStarter(conf);
 			j.addBusInstance(conf);
@@ -325,7 +326,7 @@ public class JettyStarter implements Runnable {
 		}
 	}
 
-	private static class StarterConfiguration {
+	private static final class StarterConfiguration {
 		private boolean secure;
 		private int port;
 		private int sslPort;
@@ -372,7 +373,19 @@ public class JettyStarter implements Runnable {
 			} catch (Throwable t) {
 				this.serverClass = BasicBus.class;
 			}
+		}
 
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder("Start configuration:\n");
+			for (Field f : this.getClass().getDeclaredFields())
+				if (f.getType().isArray()) {
+					sb.append("\t").append(f.getName()).append(": \n");
+					for (Object e : (Object[]) ReflectionUtils.safeFieldGet(f, this))
+						sb.append("\t\t").append(e).append("\n");
+				} else sb.append("\t").append(f.getName()).append(": ").append((Object) ReflectionUtils.safeFieldGet(f, this))
+						.append("\n");
+			return sb.toString();
 		}
 	}
 }
