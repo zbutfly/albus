@@ -1,4 +1,4 @@
-package net.butfly.albacore.utils.serialize;
+package net.butfly.bus.serialize;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,4 +10,6 @@ public interface Serializer {
 	<T> T read(InputStream is, Class<?>... types) throws IOException;
 
 	void readThenWrite(InputStream is, OutputStream os, Class<?>... type) throws IOException;
+
+	boolean supportClass();
 }

@@ -15,6 +15,6 @@ public abstract class HttpHandler {
 		this.readTimeout = readTimeout >= 0 ? readTimeout : 0;
 	}
 
-	public abstract InputStream post(String url, InputStream is, ContentType contentType, Map<String, String> headers, boolean streaming)
-			throws IOException;
+	public abstract InputStream post(String url, byte[] data, ContentType contentType, Map<String, String> headers,
+			boolean streaming) throws IOException;
 }

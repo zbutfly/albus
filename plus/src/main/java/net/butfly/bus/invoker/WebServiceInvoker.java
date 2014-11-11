@@ -12,6 +12,7 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.argument.AsyncRequest;
 import net.butfly.bus.argument.Request;
 import net.butfly.bus.argument.Response;
+import net.butfly.bus.argument.ResponseWrapper;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.context.BusHttpHeaders;
@@ -22,6 +23,7 @@ import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +42,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
 		try {
-			this.serializer = (Serializer) Class.forName(config.getSerializer()).getConstructor(String[].class).newInstance(config.getTypeTranslators());
+			this.serializer = (Serializer) Class.forName(config.getSerializer()).getConstructor(String[].class)
+					.newInstance(config.getTypeTranslators());
 		} catch (Exception e) {
 			this.serializer = new JSONSerializer();
 		}
@@ -62,60 +65,66 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
 	protected void asyncInvoke(AsyncRequest request) throws IOException {
-		Map<String, String> headers = new HashMap<String, String>();
-		headers.put(BusHttpHeaders.HEADER_TX_CODE, request.code());
-		headers.put(BusHttpHeaders.HEADER_TX_VERSION, request.version());
-		headers.put(BusHttpHeaders.HEADER_CONTINUOUS, Boolean.toString(request.retries() >= 0));
-		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
-			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-
-		PipedOutputStream os = new PipedOutputStream();
-		PipedInputStream is = new PipedInputStream(os);
-		this.serializer.write(os, request.arguments());
-		os.close();
+		Map<String, String> headers = this.getHeaders(request, true);
+		byte[] data = this.data(request);
 		do {
-			InputStream resp = this.handler.post(this.path, is,
+			InputStream http = this.handler.post(this.path, data,
 					((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, true);
 			while (true) {
-				Response r = this.serializer.read(resp, Response.class);
+				Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer
+						.read(http, ResponseWrapper.class);
 				request.callback().callback(this.convertResult(r));
 				if (r == null) break;
 			}
+			http.close();
 		} while (request.retry());
+	}
+
+	protected Response syncInvoke(Request request) throws IOException {
+		Map<String, String> headers = this.getHeaders(request, false);
+		byte[] data = this.data(request);
+		InputStream http = this.handler.post(this.path, data, ((HTTPStreamingSupport) this.serializer).getOutputContentType(),
+				headers, false);
+		Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer.read(http,
+				ResponseWrapper.class);
+		http.close();
+		return this.convertResult(r);
 	}
 
 	private Response convertResult(Response resp) {
 		Object r = resp.result();
-		Class<?> expected = resp.resultClass();
-		if (null != resp && null != expected && null != r && !expected.isAssignableFrom(r.getClass())) {
-			PipedOutputStream os = new PipedOutputStream();
-			try {
-				PipedInputStream is = new PipedInputStream(os);
-				this.serializer.write(os, r);
-				os.close();
-				r = this.serializer.read(is, expected);
-			} catch (IOException ex) {}
-			resp.result(r);
+		if (null != r && resp instanceof ResponseWrapper) {
+			Class<?> expected = ((ResponseWrapper) resp).resultClass();
+			if (null != expected && !expected.isAssignableFrom(r.getClass())) {
+				PipedOutputStream os = new PipedOutputStream();
+				try {
+					PipedInputStream is = new PipedInputStream(os);
+					this.serializer.write(os, r);
+					os.close();
+					r = this.serializer.read(is, expected);
+				} catch (IOException ex) {}
+				resp.result(r);
+			}
 		}
 		return resp;
 	}
 
-	protected Response syncInvoke(Request request) throws IOException {
+	private Map<String, String> getHeaders(Request request, boolean streaming) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHttpHeaders.HEADER_TX_CODE, request.code());
 		headers.put(BusHttpHeaders.HEADER_TX_VERSION, request.version());
-		headers.put(BusHttpHeaders.HEADER_CONTINUOUS, "false");
+		headers.put(BusHttpHeaders.HEADER_SUPPORT_CLASS, Boolean.toString(this.serializer.supportClass()));
+		headers.put(BusHttpHeaders.HEADER_CONTINUOUS, Boolean.toString(streaming));
 		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
 			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
+		return headers;
+	}
 
+	private byte[] data(Request request) throws IOException {
 		PipedOutputStream os = new PipedOutputStream();
 		PipedInputStream is = new PipedInputStream(os);
 		this.serializer.write(os, request.arguments());
 		os.close();
-		InputStream resp = this.handler.post(this.path, is, ((HTTPStreamingSupport) this.serializer).getOutputContentType(),
-				headers, false);
-		Response r = this.serializer.read(resp, Response.class);
-		resp.close();
-		return this.convertResult(r);
+		return IOUtils.toByteArray(is);
 	}
 }

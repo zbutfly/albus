@@ -1,15 +1,17 @@
-package net.butfly.albacore.utils.serialize;
+package net.butfly.bus.serialize;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+
+import org.apache.http.entity.ContentType;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 
 public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 	private Gson gson = new Gson();
@@ -17,14 +19,14 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 
 	@Override
 	public void write(OutputStream os, Object obj) throws IOException {
-		new OutputStreamWriter(os).write(gson.toJson(obj));
+		os.write(gson.toJson(obj).getBytes(this.getOutputContentType().getCharset()));
 		os.flush();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T read(InputStream is, Class<?>... types) throws IOException {
-		InputStreamReader reader = new InputStreamReader(is);
+		JsonReader reader = new JsonReader(new InputStreamReader(is, this.getOutputContentType().getCharset()));
 		try {
 			JsonElement ele = parser.parse(reader);
 			if (ele.isJsonNull()) return null;
@@ -57,7 +59,12 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 	}
 
 	@Override
-	public String[] getContentTypes() {
-		return new String[] { "application/json" };
+	public ContentType[] getSupportedContentTypes() {
+		return new ContentType[] { ContentType.APPLICATION_JSON };
+	}
+
+	@Override
+	public boolean supportClass() {
+		return false;
 	}
 }

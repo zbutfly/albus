@@ -25,4 +25,9 @@ public abstract class HessianSupport extends HTTPStreamingSupport implements Ser
 				throw new SystemException("", e);
 			}
 	}
+
+	@Override
+	public boolean supportClass() {
+		return true;
+	}
 }

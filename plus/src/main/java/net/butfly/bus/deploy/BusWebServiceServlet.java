@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -22,6 +23,7 @@ import net.butfly.bus.BasicBus;
 import net.butfly.bus.argument.AsyncRequest;
 import net.butfly.bus.argument.Request;
 import net.butfly.bus.argument.Response;
+import net.butfly.bus.argument.ResponseWrapper;
 import net.butfly.bus.argument.TX;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.invoker.ParameterInfo;
@@ -77,15 +79,15 @@ public class BusWebServiceServlet extends BusServlet {
 		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType().toString());
 		BasicBus server = this.router.route(info.tx.value(), servers.servers());
 		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
-		Object[] arguments = this.readFromBody(serializer, request.getInputStream(),
-				pi.parametersTypes());
+		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
 		AsyncCallback<Response> acb = new AsyncCallback<Response>() {
 			@Override
 			public void callback(Response r) {
-				r.resultClass(pi.returnType());
 				response.setHeader(HttpHeaders.ETAG, r.id());
+				if (r.context() != null) for (Entry<String, String> ctx : r.context().entrySet())
+					response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 				try {
-					serializer.write(response.getOutputStream(), r);
+					serializer.write(response.getOutputStream(), info.supportClass ? r : new ResponseWrapper(r));
 					response.flushBuffer();
 				} catch (IOException ex) {
 					throw new SystemException("", ex);
@@ -151,11 +153,14 @@ public class BusWebServiceServlet extends BusServlet {
 		}
 		String cont = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS);
 		info.continuous = null != cont && Boolean.parseBoolean(cont);
+		String supportClass = request.getHeader(BusHttpHeaders.HEADER_SUPPORT_CLASS);
+		info.supportClass = null == supportClass || Boolean.parseBoolean(supportClass);
 		return info;
 	}
 
 	protected static class HeaderInfo {
 		TX tx;
+		boolean supportClass;
 		boolean continuous;
 		Map<String, String> context;
 	}

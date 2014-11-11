@@ -5,5 +5,6 @@ public interface BusHttpHeaders {
 	String HEADER_TX_CODE = HEADER_PREFIX + "TX";
 	String HEADER_TX_VERSION = HEADER_PREFIX + "TX-Version";
 	String HEADER_CONTINUOUS = HEADER_PREFIX + "Continuous";
+	String HEADER_SUPPORT_CLASS = HEADER_PREFIX + "Support-Class";
 	String HEADER_CONTEXT_PREFIX = HEADER_PREFIX + "Context-";
 }

@@ -23,7 +23,7 @@ public class HttpUrlHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, InputStream is, ContentType contentType, Map<String, String> headers, boolean streaming)
+	public InputStream post(String url, byte[] data, ContentType contentType, Map<String, String> headers, boolean streaming)
 			throws IOException {
 		URL u;
 		try {
@@ -46,7 +46,8 @@ public class HttpUrlHandler extends HttpHandler {
 
 		int statusCode = 500;
 		OutputStream req = conn.getOutputStream();
-		IOUtils.copy(is, req);
+
+		IOUtils.write(data, req);
 		req.flush();
 
 		statusCode = conn.getResponseCode();

@@ -10,8 +10,8 @@ import net.butfly.albacore.exception.SystemException;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 public class HttpClientHandler extends HttpHandler {
@@ -23,7 +23,7 @@ public class HttpClientHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, InputStream is, ContentType contentType, Map<String, String> headers, boolean streaming)
+	public InputStream post(String url, byte[] data, ContentType contentType, Map<String, String> headers, boolean streaming)
 			throws IOException {
 		HttpPost postReq = new HttpPost(url);
 
@@ -33,7 +33,7 @@ public class HttpClientHandler extends HttpHandler {
 		if (postReq.getHeaders(HttpHeaders.CONTENT_TYPE) == null)
 			postReq.setHeader(HttpHeaders.CONTENT_TYPE, contentType.toString());
 
-		InputStreamEntity e = new InputStreamEntity(is, -1, contentType);
+		ByteArrayEntity e = new ByteArrayEntity(data, contentType);
 		// if (streaming) e.setChunked(true);
 		postReq.setEntity(e);
 		CloseableHttpResponse postResp = this.client.execute(postReq);
