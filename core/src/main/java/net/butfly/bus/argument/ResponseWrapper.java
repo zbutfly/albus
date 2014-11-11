@@ -1,6 +1,9 @@
 package net.butfly.bus.argument;
 
-import net.butfly.albacore.exception.SystemException;
+import java.lang.reflect.Type;
+
+import com.google.common.reflect.TypeToken;
+
 
 public class ResponseWrapper extends Response {
 	private static final long serialVersionUID = 4569901861887755671L;
@@ -12,18 +15,11 @@ public class ResponseWrapper extends Response {
 		this.result = response.result;
 		this.context = response.context;
 		this.error = response.error;
-		this.resultClass(this.result.getClass());
+		if (this.result != null) this.resultClass = TypeToken.of(this.result.getClass()).toString();
+		else this.resultClass = null;
 	}
 
-	public void resultClass(Class<?> returnType) {
-		this.resultClass = returnType.getName();
-	}
-
-	public Class<?> resultClass() {
-		try {
-			return Class.forName(this.resultClass);
-		} catch (ClassNotFoundException e) {
-			throw new SystemException("", e);
-		}
+	public Type resultClass() throws ClassNotFoundException {
+		return Class.forName(this.resultClass);
 	}
 }

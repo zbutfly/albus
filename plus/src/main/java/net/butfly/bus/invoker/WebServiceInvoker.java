@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -94,8 +95,13 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	private Response convertResult(Response resp) {
 		Object r = resp.result();
 		if (null != r && resp instanceof ResponseWrapper) {
-			Class<?> expected = ((ResponseWrapper) resp).resultClass();
-			if (null != expected && !expected.isAssignableFrom(r.getClass())) {
+			Type expected;
+			try {
+				expected = ((ResponseWrapper) resp).resultClass();
+			} catch (ClassNotFoundException e) {
+				throw new SystemException("", "Result type information invalid.", e);
+			}
+			if (null != expected) {
 				PipedOutputStream os = new PipedOutputStream();
 				try {
 					PipedInputStream is = new PipedInputStream(os);

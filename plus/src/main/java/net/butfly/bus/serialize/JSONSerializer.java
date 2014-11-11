@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 
 import org.apache.http.entity.ContentType;
 
@@ -25,17 +26,17 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T read(InputStream is, Class<?>... types) throws IOException {
+	public <T> T read(InputStream is, Type... types) throws IOException {
 		JsonReader reader = new JsonReader(new InputStreamReader(is, this.getOutputContentType().getCharset()));
 		try {
 			JsonElement ele = parser.parse(reader);
 			if (ele.isJsonNull()) return null;
-			if (ele.isJsonObject() || ele.isJsonPrimitive()) {
-				if (types.length < 1) throw new IllegalArgumentException();
-				return (T) gson.fromJson(ele, types[0]);
-			}
-			if (ele.isJsonArray()) {
+			if (ele.isJsonObject() || ele.isJsonPrimitive() || types.length == 1) return (T) gson.fromJson(ele, types[0]);
+			if (ele.isJsonArray() && types.length > 1) {
 				JsonArray arr = ele.getAsJsonArray();
+				if (types.length == 1 && ((Class<?>) types[0]).isArray()) {
+
+				}
 				int len = Math.min(arr.size(), types.length);
 				Object[] args = new Object[len];
 				for (int i = 0; i < len; i++)
@@ -44,12 +45,12 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 			}
 			throw new IllegalArgumentException();
 		} catch (Exception e) {
-			throw new IOException(e);
+			throw new IllegalArgumentException(e);
 		}
 	}
 
 	@Override
-	public void readThenWrite(InputStream is, OutputStream os, Class<?>... types) throws IOException {
+	public void readThenWrite(InputStream is, OutputStream os, Type... types) throws IOException {
 		write(os, read(is, types));
 	}
 

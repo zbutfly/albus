@@ -1,17 +1,16 @@
-package net.butfly.albacore.utils.serialize;
+package net.butfly.bus.serialize;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
+
+import org.apache.http.entity.ContentType;
 
 import com.caucho.burlap.io.BurlapInput;
 import com.caucho.burlap.io.BurlapOutput;
-import com.caucho.hessian.io.AbstractSerializerFactory;
-import com.caucho.hessian.io.SerializerFactory;
 
-public class BurlapSerializer extends HTTPStreamingSupport implements Serializer, SerializerFactorySupport {
-	private SerializerFactory factory;
-
+public class BurlapSerializer extends HessianSupport {
 	@Override
 	public void write(OutputStream os, Object obj) throws IOException {
 		BurlapOutput ho = new BurlapOutput(os);
@@ -26,7 +25,7 @@ public class BurlapSerializer extends HTTPStreamingSupport implements Serializer
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T read(InputStream is, Class<?>... types) throws IOException {
+	public <T> T read(InputStream is, Type... types) throws IOException {
 		BurlapInput hi = new BurlapInput(is);
 		if (null != factory) hi.setSerializerFactory(factory);
 		try {
@@ -37,7 +36,7 @@ public class BurlapSerializer extends HTTPStreamingSupport implements Serializer
 	}
 
 	@Override
-	public void readThenWrite(InputStream is, OutputStream os, Class<?>... types) throws IOException {
+	public void readThenWrite(InputStream is, OutputStream os, Type... types) throws IOException {
 		write(os, read(is, types));
 	}
 
@@ -47,13 +46,7 @@ public class BurlapSerializer extends HTTPStreamingSupport implements Serializer
 	}
 
 	@Override
-	public String[] getContentTypes() {
-		return new String[] { "x-application/burlap" };
-	}
-
-	@Override
-	public void addFactory(AbstractSerializerFactory factory) {
-		if (this.factory == null) this.factory = new SerializerFactory();
-		this.factory.addFactory(factory);
+	public ContentType[] getSupportedContentTypes() {
+		return new ContentType[] { HessianSupport.BURLAP_CONTENT_TYPE };
 	}
 }
