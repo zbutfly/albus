@@ -14,6 +14,7 @@ import com.caucho.hessian.io.Deserializer;
 import com.caucho.hessian.io.HessianProtocolException;
 import com.caucho.hessian.io.Serializer;
 
+@Deprecated
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class HessianEnumFactory extends AbstractSerializerFactory {
 	@Override
@@ -41,7 +42,7 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 		}
 	}
 
-	public class EnumDeserializer extends AbstractDeserializer implements Deserializer {
+	public static class EnumDeserializer extends AbstractDeserializer implements Deserializer {
 		private Class<EnumSupport<?>> clazz;
 
 		public EnumDeserializer(Class<EnumSupport<?>> clazz) {

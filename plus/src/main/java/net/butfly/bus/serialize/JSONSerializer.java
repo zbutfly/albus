@@ -2,22 +2,19 @@ package net.butfly.bus.serialize;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
 
 public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
-	private Gson gson = new Gson();
-	private JsonParser parser = new JsonParser();
+	private Gson gson = new Gson();// add TypeAdapterFactory here.
 
 	@Override
 	public byte[] serialize(Object obj) {
@@ -26,7 +23,8 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 
 	@Override
 	public <T> T deserialize(byte[] data, Type... types) {
-		return this.parseJSON(parser.parse(new String(data, this.getOutputContentType().getCharset())), types);
+		return this.parseJSON(gson.fromJson(new String(data, this.getOutputContentType().getCharset()), JsonElement.class),
+				types);
 	}
 
 	@Override
@@ -37,8 +35,7 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 
 	@Override
 	public <T> T read(InputStream is, Type... types) throws IOException {
-		return this.parseJSON(
-				parser.parse(new JsonReader(new InputStreamReader(is, this.getOutputContentType().getCharset()))), types);
+		return this.deserialize(IOUtils.toByteArray(is), types);
 	}
 
 	@Override

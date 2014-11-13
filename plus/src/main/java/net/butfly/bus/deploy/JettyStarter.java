@@ -49,7 +49,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,9 +69,9 @@ public class JettyStarter implements Runnable {
 	}
 
 	public JettyStarter(StarterConfiguration conf) {
-		ThreadPool pool = conf.threads > 0 ? new QueuedThreadPool(conf.threads) : new DelegatingThreadPool(
-				Executors.newWorkStealingPool());
-		this.server = new Server(pool);
+		if (conf.threads > 0) this.server = new Server(new QueuedThreadPool(conf.threads));
+		else if (conf.threads == 0) this.server = new Server(new DelegatingThreadPool(Executors.newWorkStealingPool()));
+		else this.server = new Server();
 		this.context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		this.context.setContextPath("/");
 		if (null != conf.resBase) context.setResourceBase(conf.resBase);

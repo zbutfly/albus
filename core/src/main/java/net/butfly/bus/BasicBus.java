@@ -83,10 +83,13 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 	@SuppressWarnings("rawtypes")
 	public ParameterInfo getParameterInfo(String code, String version) {
 		InvokerBean ivkb = BasicBus.this.router.route(code, BasicBus.this.config.getInvokers());
+		if (null == ivkb) return null;
 		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
+		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by request.");
 		Method m = ((AbstractLocalInvoker) ivk).getMethod(code, version);
+		if (null == m) return null;
 		Class<?> r = m.getReturnType();
 		if (r != null) {
 			if (r.isArray()) r = r.getComponentType();

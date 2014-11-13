@@ -78,7 +78,9 @@ public class WebServiceServlet extends BusServlet {
 		response.setStatus(HttpStatus.SC_OK);
 		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType().toString());
 		BasicBus server = this.router.route(info.tx.value(), servers.servers());
+		if (null == server) throw new SystemException("", "Server routing failure.");
 		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
+		if (null == pi) throw new SystemException("", "Server routing failure.");
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
 		AsyncCallback<Response> acb = new AsyncCallback<Response>() {
 			@Override
