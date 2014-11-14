@@ -1,6 +1,6 @@
 package net.butfly.bus.context;
 
-class ThreadLocalContext extends ContextWrapper {
+class ThreadLocalContext extends WrappedContext {
 	private static final ThreadLocal<SimpleContext> CTX_LOCAL = new ThreadLocal<SimpleContext>();
 
 	@Override

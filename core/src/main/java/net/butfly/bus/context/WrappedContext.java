@@ -5,7 +5,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ContextWrapper extends Context {
+public abstract class WrappedContext extends Context {
 	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	protected abstract void current(SimpleContext c);

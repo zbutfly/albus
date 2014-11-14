@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.butfly.albacore.exception.SystemException;
 
-class RequestContext extends ContextWrapper {
+class RequestContext extends WrappedContext {
 	private static final ThreadLocal<String> KEY_LOCAL = new ThreadLocal<String>();
 	private static final Map<String, SimpleContext> CTX_LOCAL = new ConcurrentHashMap<String, SimpleContext>();
 
