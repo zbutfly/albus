@@ -38,7 +38,7 @@ public class AsyncFilter extends FilterBase implements Filter {
 
 	@Override
 	public Response execute(Request request) throws Exception {
-		Future<AsyncResult> f = this.executor.invokeAll(Arrays.asList(new AsyncTask(request, Context.CURRENT) {
+		Future<AsyncResult> f = this.executor.invokeAll(Arrays.asList(new AsyncTask(request, Context.toMap()) {
 			@Override
 			protected Response doCall() throws Exception {
 				return AsyncFilter.super.execute(request);

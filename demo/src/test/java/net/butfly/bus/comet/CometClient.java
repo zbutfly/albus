@@ -14,7 +14,7 @@ public class CometClient {
 	private CometFacade facade;
 
 	public CometClient(boolean remote) {
-		Context.initialize(true);
+		Context.initialize(null, true);
 		this.client = new BasicBus(remote ? "bus-comet-client.xml" : "bus-comet-server.xml");
 		this.facade = this.client.getService(CometFacade.class);
 		Context.sourceAppID("CometClientTest");

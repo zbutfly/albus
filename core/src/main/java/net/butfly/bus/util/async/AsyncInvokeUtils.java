@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.AsyncTask;
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory;
 public class AsyncInvokeUtils extends UtilsBase {
 	private static class InvokeResult {
 		Response response;
-		Context context;
+		Map<String, Object> context;
 	}
 
 	public static interface InvokeTaskCallback {
@@ -33,10 +34,10 @@ public class AsyncInvokeUtils extends UtilsBase {
 	}
 
 	public static class InvokeTask extends AsyncTask<InvokeResult> {
-		private Context context;
+		private Map<String, Object> context;
 		private InvokeTaskCallback invokeCallback;
 
-		public InvokeTask(InvokeTaskCallback invokeCallback, final AsyncCallback<Response> responseCallback, Context context) {
+		public InvokeTask(InvokeTaskCallback invokeCallback, final AsyncCallback<Response> responseCallback, Map<String, Object> context) {
 			super(new AsyncCallback<InvokeResult>() {
 				@Override
 				public void callback(InvokeResult result) {
@@ -50,11 +51,11 @@ public class AsyncInvokeUtils extends UtilsBase {
 
 		@Override
 		public InvokeResult call() throws Exception {
-			Context.folk(context);
+			Context.initialize(this.context, true);
 			InvokeResult r = new InvokeResult();
-			this.context.putAll(Context.CURRENT);
+			this.context.putAll(Context.toMap());
 			r.response = this.invokeCallback.invoke();
-			r.context = Context.CURRENT;
+			r.context = Context.toMap();
 			return r;
 		}
 	}
@@ -86,9 +87,9 @@ public class AsyncInvokeUtils extends UtilsBase {
 		private ObjectOutputStream os;
 		private int retries;
 		private AsyncTask<?> task;
-		private Context context;
+		private Map<String, Object> context;
 
-		public ProducerTask(ObjectOutputStream os, AsyncTask<?> task, Context context, int retries) {
+		public ProducerTask(ObjectOutputStream os, AsyncTask<?> task, Map<String, Object> context, int retries) {
 			super(new AsyncCallback<Object>() {
 				@Override
 				public void callback(Object nill) {
@@ -103,9 +104,9 @@ public class AsyncInvokeUtils extends UtilsBase {
 
 		@Override
 		public Object call() throws Exception {
-			Context.folk(context);
+			Context.initialize(this.context, true);
 			produce(os, task, retries);
-			this.context.putAll(Context.CURRENT);
+			this.context.putAll(Context.toMap());
 			return null;
 		}
 	}
@@ -125,9 +126,9 @@ public class AsyncInvokeUtils extends UtilsBase {
 	private static class ConsumerTask extends AsyncTask<Object> {
 		private ObjectInputStream is;
 		private AsyncTask<Response> task;
-		private Context context;
+		private Map<String, Object> context;
 
-		public ConsumerTask(ObjectInputStream is, AsyncTask<Response> task, Context context) {
+		public ConsumerTask(ObjectInputStream is, AsyncTask<Response> task, Map<String, Object> context) {
 			super(new AsyncCallback<Object>() {
 				@Override
 				public void callback(Object nill) {
@@ -141,11 +142,11 @@ public class AsyncInvokeUtils extends UtilsBase {
 
 		@Override
 		public Object call() throws Exception {
-			Context.folk(context);
+			Context.initialize(this.context, true);
 			try {
 				consume(is, task);
 			} finally {
-				this.context.putAll(Context.CURRENT);
+				this.context.putAll(Context.toMap());
 			}
 			return null;
 		}
@@ -165,7 +166,7 @@ public class AsyncInvokeUtils extends UtilsBase {
 					}
 				} catch (EOFException ex) {
 					logger.info("Invoking repeated and consumer finished.");
-					return;			
+					return;
 				} catch (Throwable th) {
 					throw new SystemException("", th);
 				}
@@ -208,8 +209,8 @@ public class AsyncInvokeUtils extends UtilsBase {
 			pin = new PipedInputStream(pout);
 			os = new ObjectOutputStream(pout);
 			is = new ObjectInputStream(pin);
-			ProducerTask producer = new ProducerTask(os, task, Context.CURRENT, retries);
-			ConsumerTask consumer = new ConsumerTask(is, task, Context.CURRENT);
+			ProducerTask producer = new ProducerTask(os, task, Context.toMap(), retries);
+			ConsumerTask consumer = new ConsumerTask(is, task, Context.toMap());
 			if (producerOpt != null && producerOpt.fork) AsyncUtils.invoke(producer, producerOpt.timeout);
 			if (consumerOpt != null && consumerOpt.fork) AsyncUtils.invoke(consumer, consumerOpt.timeout);
 			if (producerOpt == null || !producerOpt.fork) produce(os, task, retries);

@@ -12,7 +12,7 @@
 		<finalName>albus-plus</finalName>
 	</build>
 	<properties>
-		<deps.version.jetty>9.2.3.v20140905</deps.version.jetty>
+		<deps.version.jetty>9.3.0.M1</deps.version.jetty><!-- 9.2.3.v20140905 -->
 	</properties>
 	<dependencies>
 		<dependency>

@@ -87,7 +87,7 @@ public class AsyncBus extends CallbackBus implements TimeoutInvokeSupport {
 			public Response invoke() {
 				return AsyncBus.super.invoke(request);
 			}
-		}, callback, Context.CURRENT), timeout);
+		}, callback, Context.toMap()), timeout);
 	}
 
 	protected class ServiceProxy<T> extends CallbackBus.ServiceProxy<T> implements InvocationHandler {

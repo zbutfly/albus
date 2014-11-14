@@ -48,7 +48,7 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 
 	@Override
 	public Response execute(Request request) throws Exception {
-		FutureTask<AsyncResult> task = new FutureTask<AsyncResult>(new AsyncTask(request, Context.CURRENT) {
+		FutureTask<AsyncResult> task = new FutureTask<AsyncResult>(new AsyncTask(request, Context.toMap()) {
 			@Override
 			protected Response doCall() throws Exception {
 				return ThreadControlFilter.super.execute(request);

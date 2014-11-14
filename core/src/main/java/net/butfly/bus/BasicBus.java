@@ -114,7 +114,7 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
 		if (request.version() == null)
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
-		new FlowNo(request.code(), request.version());
+		FlowNo.request(request);
 		try {
 			return chain.execute(request);
 		} catch (Signal sig) {

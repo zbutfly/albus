@@ -38,7 +38,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 
 	private String getDebugDetail(Response response) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.CURRENT.toString())
+		sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.string())
 				.append("\n\tresponse result: ");
 		if (response != null && response.result() != null) {
 			sb.append("[").append(response.result().getClass().getName()).append("]").append("\n\t\t")
@@ -49,9 +49,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 
 	private String getDebugDetail(Request request) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" invoking request detail: ").append("\n\tcontext: ").append(Context.CURRENT.toString())
-				.append("\n\ttx code: ").append(request.code()).append("\n\ttx version: ").append(request.version())
-				.append("\n\trequest arguments: ");
+		sb.append(" invoking request detail: ").append("\n\tcontext: ").append(Context.string()).append("\n\ttx code: ")
+				.append(request.code()).append("\n\ttx version: ").append(request.version()).append("\n\trequest arguments: ");
 		int ai = 1;
 		if (request.arguments() != null) for (Object arg : request.arguments()) {
 			sb.append("\n\t\t").append("[").append(ai++).append("]: ");

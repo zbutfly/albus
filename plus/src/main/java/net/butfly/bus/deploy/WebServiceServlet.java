@@ -26,6 +26,7 @@ import net.butfly.bus.argument.Response;
 import net.butfly.bus.argument.ResponseWrapper;
 import net.butfly.bus.argument.TX;
 import net.butfly.bus.context.BusHttpHeaders;
+import net.butfly.bus.context.Context;
 import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
@@ -93,10 +94,13 @@ public class WebServiceServlet extends BusServlet {
 					response.flushBuffer();
 				} catch (IOException ex) {
 					throw new SystemException("", ex);
+				} finally {
+					Context.cleanup();
 				}
 			}
 		};
 		Request req = new Request(info.tx, info.context, arguments);
+		Context.initialize(Context.deserialize(req.context()), true);
 		if (info.continuous) server.invoke(new AsyncRequest(req, acb));
 		else acb.callback(server.invoke(req));
 	}

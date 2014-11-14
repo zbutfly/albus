@@ -125,7 +125,7 @@ public class RepeatBus extends AsyncBus implements RepeatInvokeSupport {
 			public Response invoke() {
 				return RepeatBus.super.invoke(request);
 			}
-		}, callback, Context.CURRENT), 0);
+		}, callback, Context.toMap()), 0);
 	}
 
 	protected class ServiceProxy<T> extends AsyncBus.ServiceProxy<T> implements InvocationHandler {

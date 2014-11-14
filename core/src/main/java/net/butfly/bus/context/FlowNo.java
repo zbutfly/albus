@@ -5,6 +5,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import net.butfly.bus.argument.Request;
+import net.butfly.bus.context.Context.Key;
 import net.butfly.bus.util.TXUtils;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -20,7 +22,12 @@ public final class FlowNo implements Serializable, Cloneable {
 	private String serial;
 	private long sequence;
 
-	public FlowNo(String code, String version) {
+	public static void request(Request request) {
+		String existed = request.context(Key.FlowNo.toString());
+		if (null == existed) request.context(Key.FlowNo.toString(), new FlowNo(request.code(), request.version()).toString());
+	}
+
+	private FlowNo(String code, String version) {
 		FlowNo existed = Context.flowNo();
 		if (null == existed) {
 			this.serial = random();
