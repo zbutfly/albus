@@ -14,7 +14,7 @@ import net.butfly.bus.policy.SimpleRouter;
 public final class BusFactory {
 	public static Config createConfiguration(String configLocation) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
-		if (config.side() == Side.CLIENT) Context.initialize(null, true);
+		if (config.side() == Side.CLIENT) Context.initialize(null, false);
 		return config;
 	}
 
