@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,14 +18,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.BasicBus;
-import net.butfly.bus.argument.AsyncRequest;
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
+import net.butfly.albacore.utils.async.Callback;
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.bus.Bus;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
+import net.butfly.bus.TX;
 import net.butfly.bus.argument.ResponseWrapper;
-import net.butfly.bus.argument.TX;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.invoker.ParameterInfo;
@@ -32,8 +33,11 @@ import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
-import net.butfly.bus.util.ServerWrapper;
-import net.butfly.bus.util.TXUtils;
+import net.butfly.bus.utils.ServerWrapper;
+import net.butfly.bus.utils.TXUtils;
+import net.butfly.bus.utils.async.ContinuousUtils;
+import net.butfly.bus.utils.async.InvokeTask;
+import net.butfly.bus.utils.async.Options;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -78,12 +82,13 @@ public class WebServiceServlet extends BusServlet {
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
 		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType().toString());
-		BasicBus server = this.router.route(info.tx.value(), servers.servers());
+		Bus server = this.router.route(info.tx.value(), servers.servers());
 		if (null == server) throw new SystemException("", "Server routing failure.");
 		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
 		if (null == pi) throw new SystemException("", "Server routing failure.");
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
-		AsyncCallback<Response> acb = new AsyncCallback<Response>() {
+		Request req = new Request(info.tx, info.context, arguments);
+		Callback<Response> callback = new Callback<Response>() {
 			@Override
 			public void callback(Response r) {
 				response.setHeader(HttpHeaders.ETAG, r.id());
@@ -99,10 +104,19 @@ public class WebServiceServlet extends BusServlet {
 				}
 			}
 		};
-		Request req = new Request(info.tx, info.context, arguments);
+		Callable<Response> task = new Callable<Response>() {
+			@Override
+			public Response call() throws Exception {
+				return server.invoke(req);
+			}
+		};
 		Context.initialize(Context.deserialize(req.context()), true);
-		if (info.continuous) server.invoke(new AsyncRequest(req, acb));
-		else acb.callback(server.invoke(req));
+		if (info.continuous) ContinuousUtils.execute(new InvokeTask(new Task<Response>(task, callback, new Options())));
+		else try {
+			callback.callback(task.call());
+		} catch (Exception e) {
+			// TODO: write exception into response
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -1,13 +1,13 @@
-package net.butfly.bus.util;
+package net.butfly.bus.utils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.bus.Response;
+import net.butfly.bus.TX;
 import net.butfly.bus.argument.Error;
-import net.butfly.bus.argument.Response;
-import net.butfly.bus.argument.TX;
 
 public final class BusUtils {
 	private BusUtils() {}

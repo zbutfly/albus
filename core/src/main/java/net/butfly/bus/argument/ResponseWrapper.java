@@ -2,6 +2,8 @@ package net.butfly.bus.argument;
 
 import java.lang.reflect.Type;
 
+import net.butfly.bus.Response;
+
 import com.google.common.reflect.TypeToken;
 
 public class ResponseWrapper extends Response {
@@ -9,11 +11,11 @@ public class ResponseWrapper extends Response {
 	protected String resultClass;
 
 	public ResponseWrapper(Response response) {
-		this.id = response.id;
-		this.requestId = response.requestId;
-		this.result = response.result;
-		this.context = response.context;
-		this.error = response.error;
+		this.id = response.id();
+		this.requestId = response.requestId();
+		this.result = response.result();
+		this.context = response.context();
+		this.error = response.error();
 		if (this.result != null) this.resultClass = TypeToken.of(this.result.getClass()).toString();
 		else this.resultClass = null;
 	}

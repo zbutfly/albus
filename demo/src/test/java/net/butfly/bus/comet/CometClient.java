@@ -1,27 +1,27 @@
 package net.butfly.bus.comet;
 
-import net.butfly.albacore.utils.AsyncTask.AsyncCallback;
-import net.butfly.bus.BasicBus;
-import net.butfly.bus.RepeatBus;
+import net.butfly.albacore.utils.async.Callback;
+import net.butfly.bus.ext.Bus;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.utils.async.Options;
 
 public class CometClient {
-	private BasicBus client;
+	private Bus client;
 	private CometFacade facade;
 
 	public CometClient(boolean remote) {
-		Context.initialize(null, true);
-		this.client = new BasicBus(remote ? "bus-comet-client.xml" : "bus-comet-server.xml");
-		this.facade = this.client.getService(CometFacade.class);
+		Context.initialize(null, false);
 		Context.sourceAppID("CometClientTest");
+		this.client = new Bus(remote ? "bus-comet-client.xml" : "bus-comet-server.xml");
+		this.facade = this.client.getService(CometFacade.class);
 	}
 
 	public static void main(String args[]) throws Exception {
-		CometClient app = new CometClient(true);
+		CometClient app = new CometClient(false);
 		Context.token(new Token("user", "pass"));
 		for (int i = 0; i < 5; i++)
 			app.singletest(i);
@@ -35,8 +35,8 @@ public class CometClient {
 	}
 
 	void continuous() {
-		RepeatBus client = new RepeatBus("bus-comet-client.xml");
-		CometFacade comet = client.getService(CometFacade.class, callback, 0, 0);
+		Bus client = new Bus("bus-comet-client.xml");
+		CometFacade comet = client.getService(CometFacade.class, callback, new Options().retries(3));
 		String echo = comet.echoString("hello, world!");
 		if (echo != null) System.err.println("Should be null: " + echo.toString());
 		else System.out.println("Do be null.");
@@ -44,7 +44,7 @@ public class CometClient {
 			CometContext.sleep(10000);
 	}
 
-	private final AsyncCallback<CometEchoReponse> callback = new AsyncCallback<CometEchoReponse>() {
+	private final Callback<CometEchoReponse> callback = new Callback<CometEchoReponse>() {
 		@Override
 		public void callback(CometEchoReponse echo) {
 			// consume one result.

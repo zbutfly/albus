@@ -35,7 +35,7 @@ import org.eclipse.jetty.util.URIUtil;
  * <p>
  * Using information present in the {@link HttpConfiguration}, will attempt to
  * redirect to the {@link HttpConfiguration#getSecureScheme()} and
- * {@link HttpConfiguration#getSecurePort()} for any request that
+ * {@link HttpConfiguration#getSecurePort()} for any options that
  * {@link HttpServletRequest#isSecure()} == false.
  */
 public class SecuredRedirectHandler extends AbstractHandler {

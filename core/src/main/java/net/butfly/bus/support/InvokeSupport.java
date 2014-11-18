@@ -1,9 +1,9 @@
 package net.butfly.bus.support;
 
 import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
-import net.butfly.bus.argument.TX;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
+import net.butfly.bus.TX;
 
 public interface InvokeSupport {
 	public <F extends Facade> F getService(Class<F> facadeClass);

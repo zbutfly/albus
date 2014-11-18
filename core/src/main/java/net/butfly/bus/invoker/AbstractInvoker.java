@@ -1,5 +1,6 @@
 package net.butfly.bus.invoker;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -7,14 +8,16 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
+import net.butfly.bus.TX;
 import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.TX;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.facade.AuthFacade;
-import net.butfly.bus.util.TXUtils;
-import net.butfly.bus.util.TXUtils.TXImpl;
+import net.butfly.bus.utils.TXUtils;
+import net.butfly.bus.utils.TXUtils.TXImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,4 +88,8 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 		Token t = Context.token();
 		return null == t ? this.token : t;
 	}
+
+	protected abstract Response singleInvoke(Request areq) throws IOException;
+
+//	protected abstract Response continuousInvoke(Request options) throws IOException;
 }

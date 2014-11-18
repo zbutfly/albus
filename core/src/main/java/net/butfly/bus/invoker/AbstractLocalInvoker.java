@@ -4,17 +4,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.argument.AsyncRequest;
+import net.butfly.albacore.utils.async.Signal;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
+import net.butfly.bus.TX;
 import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
-import net.butfly.bus.argument.TX;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
-import net.butfly.bus.util.TXUtils;
-import net.butfly.bus.util.TXUtils.TXImpl;
-import net.butfly.bus.util.async.AsyncInvokeUtils;
-import net.butfly.bus.util.async.HandledBySignal;
-import net.butfly.bus.util.async.Signal;
+import net.butfly.bus.utils.TXUtils;
+import net.butfly.bus.utils.TXUtils.TXImpl;
 
 public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
 	public Method getMethod(String code, String version) {
@@ -28,34 +25,35 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	@Override
 	public Response invoke(Request request) {
 		if (this.auth != null) this.auth.login(this.token());
-		if (!(request instanceof AsyncRequest)) return singleInvoke(request);
-		AsyncRequest areq = (AsyncRequest) request;
-		if (!areq.continuous()) return singleInvoke(areq);
-		this.continuousInvoke(areq);
-		throw new IllegalAccessError("A continuous invoking should not end without exception.");
+		return singleInvoke(request);
+//		if (!(options instanceof AsyncRequest)) return singleInvoke(options);
+//		AsyncRequest areq = (AsyncRequest) options;
+//		if (!areq.continuous()) return singleInvoke(areq);
+//		this.continuousInvoke(areq);
+//		throw new IllegalAccessError("A continuous invoking should not end without exception.");
 	}
 
-	private void continuousInvoke(AsyncRequest areq) {
-		try {
-			AsyncInvokeUtils.handleBySignal(new HandledBySignal(areq) {
-				@Override
-				public boolean retry() {
-					return areq.retry();
-				}
+//	private void continuousInvoke(AsyncRequest areq) {
+//		try {
+//			HandledBySignal.handleBySignal(new HandledBySignal(areq) {
+//				@Override
+//				public boolean retry() {
+//					return areq.retry();
+//				}
+//
+//				@Override
+//				public void handle() throws Throwable {
+//					areq.callback().callback(AbstractLocalInvoker.this.singleInvoke(areq));
+//				}
+//			});
+//		} catch (SystemException e) {
+//			throw e;
+//		} catch (Throwable e) {
+//			throw new SystemException("", e);
+//		}
+//	}
 
-				@Override
-				public void handle() throws Throwable {
-					areq.callback().callback(AbstractLocalInvoker.this.singleInvoke(areq));
-				}
-			});
-		} catch (SystemException e) {
-			throw e;
-		} catch (Throwable e) {
-			throw new SystemException("", e);
-		}
-	}
-
-	private Response singleInvoke(Request request) {
+	protected Response singleInvoke(Request request) {
 		TXImpl key = this.scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
 		if (null == key)
 			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["

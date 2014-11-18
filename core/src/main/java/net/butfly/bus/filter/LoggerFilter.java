@@ -1,7 +1,7 @@
 package net.butfly.bus.filter;
 
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
 
@@ -49,7 +49,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 
 	private String getDebugDetail(Request request) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" invoking request detail: ").append("\n\tcontext: ").append(Context.string()).append("\n\ttx code: ")
+		sb.append(" invoking options detail: ").append("\n\tcontext: ").append(Context.string()).append("\n\ttx code: ")
 				.append(request.code()).append("\n\ttx version: ").append(request.version()).append("\n\trequest arguments: ");
 		int ai = 1;
 		if (request.arguments() != null) for (Object arg : request.arguments()) {

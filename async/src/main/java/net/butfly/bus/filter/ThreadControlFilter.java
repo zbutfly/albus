@@ -1,28 +1,30 @@
 package net.butfly.bus.filter;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.async.AsyncUtils;
+import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
 import net.butfly.bus.argument.Constants.Side;
-import net.butfly.bus.context.Context;
-import net.butfly.bus.util.async.AsyncResult;
-import net.butfly.bus.util.async.AsyncTask;
+import net.butfly.bus.utils.async.InvokeTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO: upgrade to callback pattern and work-stealing mode -- use AsyncFilter
+/**
+ * @author butfly
+ * @deprecated insteaded by {@link net.butfly.bus.filter.AsyncFilter} to enable
+ *             work-stealing mode (with callback pattern)
+ */
 @Deprecated
 public class ThreadControlFilter extends FilterBase implements Filter {
 	private static Logger logger = LoggerFactory.getLogger(ThreadControlFilter.class);
@@ -48,37 +50,15 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 
 	@Override
 	public Response execute(Request request) throws Exception {
-		FutureTask<AsyncResult> task = new FutureTask<AsyncResult>(new AsyncTask(request, Context.toMap()) {
+		return AsyncUtils.execute(executor, new InvokeTask(new Task<Response>(new Callable<Response>() {
 			@Override
-			protected Response doCall() throws Exception {
-				return ThreadControlFilter.super.execute(request);
+			public Response call() {
+				try {
+					return ThreadControlFilter.super.execute(request);
+				} catch (Exception e) {
+					throw new SystemException("", e);
+				}
 			}
-		});
-		try {
-			executor.execute(task);
-		} catch (RejectedExecutionException e) {
-			logger.warn("async task executing rejected for pool saturated...");
-			throw new SystemException(Constants.SystemError.SATURATED, "Request pool overflow.");
-		}
-		try {
-			AsyncResult r = null;
-			if (timeout > 0) r = task.get(timeout, TimeUnit.MILLISECONDS);
-			else r = task.get();
-			logger.debug("Request completed.");
-			return r.getResponse();
-		} catch (InterruptedException e) {
-			task.cancel(true);
-			throw new SystemException(Constants.SystemError.INTERRUPTED, e);
-		} catch (TimeoutException e) {
-			task.cancel(true);
-			throw new SystemException(Constants.SystemError.TIMEOUT, "Request timeout.");
-		} catch (ExecutionException e) {
-			task.cancel(true);
-
-			Throwable ex = e.getCause();
-			if (ex instanceof Exception) throw (Exception) ex;
-			logger.error("Unhandlable exception: ", ex);
-			throw new SystemException(Constants.SystemError.UNKNOW_CAUSE, ex);
-		}
+		}, new Options().timeout(timeout))));
 	}
 }

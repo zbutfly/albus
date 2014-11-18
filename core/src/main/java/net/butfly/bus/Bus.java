@@ -13,11 +13,8 @@ import java.util.Set;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.GenericUtils;
-import net.butfly.bus.argument.AsyncRequest;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
-import net.butfly.bus.argument.TX;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.context.Context;
@@ -33,11 +30,15 @@ import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.support.InvokeSupport;
-import net.butfly.bus.util.TXUtils;
-import net.butfly.bus.util.async.Signal;
+import net.butfly.bus.utils.BusFactory;
+import net.butfly.bus.utils.TXUtils;
 
-public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	private static final long serialVersionUID = -4835302344711170159L;
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	protected final String id;
 	protected Config config;
@@ -48,11 +49,11 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 
 	/* Routine for both client and server */
 
-	public BasicBus() {
+	public Bus() {
 		this(null);
 	}
 
-	public BasicBus(String configLocation) {
+	public Bus(String configLocation) {
 		this.config = BusFactory.createConfiguration(configLocation);
 		this.router = BusFactory.createRouter(this.config);
 		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter(), this.config.side());
@@ -82,12 +83,12 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 
 	@SuppressWarnings("rawtypes")
 	public ParameterInfo getParameterInfo(String code, String version) {
-		InvokerBean ivkb = BasicBus.this.router.route(code, BasicBus.this.config.getInvokers());
+		InvokerBean ivkb = Bus.this.router.route(code, Bus.this.config.getInvokers());
 		if (null == ivkb) return null;
 		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
 		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
-			throw new UnsupportedOperationException("Only local invokers support real method fetching by request.");
+			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
 		Method m = ((AbstractLocalInvoker) ivk).getMethod(code, version);
 		if (null == m) return null;
 		Class<?> r = m.getReturnType();
@@ -104,7 +105,7 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 	/**
 	 * Kernal invoking for this bus.
 	 * 
-	 * @param request
+	 * @param options
 	 * @return
 	 */
 	@Override
@@ -158,7 +159,7 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 		}
 
 		protected Response invoke(Request request) {
-			return BasicBus.this.invoke(request);
+			return Bus.this.invoke(request);
 		}
 	}
 
@@ -209,22 +210,26 @@ public class BasicBus implements InternalFacade, Routeable, InvokeSupport {
 	/**
 	 * Kernal invoking of this bus.
 	 * 
-	 * @param request
+	 * @param options
 	 * @return
 	 */
 	private Response realInvoke(Request request) {
 		Invoker<?> ivk = this.findInvoker(request.code());
-		if ((request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
-			if (!(BasicBus.this instanceof RepeatBus))
-				throw new UnsupportedOperationException(
-						"Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
-			ivk.invoke(request);
-			throw new IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
-		} else return ivk.invoke(request);
+		// XXX
+		// if ((options instanceof AsyncRequest) && ((AsyncRequest)
+		// options).continuous()) {
+		// if (!(Bus.this instanceof RepeatBus))
+		// throw new UnsupportedOperationException(
+		// "Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
+		// ivk.invoke(options);
+		// throw new
+		// IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
+		// } else
+		return ivk.invoke(request);
 	}
 
 	private Invoker<?> findInvoker(String txCode) {
-		InvokerBean ivkb = BasicBus.this.router.route(txCode, BasicBus.this.config.getInvokers());
+		InvokerBean ivkb = Bus.this.router.route(txCode, Bus.this.config.getInvokers());
 		return InvokerFactory.getInvoker(ivkb);
 	}
 }

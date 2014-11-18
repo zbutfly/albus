@@ -180,7 +180,7 @@ public class HTTPUtils extends UtilsBase {
 		CookieStore cookieStore = new BasicCookieStore();
 		// Use custom credentials provider if necessary.
 		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-		// Create global request configuration
+		// Create global options configuration
 		if (connTimeout <= 0) connTimeout = DEFAULT_TIMEOUT;
 		RequestConfig defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.BEST_MATCH)
 				.setExpectContinueEnabled(true)

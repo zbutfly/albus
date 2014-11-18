@@ -5,7 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import net.butfly.bus.argument.Request;
+import net.butfly.bus.Request;
 import net.butfly.bus.context.Context.Key;
 
 import org.apache.commons.lang3.time.FastDateFormat;

@@ -8,9 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.argument.AsyncRequest;
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.argument.ResponseWrapper;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
@@ -62,23 +61,23 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
-	protected void asyncInvoke(AsyncRequest request) throws IOException {
-		Map<String, String> headers = this.getHeaders(request, true);
-		byte[] data = this.serializer.serialize(request.arguments());
-		do {
-			InputStream http = this.handler.post(this.path, data,
-					((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, true);
-			while (true) {
-				Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer
-						.read(http, ResponseWrapper.class);
-				request.callback().callback(this.convertResult(r));
-				if (r == null) break;
-			}
-			http.close();
-		} while (request.retry());
-	}
+//	protected void continuousInvoke(Request request, Options options) throws IOException {
+//		Map<String, String> headers = this.getHeaders(request, true);
+//		byte[] data = this.serializer.serialize(request.arguments());
+//		do {
+//			InputStream http = this.handler.post(this.path, data,
+//					((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, true);
+//			while (true) {
+//				Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer
+//						.read(http, ResponseWrapper.class);
+//				options.callback().callback(this.convertResult(r));
+//				if (r == null) break;
+//			}
+//			http.close();
+//		} while (request.retry());
+//	}
 
-	protected Response syncInvoke(Request request) throws IOException {
+	protected Response singleInvoke(Request request) throws IOException {
 		Map<String, String> headers = this.getHeaders(request, false);
 		InputStream http = this.handler.post(this.path, this.serializer.serialize(request.arguments()),
 				((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, false);

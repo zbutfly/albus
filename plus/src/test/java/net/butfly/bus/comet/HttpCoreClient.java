@@ -146,9 +146,9 @@
 //		// Execute HTTP GETs to the following hosts and
 //		final HttpHost target = new HttpHost(host, port, "http");
 //
-//		BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", path);
-//		request.setEntity(new InputStreamEntity(inputStream, -1));
-//		requester.execute(new BasicAsyncRequestProducer(target, request), new BasicAsyncResponseConsumer(), pool,
+//		BasicHttpEntityEnclosingRequest options = new BasicHttpEntityEnclosingRequest("POST", path);
+//		options.setEntity(new InputStreamEntity(inputStream, -1));
+//		requester.execute(new BasicAsyncRequestProducer(target, options), new BasicAsyncResponseConsumer(), pool,
 //				new BasicHttpContext(),
 //				// Handle HTTP response from a callback
 //				new FutureCallback<HttpResponse>() {
@@ -225,7 +225,7 @@
 //		}
 //
 //		public void cancelled() {
-//			logger.info("Cancelled the request");
+//			logger.info("Cancelled the options");
 //		}
 //	}
 //

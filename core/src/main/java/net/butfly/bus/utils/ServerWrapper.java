@@ -1,4 +1,4 @@
-package net.butfly.bus.util;
+package net.butfly.bus.utils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,21 +7,21 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.BasicBus;
+import net.butfly.bus.Bus;
 import net.butfly.bus.policy.Routeable;
 
 public final class ServerWrapper implements Routeable {
 	private static final Set<ServerWrapper> ALL = new HashSet<ServerWrapper>();
-	private final Map<String, BasicBus> servers = new HashMap<String, BasicBus>();
+	private final Map<String, Bus> servers = new HashMap<String, Bus>();
 
 	@SuppressWarnings("unchecked")
 	public static ServerWrapper construct(String configLocations, String serverClassName) {
 		ServerWrapper wrapper = new ServerWrapper();
-		Class<? extends BasicBus> serverClass;
+		Class<? extends Bus> serverClass;
 		try {
-			serverClass = (Class<? extends BasicBus>) Class.forName(serverClassName);
+			serverClass = (Class<? extends Bus>) Class.forName(serverClassName);
 		} catch (Exception e) {
-			serverClass = BasicBus.class;
+			serverClass = Bus.class;
 		}
 		if (configLocations == null) wrapper.registerSingle(null, serverClass);
 		else for (String conf : configLocations.split(","))
@@ -30,12 +30,12 @@ public final class ServerWrapper implements Routeable {
 		return wrapper;
 	}
 
-	public BasicBus server(String serverId) {
+	public Bus server(String serverId) {
 		return servers.get(serverId);
 	}
 
-	public BasicBus[] servers() {
-		return servers.values().toArray(new BasicBus[servers.values().size()]);
+	public Bus[] servers() {
+		return servers.values().toArray(new Bus[servers.values().size()]);
 	}
 
 	@Override
@@ -46,13 +46,13 @@ public final class ServerWrapper implements Routeable {
 	@Override
 	public String[] supportedTXs() {
 		Set<String> all = new HashSet<String>();
-		for (BasicBus server : servers.values())
+		for (Bus server : servers.values())
 			all.addAll(Arrays.asList(server.supportedTXs()));
 		return all.toArray(new String[all.size()]);
 	}
 
-	private void registerSingle(String conf, Class<? extends BasicBus> serverClass) {
-		BasicBus server;
+	private void registerSingle(String conf, Class<? extends Bus> serverClass) {
+		Bus server;
 		try {
 			server = serverClass.getConstructor(String.class).newInstance(conf);
 		} catch (Exception e) {

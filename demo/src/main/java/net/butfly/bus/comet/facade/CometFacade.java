@@ -1,7 +1,7 @@
 package net.butfly.bus.comet.facade;
 
 import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.argument.TX;
+import net.butfly.bus.TX;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 

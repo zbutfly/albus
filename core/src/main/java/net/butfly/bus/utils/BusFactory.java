@@ -1,4 +1,4 @@
-package net.butfly.bus;
+package net.butfly.bus.utils;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.argument.Constants;
@@ -43,6 +43,6 @@ public final class BusFactory {
 		if (l.load() != null) return l;
 		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_CLIENT_CONFIG);
 		if (l.load() != null) return l;
-		throw new SystemException(Constants.UserError.CONFIG_ERROR, "BasicBus configurations invalid: " + configLocation);
+		throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid: " + configLocation);
 	}
 }

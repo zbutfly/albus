@@ -2,8 +2,8 @@ package net.butfly.bus.filter;
 
 import java.util.Map;
 
-import net.butfly.bus.argument.Request;
-import net.butfly.bus.argument.Response;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.argument.Constants.Side;
 
 public interface Filter {

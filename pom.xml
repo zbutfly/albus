@@ -13,9 +13,9 @@
 	<name>albus</name>
 	<modules>
 		<module>core</module>
+		<module>async</module>
 		<module>plus</module>
-		<!--<module>compability</module>-->
 		<module>demo</module>
-		<!--<module>console</module>-->
+		<!--<module>console</module> -->
 	</modules>
 </project>

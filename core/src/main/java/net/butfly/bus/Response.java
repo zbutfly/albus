@@ -1,9 +1,11 @@
-package net.butfly.bus.argument;
+package net.butfly.bus;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import net.butfly.bus.argument.Error;
 
 public class Response implements Serializable {
 	private static final long serialVersionUID = 5897857767191140750L;
@@ -61,5 +63,9 @@ public class Response implements Serializable {
 
 	public String id() {
 		return id;
+	}
+
+	public String requestId() {
+		return this.requestId;
 	}
 }

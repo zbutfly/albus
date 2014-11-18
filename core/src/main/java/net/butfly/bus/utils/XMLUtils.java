@@ -1,4 +1,4 @@
-package net.butfly.bus.util;
+package net.butfly.bus.utils;
 
 import java.io.File;
 import java.io.FileInputStream;

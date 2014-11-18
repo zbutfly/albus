@@ -18,15 +18,7 @@ public interface Constants {
 		String HESSIAN_CONNECTION = _PREFIX + "004";// Hessian连接错误
 		String ROUTE_NOT_FOUND = _PREFIX + "005";// 路由节点失败
 
-		// old thread control
-		String TIMEOUT_FOR_IO = _PREFIX + "007";// IO超时
-		String TIMEOUT_FOR_WAIT = _PREFIX + "008";// 等待超时错误
-		String TIMEOUT_CAN_NOT_STOP = _PREFIX + "009";
 		// new thread control
-		String INTERRUPTED = _PREFIX + "080";// 任务线程发生系统中断
-		String TIMEOUT = _PREFIX + "081";// 任务线程超时
-		String SATURATED = _PREFIX + "082";// 任务线程池满溢
-
 		String NOT_IMPLEMENTED = _PREFIX + "091";
 		String ENUM_ERROR = _PREFIX + "094";
 	}
