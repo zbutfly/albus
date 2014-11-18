@@ -1,31 +1,29 @@
 package net.butfly.bus.comet;
 
-import net.butfly.albacore.utils.async.Callback;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.deploy.JettyStarter;
-import net.butfly.bus.ext.Bus;
 import net.butfly.bus.test.BusTest;
-import net.butfly.bus.utils.async.Options;
 
-public class CometTest extends BusTest {
-	private CometFacade facade;
+public class StandardTest extends BusTest {
+	protected CometFacade facade;
 
-	protected CometTest(boolean remote) throws Exception {
+	protected StandardTest(boolean remote) throws Exception {
 		super(remote);
 	}
 
 	public static void main(String args[]) throws Exception {
 		run();
+		System.exit(0);
 	}
 
 	@Override
 	protected void doAllTest() {
+		singletest();
 		for (int i = 0; i < 5; i++)
-			singletest(i);
+			composetest(i);
 	}
 
 	@Override
@@ -41,11 +39,8 @@ public class CometTest extends BusTest {
 	@Override
 	protected void beforeBus(boolean remote) throws Exception {
 		Context.token(new Token("user", "pass"));
-		Context.sourceAppID("CometClientTest");
-		if (remote) {
-			JettyStarter.main("-h");
-			System.setProperty("bus.server.class", "net.butfly.bus.ext.Bus");
-		}
+		Context.sourceAppID("CometTestClient");
+		System.setProperty("bus.server.class", "net.butfly.bus.ext.Bus");
 	}
 
 	@Override
@@ -54,38 +49,15 @@ public class CometTest extends BusTest {
 	}
 
 	/*****************************************************/
-	void callback() {
-		for (int i = 0; i < 5; i++)
-			this.singletest(i);
-		while (true)
-			CometContext.sleep(10000);
-	}
 
-	void continuous() {
-		Bus client = new Bus("bus-comet-client.xml");
-		CometFacade comet = client.getService(CometFacade.class, callback, new Options().retries(3));
-		String echo = comet.echoString("hello, world!");
-		if (echo != null) System.err.println("Should be null: " + echo.toString());
-		else System.out.println("Do be null.");
-		while (true)
-			CometContext.sleep(10000);
-	}
-
-	private final Callback<CometEchoReponse> callback = new Callback<CometEchoReponse>() {
-		@Override
-		public void callback(CometEchoReponse echo) {
-			// consume one result.
-			if (echo != null) System.out.println("Continuable echo: " + echo.toString());
-		}
-	};
-
-	void singletest(int times) {
-		CometEchoReponse resp;
-
+	private void singletest() {
 		String str = facade.echoString("hello, world!");
 		if (str != null) System.out.println("ECHO: " + str.toString());
 		else System.err.println("do be null.");
+	}
 
+	protected void composetest(int times) {
+		CometEchoReponse resp;
 		resp = facade.echoCompose("hello, world!", Math.round(Math.random() * 100), Math.round(Math.random() * 100),
 				Math.round(Math.random() * 100));
 		if (resp != null) System.out.println("ECHO: " + resp.toString());

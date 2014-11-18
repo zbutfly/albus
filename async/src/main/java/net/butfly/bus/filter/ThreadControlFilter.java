@@ -1,15 +1,15 @@
 package net.butfly.bus.filter;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.AsyncUtils;
+import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -49,15 +49,11 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		return AsyncUtils.execute(executor, new InvokeTask(new Task<Response>(new Callable<Response>() {
 			@Override
-			public Response call() {
-				try {
-					return ThreadControlFilter.super.execute(request);
-				} catch (Exception e) {
-					throw new SystemException("", e);
-				}
+			public Response call() throws Signal {
+				return ThreadControlFilter.super.execute(request);
 			}
 		}, new Options().timeout(timeout))));
 	}

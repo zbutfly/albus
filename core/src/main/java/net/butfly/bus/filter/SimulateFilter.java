@@ -26,7 +26,7 @@ public class SimulateFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) {
 		String filename = request.code() + "-" + request.version() + ".xml";
 		try {
 			return new Response(request).result(XMLUtils.parse(source + (source.endsWith("\\") ? "" : "\\") + filename));

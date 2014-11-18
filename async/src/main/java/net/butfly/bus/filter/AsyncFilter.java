@@ -1,10 +1,11 @@
 package net.butfly.bus.filter;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import net.butfly.albacore.utils.async.AsyncUtils;
+import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -23,10 +24,10 @@ public class AsyncFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		return AsyncUtils.execute(new InvokeTask(new Task<Response>(new Callable<Response>() {
 			@Override
-			public Response call() throws Exception {
+			public Response call() throws Signal {
 				return AsyncFilter.super.execute(request);
 			}
 		}, new Options().timeout(timeout))));

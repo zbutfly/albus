@@ -23,7 +23,7 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	}
 
 	@Override
-	public Response invoke(Request request) {
+	public Response invoke(Request request) throws Signal {
 		if (this.auth != null) this.auth.login(this.token());
 		return singleInvoke(request);
 //		if (!(options instanceof AsyncRequest)) return singleInvoke(options);
@@ -53,7 +53,7 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 //		}
 //	}
 
-	protected Response singleInvoke(Request request) {
+	protected Response singleInvoke(Request request) throws Signal {
 		TXImpl key = this.scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
 		if (null == key)
 			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
@@ -74,17 +74,18 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getTargetException();
 			if (cause instanceof Signal) throw (Signal) cause;
-			if (cause instanceof SystemException) throw (SystemException) cause;
-
-			String message = cause.getMessage();
-			if (message == null)
-				message = "Invoking method [" + clazz.getName() + "." + method.getName() + "] failure: Internal error.";
-			String errorCode = Constants.BusinessError.INVOKE_ERROR;
-			try {
-				Method m = cause.getClass().getMethod("getCode");
-				if (m != null) errorCode = m.invoke(cause).toString();
-			} catch (Exception ex) {}
-			throw new SystemException(errorCode, message, cause);
+			else throw new Signal.Completed(cause);
+//			if (cause instanceof SystemException) throw (SystemException) cause;
+//
+//			String message = cause.getMessage();
+//			if (message == null)
+//				message = "Invoking method [" + clazz.getName() + "." + method.getName() + "] failure: Internal error.";
+//			String errorCode = Constants.BusinessError.INVOKE_ERROR;
+//			try {
+//				Method m = cause.getClass().getMethod("getCode");
+//				if (m != null) errorCode = m.invoke(cause).toString();
+//			} catch (Exception ex) {}
+//			throw new SystemException(errorCode, message, cause);
 		}
 	}
 

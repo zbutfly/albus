@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -89,7 +90,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 		return null == t ? this.token : t;
 	}
 
-	protected abstract Response singleInvoke(Request areq) throws IOException;
+	protected abstract Response singleInvoke(Request areq) throws IOException, Signal;
 
 //	protected abstract Response continuousInvoke(Request options) throws IOException;
 }

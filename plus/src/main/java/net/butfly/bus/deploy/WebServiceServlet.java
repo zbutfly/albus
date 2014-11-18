@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,7 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Callback;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
@@ -106,16 +107,20 @@ public class WebServiceServlet extends BusServlet {
 		};
 		Callable<Response> task = new Callable<Response>() {
 			@Override
-			public Response call() throws Exception {
+			public Response call() throws Signal {
 				return server.invoke(req);
 			}
 		};
 		Context.initialize(Context.deserialize(req.context()), true);
-		if (info.continuous) ContinuousUtils.execute(new InvokeTask(new Task<Response>(task, callback, new Options())));
+		if (info.continuous) try {
+			ContinuousUtils.execute(new InvokeTask(new Task<Response>(task, callback, new Options())));
+		} catch (Signal e) {
+			// TODO
+		}
 		else try {
 			callback.callback(task.call());
-		} catch (Exception e) {
-			// TODO: write exception into response
+		} catch (Signal e) {
+			// TODO
 		}
 	}
 

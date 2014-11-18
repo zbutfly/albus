@@ -107,9 +107,10 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	 * 
 	 * @param options
 	 * @return
+	 * @throws Signal
 	 */
 	@Override
-	public Response invoke(Request request) {
+	public Response invoke(Request request) throws Signal {
 		if (request == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request null invalid.");
 		if (request.code() == null || "".equals(request.code().trim()))
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
@@ -121,10 +122,6 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 			return chain.execute(request);
 		} catch (Signal sig) {
 			throw sig;
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			throw new SystemException("", ex);
 		}
 	}
 
@@ -136,19 +133,19 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	}
 
 	@Override
-	public <T> T invoke(String code, Object... args) {
+	public <T> T invoke(String code, Object... args) throws Signal {
 		return this.invoke(TXUtils.TXImpl(code), args);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T invoke(TX tx, Object... args) {
+	public <T> T invoke(TX tx, Object... args) throws Signal {
 		Response resp = this.invoke(new Request(tx, args));
 		return (T) resp.result();
 	}
 
 	protected class ServiceProxy implements InvocationHandler {
-		public Object invoke(Object obj, Method method, Object[] args) {
+		public Object invoke(Object obj, Method method, Object[] args) throws Signal {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
 				Request request = new Request(tx.value(), tx.version(), args);
@@ -158,7 +155,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 					+ method.toString() + "].");
 		}
 
-		protected Response invoke(Request request) {
+		protected Response invoke(Request request) throws Signal {
 			return Bus.this.invoke(request);
 		}
 	}
@@ -189,7 +186,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 
 	protected class InvokerFilter extends FilterBase implements Filter {
 		@Override
-		public Response execute(Request request) throws Exception {
+		public Response execute(Request request) throws Signal {
 			Response response;
 			switch (this.side) {
 			case CLIENT:
@@ -209,11 +206,8 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 
 	/**
 	 * Kernal invoking of this bus.
-	 * 
-	 * @param options
-	 * @return
 	 */
-	private Response realInvoke(Request request) {
+	private Response realInvoke(Request request) throws Signal {
 		Invoker<?> ivk = this.findInvoker(request.code());
 		// XXX
 		// if ((options instanceof AsyncRequest) && ((AsyncRequest)

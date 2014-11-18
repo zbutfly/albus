@@ -25,7 +25,7 @@ public class ExceptionHandleFilter extends FilterBase implements Filter {
 	public void before(Request request) {}
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		Response response = null;
 		try {
 			response = super.execute(request);

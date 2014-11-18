@@ -2,12 +2,13 @@ package net.butfly.bus.ext;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.util.concurrent.Callable;
 
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.async.AsyncUtils;
+import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -36,13 +37,13 @@ public class Bus extends net.butfly.bus.Bus implements AsyncInvokeSupport {
 	}
 
 	@Override
-	public <T> void invoke(String code, Object[] arguments, Callback<T> callback, Options options) {
+	public <T> void invoke(String code, Object[] arguments, Callback<T> callback, Options options) throws Signal {
 		this.invoke(TXUtils.TXImpl(code), callback, options);
 	};
 
 	@Override
-	public <T> void invoke(TX tx, Object[] arguments, Callback<T> callback, Options options) {
-		this.invoke(new Request(tx, arguments), new ResponseCallback<T>(callback), options);
+	public <T> void invoke(TX tx, Object[] arguments, Callback<T> callback, Options options) throws Signal {
+		this.invoke(new Request(tx, arguments), callback, options);
 	}
 
 	/**
@@ -51,18 +52,26 @@ public class Bus extends net.butfly.bus.Bus implements AsyncInvokeSupport {
 	 * but transfer it into Bus.InvokerFilter for handling.
 	 */
 	@Override
-	public <T> void invoke(Request request, Callback<T> callback, Options options) {
+	public <T> void invoke(Request request, Callback<T> callback, Options options) throws Signal {
 		Task<Response> task = new InvokeTask(new Task<Response>(new Callable<Response>() {
 			@Override
-			public Response call() throws Exception {
+			public Response call() throws Signal {
 				return Bus.super.invoke(request);
 			}
 		}, new ResponseCallback<T>(callback), options));
-		// repeated
-		if (options instanceof net.butfly.bus.utils.async.Options) ContinuousUtils.execute(task);
-		// async single
-		else AsyncUtils.execute(task);
 
+		if (options instanceof net.butfly.bus.utils.async.Options) try {
+			// repeated
+			ContinuousUtils.execute(task);
+		} catch (Signal signal) {
+			AsyncUtils.handleSignal(signal);
+		}
+		else try {
+			// async single
+			AsyncUtils.execute(task);
+		} catch (Signal signal) {
+			AsyncUtils.handleSignal(signal);
+		}
 	}
 
 	protected class ServiceProxy<T> extends net.butfly.bus.Bus.ServiceProxy implements InvocationHandler {
@@ -74,8 +83,8 @@ public class Bus extends net.butfly.bus.Bus implements AsyncInvokeSupport {
 			this.options = options;
 		}
 
-		protected Response invoke(Request request) {
-			Bus.this.invoke(request, new ResponseCallback<T>(this.callback), options);
+		protected Response invoke(Request request) throws Signal {
+			Bus.this.invoke(request, this.callback, options);
 			return null;
 		}
 	}
@@ -90,8 +99,11 @@ public class Bus extends net.butfly.bus.Bus implements AsyncInvokeSupport {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public void callback(Response response) {
-			if (response != null) this.callback.callback((R) response.result());
+		public void callback(Response response) throws Signal {
+			if (response != null) {
+				R result = (R) response.result();
+				this.callback.callback(result);
+			}
 			// TODO: should throw an exception?
 			else logger.warn("Response null.");
 		}
