@@ -1,32 +1,59 @@
 package net.butfly.bus.comet;
 
 import net.butfly.albacore.utils.async.Callback;
-import net.butfly.bus.ext.Bus;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.deploy.JettyStarter;
+import net.butfly.bus.ext.Bus;
+import net.butfly.bus.test.BusTest;
 import net.butfly.bus.utils.async.Options;
 
-public class CometClient {
-	private Bus client;
+public class CometTest extends BusTest {
 	private CometFacade facade;
 
-	public CometClient(boolean remote) {
-		Context.initialize(null, false);
-		Context.sourceAppID("CometClientTest");
-		this.client = new Bus(remote ? "bus-comet-client.xml" : "bus-comet-server.xml");
-		this.facade = this.client.getService(CometFacade.class);
+	protected CometTest(boolean remote) throws Exception {
+		super(remote);
 	}
 
 	public static void main(String args[]) throws Exception {
-		CometClient app = new CometClient(false);
-		Context.token(new Token("user", "pass"));
-		for (int i = 0; i < 5; i++)
-			app.singletest(i);
+		run();
 	}
 
+	@Override
+	protected void doAllTest() {
+		for (int i = 0; i < 5; i++)
+			singletest(i);
+	}
+
+	@Override
+	protected String[] getClientConfiguration() {
+		return new String[] { "bus-comet-client.xml" };
+	}
+
+	@Override
+	protected String[] getServerConfiguration() {
+		return new String[] { "bus-comet-server.xml" };
+	}
+
+	@Override
+	protected void beforeBus(boolean remote) throws Exception {
+		Context.token(new Token("user", "pass"));
+		Context.sourceAppID("CometClientTest");
+		if (remote) {
+			JettyStarter.main("-h");
+			System.setProperty("bus.server.class", "net.butfly.bus.ext.Bus");
+		}
+	}
+
+	@Override
+	protected void beforeTest() {
+		this.facade = this.client.getService(CometFacade.class);
+	}
+
+	/*****************************************************/
 	void callback() {
 		for (int i = 0; i < 5; i++)
 			this.singletest(i);

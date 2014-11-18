@@ -1,9 +1,8 @@
 package net.butfly.bus.context;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import net.butfly.albacore.exception.SystemException;
 
 class RequestContext extends WrappedContext {
 	private static final ThreadLocal<String> KEY_LOCAL = new ThreadLocal<String>();
@@ -13,7 +12,8 @@ class RequestContext extends WrappedContext {
 	protected void initialize(Map<String, Object> original) {
 		if (null != original) {
 			if (!original.containsKey(Key.RequestID.name()))
-				throw new SystemException("", "Context initialization failure: Request ID lost.");
+			// emulate request id for local testing.
+				original.put(Key.RequestID.name(), UUID.randomUUID().toString());
 			KEY_LOCAL.set((String) original.get(Key.RequestID.name()));
 		} else logger.warn("Context of Request is not initialized properly.");
 		super.initialize(original);

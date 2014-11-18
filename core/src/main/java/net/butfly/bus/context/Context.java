@@ -22,7 +22,7 @@ public abstract class Context implements Map<String, Object> {
 
 	public static void initialize(Map<String, Object> original, boolean sharing) {
 		CURRENT = sharing ? new RequestContext() : new SimpleContext();
-		CURRENT.initialize(original);
+		CURRENT.initialize(original == null ? new HashMap<String, Object>() : original);
 	}
 
 	public static void cleanup() {

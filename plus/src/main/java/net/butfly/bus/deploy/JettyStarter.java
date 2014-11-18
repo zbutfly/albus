@@ -84,15 +84,10 @@ public class JettyStarter implements Runnable {
 
 	public void run(boolean fork) {
 		if (fork) {
-			running = true;
 			Thread th = new Thread(this);
 			th.setDaemon(true);
 			th.setName("Bus-Server-Jetty-Starter-Thread");
 			th.start();
-			while (running)
-				try {
-					Thread.sleep(30000);
-				} catch (InterruptedException ex) {}
 		} else this.run();
 	}
 
