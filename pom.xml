@@ -11,6 +11,12 @@
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>albus</name>
+	<scm>
+		<connection>git@github.com:zbutfly/albus.git</connection>
+		<developerConnection>git@github.com:zbutfly/albus.git</developerConnection>
+		<tag>MASTER</tag>
+		<url>https://github.com/zbutfly/albus</url>
+	</scm>
 	<modules>
 		<module>core</module>
 		<module>async</module>
