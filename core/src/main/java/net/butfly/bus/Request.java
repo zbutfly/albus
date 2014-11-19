@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import net.butfly.bus.auth.Token;
+import net.butfly.bus.context.Context.Key;
+
 public class Request implements Serializable {
 	private static final long serialVersionUID = -3216119686409193334L;
 	protected String id;
@@ -57,7 +60,7 @@ public class Request implements Serializable {
 		this(tx.value(), tx.version(), context, arguments);
 	}
 
-	protected Request(String id, String code, String version, Map<String, String> context, Object... arguments) {
+	protected Request(String id, String code, String version, Map<String, String> context, Object[] arguments) {
 		this.id = id;
 		this.code = code;
 		this.version = version;
@@ -71,6 +74,7 @@ public class Request implements Serializable {
 		this.version = version;
 		this.arguments = null == arguments ? new Object[0] : arguments;
 		this.context = null == context ? new HashMap<String, String>() : context;
+		this.context.put(Key.RequestID.name(), this.id);
 	}
 
 	public String id() {
@@ -138,5 +142,10 @@ public class Request implements Serializable {
 
 	public Object[] arguments() {
 		return this.arguments;
+	}
+
+	public Request token(Token token) {
+		if (null != token) this.context.putAll(token.toMap());
+		return this;
 	}
 }

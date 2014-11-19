@@ -3,9 +3,10 @@ package net.butfly.bus.filter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.butfly.bus.Constants.Side;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
+import net.butfly.bus.argument.Constants.Side;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public abstract class FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		return chain.executeNext(this, request);
 	}
 

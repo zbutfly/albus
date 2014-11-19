@@ -12,14 +12,18 @@ public class CometEchoReponse extends Response<CometEchoReponse> {
 	private long[] values;
 	private Map<String, String> context;
 
-	public CometEchoReponse(String echo) {
+	public CometEchoReponse(String echo, long[] values) {
 		this.title = echo;
-		this.values = new long[] { 1, 2, 3, 4, 5 };
+		this.values = values;
 		this.context = new HashMap<String, String>();
 		this.context.put("a", "AAA");
 		this.context.put("b", "ABB");
 		this.context.put("c", "ACC");
 		this.context.put("d", "ADD");
+	}
+
+	public CometEchoReponse(String echo) {
+		this(echo, new long[] { 1, 2, 3, 4, 5 });
 	}
 
 	public String getTitle() {

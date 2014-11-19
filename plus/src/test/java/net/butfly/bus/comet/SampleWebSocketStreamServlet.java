@@ -82,7 +82,7 @@ package net.butfly.bus.comet;
 //
 //        // GET method is used to establish a stream connection
 //        @Override
-//        protected void doGet(HttpServletRequest request, HttpServletResponse response)
+//        protected void doGet(HttpServletRequest options, HttpServletResponse response)
 //                        throws ServletException, IOException {
 //
 //                // Content-Type header
@@ -106,7 +106,7 @@ package net.butfly.bus.comet;
 //                writer.print(';');
 //                writer.flush();
 //
-//                final AsyncContext ac = request.startAsync();
+//                final AsyncContext ac = options.startAsync();
 //                ac.addListener(new AsyncListener() {
 //                        public void onComplete(AsyncEvent event) throws IOException {
 //                                asyncContexts.remove(id);
@@ -129,25 +129,25 @@ package net.butfly.bus.comet;
 //
 //        // POST method is used to communicate with the server
 //        @Override
-//        protected void doPost(HttpServletRequest request, HttpServletResponse response)
+//        protected void doPost(HttpServletRequest options, HttpServletResponse response)
 //                        throws ServletException, IOException {
-//                request.setCharacterEncoding("utf-8");
+//                options.setCharacterEncoding("utf-8");
 //
-//                AsyncContext ac = asyncContexts.get(request.getParameter("metadata.id"));
+//                AsyncContext ac = asyncContexts.get(options.getParameter("metadata.id"));
 //                if (ac == null) {
 //                        return;
 //                }
 //
-//                // close-request
-//                if ("close".equals(request.getParameter("metadata.type"))) {
+//                // close-options
+//                if ("close".equals(options.getParameter("metadata.type"))) {
 //                        ac.complete();
 //                        return;
 //                }
 //
-//                // send-request
+//                // send-options
 //                Map<String, String> data = new LinkedHashMap<String, String>();
-//                data.put("username", request.getParameter("username"));
-//                data.put("message", request.getParameter("message"));
+//                data.put("username", options.getParameter("username"));
+//                data.put("message", options.getParameter("message"));
 //
 //                try {
 //                        messages.put(new Gson().toJson(data));
@@ -157,7 +157,7 @@ package net.butfly.bus.comet;
 //        }
 //
 //        @Override
-//        public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+//        public WebSocket doWebSocketConnect(HttpServletRequest options, String protocol) {
 //                return new ChatWebSocket();
 //        }
 //

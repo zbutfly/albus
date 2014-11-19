@@ -1,27 +1,24 @@
 package net.butfly.bus;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.Constants.Side;
+import net.butfly.albacore.utils.GenericUtils;
+import net.butfly.albacore.utils.async.Signal;
+import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.Config;
-import net.butfly.bus.config.ConfigLoader;
-import net.butfly.bus.config.ConfigParser;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
-import net.butfly.bus.config.loader.ClasspathConfigLoad;
-import net.butfly.bus.config.parser.XMLConfigParser;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
-import net.butfly.bus.ext.AsyncRequest;
-import net.butfly.bus.ext.ContinuousBus;
 import net.butfly.bus.facade.InternalFacade;
 import net.butfly.bus.filter.Filter;
 import net.butfly.bus.filter.FilterBase;
@@ -29,50 +26,41 @@ import net.butfly.bus.filter.FilterChain;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.invoker.InvokerFactory;
+import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.policy.Router;
-import net.butfly.bus.policy.RouterBase;
-import net.butfly.bus.policy.SingleRouter;
-import net.butfly.bus.util.TXUtils;
-import net.butfly.bus.util.async.Signal;
+import net.butfly.bus.support.InvokeSupport;
+import net.butfly.bus.utils.BusFactory;
+import net.butfly.bus.utils.TXUtils;
 
-public class Bus implements InternalFacade, Routeable, ClientFacade {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	private static final long serialVersionUID = -4835302344711170159L;
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	protected final String id;
-	protected final Side side;
 	protected Config config;
 	protected Router router;
 	protected FilterChain chain;
-	protected ConfigLoader loader;
-	protected ConfigParser parser;
 
 	private String[] supportedTXs;
 
 	/* Routine for both client and server */
 
 	public Bus() {
-		this(null, Side.CLIENT);
+		this(null);
 	}
 
-	public Bus(String configLoString) {
-		this(configLoString, Side.CLIENT);
-	}
-
-	public Bus(Side side) {
-		this(null, side);
-	}
-
-	public Bus(String configLocation, Side side) {
-		this.side = side;
-		this.initialize(configLocation);
-		this.config = parser.parse();
-		this.router = RouterBase.createRouter(this.config);
-		if (this.router == null) this.router = new SingleRouter();
-		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter(), this.side);
-		this.id = this.config.getBusID();
+	public Bus(String configLocation) {
+		this.config = BusFactory.createConfiguration(configLocation);
+		this.router = BusFactory.createRouter(this.config);
+		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter(), this.config.side());
+		this.id = this.config.id();
 
 		// initialize tx supporting status
+		// TODO: reg in database
 		Set<String> txs = new HashSet<String>();
 		for (String id : config.getAllNodeIDs())
 			txs.addAll(Arrays.asList(config.getInvoker(id).supportedTXs()));
@@ -94,73 +82,81 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Class<?>[] getParameterTypes(String code, String version) {
+	public ParameterInfo getParameterInfo(String code, String version) {
 		InvokerBean ivkb = Bus.this.router.route(code, Bus.this.config.getInvokers());
+		if (null == ivkb) return null;
 		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
+		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
-			throw new UnsupportedOperationException("Only local invokers support real method fetching by request.");
-		return ((AbstractLocalInvoker) ivk).getMethod(code, version).getParameterTypes();
+			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
+		Method m = ((AbstractLocalInvoker) ivk).getMethod(code, version);
+		if (null == m) return null;
+		Class<?> r = m.getReturnType();
+		if (r != null) {
+			if (r.isArray()) r = r.getComponentType();
+			else if (Map.class.isAssignableFrom(r)) r = null;
+			else if (Collection.class.isAssignableFrom(r)) r = GenericUtils.getGenericParamClass(r, Collection.class, "E");
+			else if (Enumeration.class.isAssignableFrom(r)) r = GenericUtils.getGenericParamClass(r, Enumeration.class, "E");
+			else if (Iterable.class.isAssignableFrom(r)) r = GenericUtils.getGenericParamClass(r, Iterable.class, "T");
+		}
+		return new ParameterInfo(m.getParameterTypes(), r);
 	}
 
 	/**
 	 * Kernal invoking for this bus.
 	 * 
-	 * @param request
+	 * @param options
 	 * @return
+	 * @throws Signal
 	 */
 	@Override
-	public Response invoke(Request request) {
+	public Response invoke(Request request) throws Signal {
 		if (request == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request null invalid.");
 		if (request.code() == null || "".equals(request.code().trim()))
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
 		if (request.version() == null)
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
-		new FlowNo(request.code(), request.version());
+		new FlowNo(request);
+		Context.txInfo(TXUtils.TXImpl(request.code(), request.version()));
 		try {
 			return chain.execute(request);
 		} catch (Signal sig) {
 			throw sig;
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			throw new SystemException("", ex);
 		}
 	}
 
 	/* Routines for client */
 	@Override
-	public <F extends Facade> F getService(Class<F> facadeClass) {
-		return getService(facadeClass, null);
-	}
-
-	@Override
 	@SuppressWarnings("unchecked")
-	public <F extends Facade> F getService(Class<F> facadeClass, Map<String, Serializable> context) {
+	public <F extends Facade> F getService(Class<F> facadeClass) {
 		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass }, new ServiceProxy());
 	}
 
 	@Override
-	public <T> T invoke(String code, Object... args) {
+	public <T> T invoke(String code, Object... args) throws Signal {
 		return this.invoke(TXUtils.TXImpl(code), args);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T invoke(TX tx, Object... args) {
+	public <T> T invoke(TX tx, Object... args) throws Signal {
 		Response resp = this.invoke(new Request(tx, args));
 		return (T) resp.result();
 	}
 
-	private class ServiceProxy implements InvocationHandler {
-		public Object invoke(Object obj, Method method, Object[] args) {
+	protected class ServiceProxy implements InvocationHandler {
+		public Object invoke(Object obj, Method method, Object[] args) throws Signal {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
 				Request request = new Request(tx.value(), tx.version(), args);
-				Response response = Bus.this.invoke(request);
-				return response.result();
+				Response response = this.invoke(request);
+				return null != response ? response.result() : null;
 			} else throw new SystemException(Constants.UserError.TX_NOT_EXIST, "Request tx code not found on method ["
 					+ method.toString() + "].");
+		}
 
+		protected Response invoke(Request request) throws Signal {
+			return Bus.this.invoke(request);
 		}
 	}
 
@@ -190,82 +186,44 @@ public class Bus implements InternalFacade, Routeable, ClientFacade {
 
 	protected class InvokerFilter extends FilterBase implements Filter {
 		@Override
-		public Response execute(Request request) throws Exception {
+		public Response execute(Request request) throws Signal {
 			Response response;
 			switch (this.side) {
 			case CLIENT:
 				request.context(Context.serialize(Context.toMap()));
-				response = this.doExecute(request);
+				response = realInvoke(request);
 				if (null != response) Context.merge(Context.deserialize(response.context()));
 				return response;
 			case SERVER:
 				Context.merge(Context.deserialize(request.context()));
-				response = this.doExecute(request);
+				response = realInvoke(request);
 				if (null != response) response.context(Context.serialize(Context.toMap()));
 				return response;
 			}
-			return null;
+			throw new SystemException("");
 		}
-
-		/**
-		 * Kernal invoking of this bus.
-		 * 
-		 * @param request
-		 * @return
-		 */
-		protected Response doExecute(Request request) {
-			InvokerBean ivkb = Bus.this.router.route(request.code(), Bus.this.config.getInvokers());
-			Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
-			if (ivk.continuousSupported() && (request instanceof AsyncRequest) && ((AsyncRequest) request).continuous()) {
-				if (!(Bus.this instanceof ContinuousBus))
-					throw new UnsupportedOperationException(
-							"Only async routine supports continuous invoking, use ContinuousBus.xxx(..., callback).");
-				ivk.invoke(request);
-				throw new IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
-			} else return ivk.invoke(request);
-		}
-
 	}
 
 	/**
-	 * @param configLocation
-	 * 
-	 * @TODO: enable multiply configuration styles.
-	 * @TODO: check debug to determinate whether to load internal configuration.
+	 * Kernal invoking of this bus.
 	 */
-	private void initialize(String configLocation) {
-		if (this.side == Side.CLIENT) Context.initialize(true);
-		this.loader = scanLoader(configLocation);
-		this.parser = new XMLConfigParser(this.loader.load());
+	private Response realInvoke(Request request) throws Signal {
+		Invoker<?> ivk = this.findInvoker(request.code());
+		// XXX
+		// if ((options instanceof AsyncRequest) && ((AsyncRequest)
+		// options).continuous()) {
+		// if (!(Bus.this instanceof RepeatBus))
+		// throw new UnsupportedOperationException(
+		// "Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
+		// ivk.invoke(options);
+		// throw new
+		// IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
+		// } else
+		return ivk.invoke(request);
 	}
 
-	private ConfigLoader scanLoader(String configLocation) {
-		ConfigLoader l = new ClasspathConfigLoad(configLocation);
-		if (l.load() != null) return l;
-		// load default
-		switch (this.side) {
-		case CLIENT:
-			l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_CLIENT_CONFIG);
-			break;
-		case SERVER:
-			l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_SERVER_CONFIG);
-			break;
-		}
-		if (l.load() != null) return l;
-		l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_COMMON_CONFIG);
-		if (l.load() != null) return l;
-		// internal config
-		switch (this.side) {
-		case CLIENT:
-			l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_CLIENT_CONFIG);
-			break;
-		case SERVER:
-			l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_SERVER_CONFIG);
-			break;
-		}
-		if (l.load() != null) return l;
-		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_COMMON_CONFIG);
-		if (l.load() != null) return l;
-		throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid: " + configLocation);
+	private Invoker<?> findInvoker(String txCode) {
+		InvokerBean ivkb = Bus.this.router.route(txCode, Bus.this.config.getInvokers());
+		return InvokerFactory.getInvoker(ivkb);
 	}
 }

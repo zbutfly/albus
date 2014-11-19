@@ -5,7 +5,7 @@ import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.GenericUtils;
-import net.butfly.bus.Constants;
+import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 
@@ -32,7 +32,7 @@ public class InvokerFactory {
 		if (INVOKER_POOL.containsKey(key)) return (Invoker<C>) INVOKER_POOL.get(key);
 		try {
 			Invoker<C> invoker = clazz.newInstance();
-			invoker.initialize(config);
+			invoker.initialize(config, bean.getToken());
 			INVOKER_POOL.put(key, invoker);
 			return invoker;
 		} catch (Throwable e) {

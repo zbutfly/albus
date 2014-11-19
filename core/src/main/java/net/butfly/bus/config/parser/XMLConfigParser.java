@@ -1,15 +1,21 @@
 package net.butfly.bus.config.parser;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.Constants;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigParser;
 import net.butfly.bus.config.bean.FilterBean;
@@ -20,7 +26,7 @@ import net.butfly.bus.filter.Filter;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.invoker.InvokerFactory;
 import net.butfly.bus.policy.Router;
-import net.butfly.bus.util.XMLUtils;
+import net.butfly.bus.utils.XMLUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
@@ -38,7 +44,8 @@ public class XMLConfigParser extends ConfigParser {
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
-		config.setBusID(this.root.attributeValue("id"));
+		config.id(this.root.attributeValue("id", UUID.randomUUID().toString()));
+		config.side(Side.valueOf(this.root.attributeValue("side", "UNDEFINED").toUpperCase()));
 		return config;
 	}
 
@@ -69,7 +76,7 @@ public class XMLConfigParser extends ConfigParser {
 		String id = element.attributeValue("id");
 		if (StringUtils.isEmpty(id))
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need id attribute.");
-		logger.trace("Invoker [" + id + "] parsing...");
+		logger.info("Invoker [" + id + "] parsing...");
 		if ("false".equals(element.attributeValue("enabled"))) {
 			logger.trace("Invoker [" + id + "] disabled.");
 			return null;
@@ -81,8 +88,31 @@ public class XMLConfigParser extends ConfigParser {
 		Class<? extends Invoker<?>> clazz = classForName(element.attributeValue("type"));
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
 		processConfigObj(config, element);
-		logger.trace("Node [" + id + "] enabled.");
-		return new InvokerBean(id, clazz, element.attributeValue("tx"), config);
+		logger.info("Node [" + id + "] enabled.");
+		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
+	}
+
+	private Token parseInvokerAuth(Element element) {
+		Element node = (Element) element.selectSingleNode("auth");
+		if (node == null) return null;
+		String token = node.attributeValue("token");
+		if (token != null) return new Token(token);
+		token = node.attributeValue("file");
+		if (token != null) {
+			BufferedReader r = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader()
+					.getResourceAsStream(token)));
+			String line;
+			StringBuilder sb = new StringBuilder();
+			try {
+				while ((line = r.readLine()) != null)
+					sb.append(line);
+			} catch (IOException e) {}
+			return new Token(sb.toString());
+		}
+		String user = node.attributeValue("username");
+		String pass = node.attributeValue("password");
+		if (user != null && pass != null) return new Token(user, pass);
+		return null;
 	}
 
 	public List<FilterBean> parseFilters(List<Element> filters) {
@@ -112,7 +142,7 @@ public class XMLConfigParser extends ConfigParser {
 				throw new SystemException(Constants.UserError.FILTER_INVOKE, "Filter class invalid", e);
 			}
 			FilterBean f = new FilterBean(title, clazz, params);
-			logger.trace("Filter [" + title + "] enbled.");
+			logger.info("Filter [" + title + "] enbled.");
 			logAsXml(filter);
 			return f;
 		} else {
@@ -123,7 +153,7 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected static void logAsXml(Element element) {
-		logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+		logger.debug(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
 				.replaceAll("\n$$", ""));
 	}
 

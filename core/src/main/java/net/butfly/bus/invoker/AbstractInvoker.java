@@ -1,5 +1,6 @@
 package net.butfly.bus.invoker;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -7,11 +8,17 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Constants;
+import net.butfly.albacore.utils.async.Signal;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
-import net.butfly.bus.util.TXUtils;
-import net.butfly.bus.util.TXUtils.TXImpl;
+import net.butfly.bus.context.Context;
+import net.butfly.bus.facade.AuthFacade;
+import net.butfly.bus.utils.TXUtils;
+import net.butfly.bus.utils.TXUtils.TXImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +29,8 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected Map<String, TreeSet<TXImpl>> TX_POOL = new HashMap<String, TreeSet<TXImpl>>();
 	protected Map<TXImpl, Object> INSTANCE_POOL = new HashMap<TXImpl, Object>();
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
-
-	protected boolean continuousSupported;
-
-	@Override
-	public boolean continuousSupported() {
-		return continuousSupported;
-	}
+	protected AuthFacade auth;
+	private Token token;
 
 	@Override
 	public String[] getTXCodes() {
@@ -36,8 +38,8 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	}
 
 	@Override
-	public void initialize(C config) {
-		this.continuousSupported = config == null || "true".equals(config.getContinuousSupported());
+	public void initialize(C config, Token token) {
+		this.token = token;
 		if (this.METHOD_POOL.isEmpty()) try {
 			logger.trace("Invoker parsing...");
 			for (Object bean : getBeanList()) {
@@ -46,6 +48,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 				// scanMethodsForTX(implClass, bean);
 			for (Class<?> clazz : implClass.getInterfaces())
 				scanMethodsForTX(clazz, bean);
+			if (AuthFacade.class.isAssignableFrom(implClass)) this.auth = (AuthFacade) bean;
 		}
 		logger.trace("Invoker parsed.");
 	} catch (Exception _ex) {
@@ -59,7 +62,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 				TX tx = m.getAnnotation(TX.class);
 				if (tx != null) {
 					TXImpl key = TXUtils.TXImpl(tx);
-					logger.trace("TX found: " + key + ".");
+					logger.info("TX found: " + key + ".");
 					if (METHOD_POOL.containsKey(key)) {
 						logger.warn("TX duplicated: " + key + ", ignored...");
 						continue;
@@ -77,4 +80,17 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 			clazz = clazz.getSuperclass();
 		}
 	}
+
+	public void setToken(Token token) {
+		this.token = token;
+	}
+
+	protected Token token() {
+		Token t = Context.token();
+		return null == t ? this.token : t;
+	}
+
+	protected abstract Response singleInvoke(Request areq) throws IOException, Signal;
+
+//	protected abstract Response continuousInvoke(Request options) throws IOException;
 }

@@ -20,8 +20,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 		sb.append(":");
 		long now = System.currentTimeMillis();
 		String prefix = sb.toString();
-		logger.info(prefix + " invoking begin...");
-		logger.info(prefix + getDebugDetail(request));
+		logger.debug(prefix + " invoking begin...");
+		logger.debug(prefix + getDebugDetail(request));
 		this.putParams(request, new Object[] { now, prefix });
 	}
 
@@ -33,12 +33,12 @@ public class LoggerFilter extends FilterBase implements Filter {
 		long spent = System.currentTimeMillis() - now;
 		if (null != response && response.error() != null) logger.error("Bus error: \n" + response.error().toString());
 		logger.info(prefix + " invoking ended in [" + spent + "ms].");
-		logger.info(prefix + getDebugDetail(response));
+		logger.debug(prefix + getDebugDetail(response));
 	}
 
 	private String getDebugDetail(Response response) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.CURRENT.toString())
+		sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.string())
 				.append("\n\tresponse result: ");
 		if (response != null && response.result() != null) {
 			sb.append("[").append(response.result().getClass().getName()).append("]").append("\n\t\t")
@@ -49,9 +49,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 
 	private String getDebugDetail(Request request) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(" invoking request detail: ").append("\n\tcontext: ").append(Context.CURRENT.toString())
-				.append("\n\ttx code: ").append(request.code()).append("\n\ttx version: ").append(request.version())
-				.append("\n\trequest arguments: ");
+		sb.append(" invoking options detail: ").append("\n\tcontext: ").append(Context.string()).append("\n\ttx code: ")
+				.append(request.code()).append("\n\ttx version: ").append(request.version()).append("\n\trequest arguments: ");
 		int ai = 1;
 		if (request.arguments() != null) for (Object arg : request.arguments()) {
 			sb.append("\n\t\t").append("[").append(ai++).append("]: ");

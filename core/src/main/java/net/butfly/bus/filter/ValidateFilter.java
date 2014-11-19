@@ -9,16 +9,17 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Constants;
-import net.butfly.bus.Constants.Side;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.argument.Constants.Side;
 
 public class ValidateFilter extends FilterBase implements Filter {
 	private Validator validator;
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		if (request.arguments() != null || request.arguments().length > 0) {
 			Set<ConstraintViolation<Object>> violations;
 			StringBuilder validateErrMsg = null;

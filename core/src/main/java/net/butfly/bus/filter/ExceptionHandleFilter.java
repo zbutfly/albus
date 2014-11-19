@@ -2,11 +2,11 @@ package net.butfly.bus.filter;
 
 import java.util.Map;
 
-import net.butfly.bus.Constants.Side;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.util.BusUtils;
-import net.butfly.bus.util.async.Signal;
+import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.utils.BusUtils;
 
 public class ExceptionHandleFilter extends FilterBase implements Filter {
 	private boolean debugging;
@@ -25,12 +25,12 @@ public class ExceptionHandleFilter extends FilterBase implements Filter {
 	public void before(Request request) {}
 
 	@Override
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		Response response = null;
 		try {
 			response = super.execute(request);
-		} catch (Signal sig) {
-			throw sig;
+		} catch (Signal signal) {
+			throw signal;
 		} catch (Exception ex) {
 			if (side == Side.SERVER) {
 				response = new Response(request);

@@ -5,15 +5,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import net.butfly.bus.argument.Error;
+
 public class Response implements Serializable {
 	private static final long serialVersionUID = 5897857767191140750L;
 
 	protected String id;
 	protected String requestId;
 
-	private Object result = null;
-	private Map<String, String> context = new HashMap<String, String>();
-	private Error error = null;
+	protected Object result = null;
+	protected Map<String, String> context = new HashMap<String, String>();
+	protected Error error = null;
+
+	protected Response() {}
 
 	public Response(Request request) {
 		this.id = UUID.randomUUID().toString();
@@ -59,5 +63,9 @@ public class Response implements Serializable {
 
 	public String id() {
 		return id;
+	}
+
+	public String requestId() {
+		return this.requestId;
 	}
 }

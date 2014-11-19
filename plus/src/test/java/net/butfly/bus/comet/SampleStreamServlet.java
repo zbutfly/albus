@@ -117,13 +117,13 @@ public class SampleStreamServlet extends HttpServlet {
 		AsyncContext ac = asyncContexts.get(request.getParameter("metadata.id"));
 		if (ac == null) { return; }
 
-		// close-request
+		// close-options
 		if ("close".equals(request.getParameter("metadata.type"))) {
 			ac.complete();
 			return;
 		}
 
-		// send-request
+		// send-options
 		Map<String, String> data = new LinkedHashMap<String, String>();
 		data.put("username", request.getParameter("username"));
 		data.put("message", request.getParameter("message"));

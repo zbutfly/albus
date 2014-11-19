@@ -7,14 +7,15 @@ import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 
 public interface CometFacade extends Facade {
 	@TX("TST_CMT-000")
-	public CometEchoReponse echo(String echo);
+	public String echoString(String echo);
 
 	@TX("TST_CMT-001")
-	public CometEchoReponse continuableEcho(String echo);
+	public long echoArray(long... values);
 
 	@TX("TST_CMT-002")
-	public CometEchoReponse echo2(String echo, long[] values);
+	public CometEchoReponse echoCompose(String echo, long... values);
 
 	@TX("TST_CMT-003")
-	public CometEchoReponse echo3(CometEchoRequest echo);
+	public CometEchoReponse echoObject(CometEchoRequest echo);
+
 }

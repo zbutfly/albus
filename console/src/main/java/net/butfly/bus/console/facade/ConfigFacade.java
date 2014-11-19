@@ -1,7 +1,7 @@
 package net.butfly.bus.console.facade;
 
 import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.TX;
+import net.butfly.bus.argument.TX;
 import net.butfly.bus.config.Config;
 
 public interface ConfigFacade extends Facade {

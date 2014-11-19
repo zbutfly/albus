@@ -5,8 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.butfly.bus.config.Config;
-import net.butfly.bus.util.TXUtils;
+import net.butfly.bus.utils.TXUtils;
 
 public abstract class RouterBase implements Router {
 	protected final Map<String, Routeable[]> cache;
@@ -35,12 +34,4 @@ public abstract class RouterBase implements Router {
 	}
 
 	protected abstract <T> T route(T[] filted);
-
-	public static Router createRouter(Config config) {
-		try {
-			return config.getRouter().getRouterClass().newInstance();
-		} catch (Throwable e) {
-			return null;
-		}
-	}
 }

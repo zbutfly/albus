@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Constants;
-import net.butfly.bus.Constants.Side;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
+import net.butfly.bus.argument.Constants;
+import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.config.bean.FilterBean;
 
 public final class FilterChain {
@@ -31,7 +32,7 @@ public final class FilterChain {
 		list.add(filter);
 	}
 
-	public Response execute(Request request) throws Exception {
+	public Response execute(Request request) throws Signal {
 		Response r;
 		try {
 			r = this.executeOne(this.filters[0], request);
@@ -47,7 +48,7 @@ public final class FilterChain {
 			f.after(request, response);
 	}
 
-	private Response executeOne(Filter filter, Request request) throws Exception {
+	private Response executeOne(Filter filter, Request request) throws Signal {
 		filter.before(request);
 		Response response = null;;
 		try {
@@ -58,7 +59,7 @@ public final class FilterChain {
 		return response;
 	}
 
-	protected Response executeNext(Filter current, Request request) throws Exception {
+	protected Response executeNext(Filter current, Request request) throws Signal {
 		// TODO:optimizing...
 		int pos = -1;
 		for (int i = 0; i < this.filters.length; i++)

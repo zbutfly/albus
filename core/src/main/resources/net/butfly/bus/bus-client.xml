@@ -4,5 +4,8 @@
 	<invoker type="net.butfly.bus.invoker.SpringInvoker" id="albus-default"
 		tx="*">
 		<files>beans.xml</files>
+	<!-- <auth username="user" password="pass" /> -->
+	<!-- <auth token="token" /> -->
+	<!-- <auth file="classpath:/keyfile" /> -->
 	</invoker>
 </bus>

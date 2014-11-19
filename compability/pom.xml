@@ -2,13 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>net.butfly.pom</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.0.0</version>
+		<groupId>net.butfly.bus</groupId>
+		<artifactId>albus</artifactId>
+		<version>2.0.1-SNAPSHOT</version>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus-compability</artifactId>
-	<version>2.0.1-SNAPSHOT</version>
 	<name>albus-compability</name>
 	<build>
 		<finalName>albus-compability</finalName>
