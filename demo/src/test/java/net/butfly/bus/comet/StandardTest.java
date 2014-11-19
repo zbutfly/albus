@@ -1,5 +1,6 @@
 package net.butfly.bus.comet;
 
+import net.butfly.bus.Bus;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
@@ -37,10 +38,14 @@ public class StandardTest extends BusTest {
 	}
 
 	@Override
+	protected Class<? extends Bus> getBusClass() {
+		return net.butfly.bus.ext.Bus.class;
+	}
+
+	@Override
 	protected void beforeBus(boolean remote) throws Exception {
 		Context.token(new Token("user", "pass"));
 		Context.sourceAppID("CometTestClient");
-		System.setProperty("bus.server.class", "net.butfly.bus.ext.Bus");
 	}
 
 	@Override

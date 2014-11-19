@@ -61,7 +61,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
-//	protected void continuousInvoke(Request request, Options options) throws IOException {
+//	protected void continuousInvoke(Request request, ContinuousOptions options) throws IOException {
 //		Map<String, String> headers = this.getHeaders(request, true);
 //		byte[] data = this.serializer.serialize(request.arguments());
 //		do {

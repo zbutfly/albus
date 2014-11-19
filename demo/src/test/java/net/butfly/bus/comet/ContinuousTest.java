@@ -3,7 +3,7 @@ package net.butfly.bus.comet;
 import net.butfly.albacore.utils.async.Callback;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.ext.Bus;
-import net.butfly.bus.utils.async.Options;
+import net.butfly.bus.utils.async.ContinuousOptions;
 
 public class ContinuousTest extends CallbackTest {
 	protected ContinuousTest(boolean remote) throws Exception {
@@ -27,7 +27,7 @@ public class ContinuousTest extends CallbackTest {
 	/*****************************************************/
 
 	private void echoString(int retries) {
-		String echo = ((Bus) this.client).getService(CometFacade.class, echoCallback, new Options().retries(3)).echoString(
+		String echo = ((Bus) this.client).getService(CometFacade.class, echoCallback, new ContinuousOptions().retries(3)).echoString(
 				"hello, World!");
 		if (echo != null) System.err.println("Should be null: " + echo.toString());
 		else System.out.println("Do be null.");

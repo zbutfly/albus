@@ -22,6 +22,7 @@ public abstract class BusTest {
 		this.remote = remote;
 		Context.initialize(null, true);
 		if (remote) {
+			System.setProperty("bus.server.class", getBusClass().getName());
 			System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.WebServiceServlet");
 			System.setProperty("bus.server.base", "src/test/webapp");
 			System.setProperty("bus.threadpool.size", "3");
@@ -29,11 +30,11 @@ public abstract class BusTest {
 			logger.info("Remote test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
 			logger.info("Remote test: bus client starting.");
-			client = getBusInstance(StringUtils.join(getClientConfiguration(), ','));
+			client = getBusInstance(getBusClass(), StringUtils.join(getClientConfiguration(), ','));
 		} else {
 			beforeBus(remote);
 			logger.info("Local test: bus instance starting.");
-			client = getBusInstance(StringUtils.join(getServerConfiguration(), ','));
+			client = getBusInstance(getBusClass(), StringUtils.join(getServerConfiguration(), ','));
 		}
 		beforeTest();
 	}
@@ -43,28 +44,11 @@ public abstract class BusTest {
 		getTestInstance(true).doTestWrapper();
 	};
 
-	private void doTestWrapper() throws BusinessException {
-		if (remote && enableRemote) {
-			logger.info("==========================");
-			logger.info("Local test: test starting.");
-			logger.info("==========================");
-			doAllTest();
-			logger.info("==========================");
-			logger.info("Local test: test finished.");
-			logger.info("==========================");
-		}
-		if (!remote && enableLocal) {
-			logger.info("==========================");
-			logger.info("Remote test: test starting.");
-			logger.info("==========================");
-			doAllTest();
-			logger.info("==========================");
-			logger.info("Remote test: test finished.");
-			logger.info("==========================");
-		}
-	}
-
 	protected void doAllTest() throws BusinessException {}
+
+	protected Class<? extends Bus> getBusClass() {
+		return Bus.class;
+	}
 
 	protected String[] getClientConfiguration() {
 		return null;
@@ -101,10 +85,20 @@ public abstract class BusTest {
 		return ReflectionUtils.safeConstruct(constructor, remote);
 	}
 
-	@SuppressWarnings("unchecked")
-	private static Bus getBusInstance(String conf) throws Exception {
-		Class<? extends Bus> clazz = (Class<? extends Bus>) Class.forName(System.getProperty("bus.server.class",
-				Bus.class.getName()));
+	private static Bus getBusInstance(Class<? extends Bus> clazz, String conf) throws Exception {
 		return clazz.getConstructor(String.class).newInstance(conf);
+	}
+
+	private void doTestWrapper() throws BusinessException {
+		if ((!remote && enableLocal) || (remote && enableRemote)) {
+			String desc = (remote ? "Remote" : "Local");
+			logger.info("==========================");
+			logger.info(desc + " test: test starting.");
+			logger.info("==========================");
+			doAllTest();
+			logger.info("==========================");
+			logger.info(desc + " test: test finished.");
+			logger.info("==========================");
+		}
 	}
 }

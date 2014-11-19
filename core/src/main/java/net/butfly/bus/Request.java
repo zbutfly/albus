@@ -60,7 +60,7 @@ public class Request implements Serializable {
 		this(tx.value(), tx.version(), context, arguments);
 	}
 
-	protected Request(String id, String code, String version, Map<String, String> context, Object... arguments) {
+	protected Request(String id, String code, String version, Map<String, String> context, Object[] arguments) {
 		this.id = id;
 		this.code = code;
 		this.version = version;

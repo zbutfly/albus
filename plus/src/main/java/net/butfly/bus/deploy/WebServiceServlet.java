@@ -38,7 +38,7 @@ import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.async.ContinuousUtils;
 import net.butfly.bus.utils.async.InvokeTask;
-import net.butfly.bus.utils.async.Options;
+import net.butfly.bus.utils.async.ContinuousOptions;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -113,7 +113,7 @@ public class WebServiceServlet extends BusServlet {
 		};
 		Context.initialize(Context.deserialize(req.context()), true);
 		if (info.continuous) try {
-			ContinuousUtils.execute(new InvokeTask(new Task<Response>(task, callback, new Options())));
+			ContinuousUtils.execute(new InvokeTask(new Task<Response>(task, callback, new ContinuousOptions())));
 		} catch (Signal e) {
 			// TODO
 		}

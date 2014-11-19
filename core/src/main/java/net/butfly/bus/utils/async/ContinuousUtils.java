@@ -7,7 +7,7 @@ import net.butfly.albacore.utils.async.Task;
 
 public class ContinuousUtils extends UtilsBase {
 	public static <R> void execute(final Task<R> task) throws Signal {
-		Options options = (Options) task.options();
+		ContinuousOptions options = (ContinuousOptions) task.options();
 		int countdown = options.retries();
 		boolean uninfinite = options.retries() >= 0;
 		while (uninfinite && countdown > 0) {

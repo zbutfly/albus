@@ -292,7 +292,7 @@ public class JettyStarter implements Runnable {
 				f.printWrapped(pw, width, "Start bus server(s) with CONFIG_FILE(s) (default bus.xml in root of classpath).");
 
 				this.printWrapped(f, pw, "Example", "java -Dbus.jndi=context.xml " + className + " -k bus-server.xml");
-				this.printWrapped(f, pw, "Options", null);
+				this.printWrapped(f, pw, "ContinuousOptions", null);
 				f.printOptions(pw, width, options, f.getLeftPadding(), f.getDescPadding());
 				this.printWrapped(f, pw, "Environment variables", null);
 				this.printWrapped(f, pw, "bus.port", "Port of bus server (default " + DEFAULT_PORT + ")");

@@ -25,6 +25,7 @@ public class CallbackTest extends StandardTest {
 
 	@Override
 	protected void beforeTest() {
+//		this.enableLocal(false);
 		this.echoCallback = new Callback<CometEchoReponse>() {
 			@Override
 			public void callback(CometEchoReponse echo) {
@@ -32,7 +33,7 @@ public class CallbackTest extends StandardTest {
 				if (echo != null) System.out.println("Callback echo: " + echo.toString());
 			}
 		};
-		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback, new Options().fork(false));
+		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback, new Options());
 	}
 
 	/*****************************************************/
