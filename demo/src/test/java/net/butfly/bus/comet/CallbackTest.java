@@ -1,7 +1,6 @@
 package net.butfly.bus.comet;
 
 import net.butfly.albacore.utils.async.Callback;
-import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.ext.Bus;
@@ -33,7 +32,7 @@ public class CallbackTest extends StandardTest {
 				if (echo != null) System.out.println("Callback echo: " + echo.toString());
 			}
 		};
-		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback, new Options());
+		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback);
 	}
 
 	/*****************************************************/

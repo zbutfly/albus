@@ -13,6 +13,7 @@ import java.util.Set;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.GenericUtils;
+import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.Config;
@@ -110,7 +111,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	 * @throws Signal
 	 */
 	@Override
-	public Response invoke(Request request) throws Signal {
+	public Response invoke(Request request, Options... options) throws Signal {
 		if (request == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request null invalid.");
 		if (request.code() == null || "".equals(request.code().trim()))
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
@@ -118,33 +119,36 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
 		new FlowNo(request);
 		Context.txInfo(TXUtils.TXImpl(request.code(), request.version()));
-		try {
-			return chain.execute(request);
-		} catch (Signal sig) {
-			throw sig;
-		}
+		return chain.execute(new RequestAsyncWrapper(request, options));
 	}
 
 	/* Routines for client */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <F extends Facade> F getService(Class<F> facadeClass) {
-		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass }, new ServiceProxy());
+	public <F extends Facade> F getService(Class<F> facadeClass, Options... options) {
+		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass }, new ServiceProxy(
+				options));
 	}
 
 	@Override
-	public <T> T invoke(String code, Object... args) throws Signal {
-		return this.invoke(TXUtils.TXImpl(code), args);
+	public <T> T invoke(String code, Object[] args, Options... options) throws Signal {
+		return this.invoke(TXUtils.TXImpl(code), args, options);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T invoke(TX tx, Object... args) throws Signal {
-		Response resp = this.invoke(new Request(tx, args));
+	public <T> T invoke(TX tx, Object[] args, Options... options) throws Signal {
+		Response resp = this.invoke(new Request(tx, args), options);
 		return (T) resp.result();
 	}
 
 	protected class ServiceProxy implements InvocationHandler {
+		protected Options[] options;
+
+		public ServiceProxy(Options... options) {
+			this.options = options;
+		}
+
 		public Object invoke(Object obj, Method method, Object[] args) throws Signal {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
@@ -156,7 +160,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 		}
 
 		protected Response invoke(Request request) throws Signal {
-			return Bus.this.invoke(request);
+			return Bus.this.invoke(request, options);
 		}
 	}
 
@@ -188,15 +192,22 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 		@Override
 		public Response execute(Request request) throws Signal {
 			Response response;
+			Options options = null;
+			if (request instanceof RequestAsyncWrapper) {
+				Options[] opts = ((RequestAsyncWrapper) request).options();
+				if (opts != null && opts.length > 0) options = opts[0];
+				// unwrap request.
+				request = new Request(request.id(), request.code(), request.version(), request.context(), request.arguments());
+			}
 			switch (this.side) {
 			case CLIENT:
 				request.context(Context.serialize(Context.toMap()));
-				response = realInvoke(request);
+				response = realInvoke(request, options);
 				if (null != response) Context.merge(Context.deserialize(response.context()));
 				return response;
 			case SERVER:
 				Context.merge(Context.deserialize(request.context()));
-				response = realInvoke(request);
+				response = realInvoke(request, options);
 				if (null != response) response.context(Context.serialize(Context.toMap()));
 				return response;
 			}
@@ -206,24 +217,30 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 
 	/**
 	 * Kernal invoking of this bus.
+	 * 
+	 * @param options
 	 */
-	private Response realInvoke(Request request) throws Signal {
+	private Response realInvoke(Request request, Options options) throws Signal {
 		Invoker<?> ivk = this.findInvoker(request.code());
-		// XXX
-		// if ((options instanceof AsyncRequest) && ((AsyncRequest)
-		// options).continuous()) {
-		// if (!(Bus.this instanceof RepeatBus))
-		// throw new UnsupportedOperationException(
-		// "Only async routine supports continuous invoking, use RepeatBus.xxx(..., callback).");
-		// ivk.invoke(options);
-		// throw new
-		// IllegalAccessError("A continuous invoking should not end, invoking broken on signal or exception.");
-		// } else
-		return ivk.invoke(request);
+		return ivk.invoke(request, options);
 	}
 
 	private Invoker<?> findInvoker(String txCode) {
 		InvokerBean ivkb = Bus.this.router.route(txCode, Bus.this.config.getInvokers());
 		return InvokerFactory.getInvoker(ivkb);
+	}
+
+	private static class RequestAsyncWrapper extends Request {
+		private static final long serialVersionUID = 7284007663713259222L;
+		private Options[] options;
+
+		public RequestAsyncWrapper(Request request, Options... options) {
+			super(request.id(), request.code(), request.version(), request.context(), request.arguments());
+			this.options = options;
+		}
+
+		public Options[] options() {
+			return this.options;
+		}
 	}
 }

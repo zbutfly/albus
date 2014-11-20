@@ -2,7 +2,7 @@ package net.butfly.bus.invoker;
 
 import java.io.IOException;
 
-import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -15,19 +15,14 @@ public abstract class AbstractRemoteInvoker<C extends InvokerConfigBean> extends
 	}
 
 	@Override
-	public Response invoke(Request request) throws Signal {
+	public final Response invoke(final Request request, final Options options) throws Signal {
+		request.token(this.token());
 		try {
-			request.token(this.token());
-			return this.singleInvoke(request);
-			// if (!(options instanceof AsyncRequest))
-			// return this.singleInvoke(request);
-			// AsyncRequest areq = (AsyncRequest) options;
-			// if (!areq.continuous()) return syncInvoke(areq);
-			// this.asyncInvoke(areq);
-			// throw new
-			// IllegalAccessError("A continuous invoking should not end without exception.");
-		} catch (IOException ex) {
-			throw new SystemException("", ex);
+			return this.invokeRemote(request, options);
+		} catch (IOException e) {
+			throw new Signal.Completed(e);
 		}
 	}
+
+	protected abstract Response invokeRemote(final Request request, final Options options) throws IOException, Signal;
 }

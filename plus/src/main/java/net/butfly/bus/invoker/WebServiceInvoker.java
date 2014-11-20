@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.argument.ResponseWrapper;
@@ -18,6 +20,7 @@ import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
+import net.butfly.bus.utils.async.ContinuousOptions;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
@@ -61,26 +64,31 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
-//	protected void continuousInvoke(Request request, ContinuousOptions options) throws IOException {
-//		Map<String, String> headers = this.getHeaders(request, true);
-//		byte[] data = this.serializer.serialize(request.arguments());
-//		do {
-//			InputStream http = this.handler.post(this.path, data,
-//					((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, true);
-//			while (true) {
-//				Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer
-//						.read(http, ResponseWrapper.class);
-//				options.callback().callback(this.convertResult(r));
-//				if (r == null) break;
-//			}
-//			http.close();
-//		} while (request.retry());
-//	}
+	// protected void continuousInvoke(Request request, ContinuousOptions
+	// options) throws IOException {
+	// Map<String, String> headers = this.getHeaders(request, true);
+	// byte[] data = this.serializer.serialize(request.arguments());
+	// do {
+	// InputStream http = this.handler.post(this.path, data,
+	// ((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers,
+	// true);
+	// while (true) {
+	// Response r = this.serializer.supportClass() ? this.serializer.read(http,
+	// Response.class) : this.serializer
+	// .read(http, ResponseWrapper.class);
+	// options.callback().callback(this.convertResult(r));
+	// if (r == null) break;
+	// }
+	// http.close();
+	// } while (request.retry());
+	// }
 
-	protected Response singleInvoke(Request request) throws IOException {
-		Map<String, String> headers = this.getHeaders(request, false);
+	@Override
+	protected Response invokeRemote(final Request request, final Options options) throws IOException, Signal {
+		Map<String, String> headers = this.header(request, options);
 		InputStream http = this.handler.post(this.path, this.serializer.serialize(request.arguments()),
-				((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, false);
+				((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers, null != options
+						&& options instanceof ContinuousOptions);
 		Response r = this.serializer.supportClass() ? this.serializer.read(http, Response.class) : this.serializer.read(http,
 				ResponseWrapper.class);
 		http.close();
@@ -99,15 +107,17 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		return resp;
 	}
 
-	private Map<String, String> getHeaders(Request request, boolean streaming) throws IOException {
+	private Map<String, String> header(Request request, Options options) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHttpHeaders.HEADER_TX_CODE, request.code());
 		headers.put(BusHttpHeaders.HEADER_TX_VERSION, request.version());
 		headers.put(BusHttpHeaders.HEADER_SUPPORT_CLASS, Boolean.toString(this.serializer.supportClass()));
-		headers.put(BusHttpHeaders.HEADER_CONTINUOUS, Boolean.toString(streaming));
+		if (null != options) {
+			headers.put(BusHttpHeaders.HEADER_CONTINUOUS, options.getClass().getName());
+			headers.put(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS, this.serializer.asString(options));
+		}
 		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
 			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 		return headers;
 	}
-
 }

@@ -18,13 +18,12 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 
 	@Override
 	public byte[] serialize(Object obj) {
-		return gson.toJson(obj).getBytes(this.getOutputContentType().getCharset());
+		return asString(obj).getBytes(this.getOutputContentType().getCharset());
 	}
 
 	@Override
 	public <T> T deserialize(byte[] data, Type... types) {
-		return this.parseJSON(gson.fromJson(new String(data, this.getOutputContentType().getCharset()), JsonElement.class),
-				types);
+		return fromString(new String(data, this.getOutputContentType().getCharset()), types);
 	}
 
 	@Override
@@ -85,5 +84,15 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 			if (json.isJsonObject() || json.isJsonPrimitive()) return (T) gson.fromJson(json, types[0]);
 		}
 		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public String asString(Object obj) {
+		return gson.toJson(obj);
+	}
+
+	@Override
+	public <T> T fromString(String str, Type... types) {
+		return this.parseJSON(gson.fromJson(str, JsonElement.class), types);
 	}
 }
