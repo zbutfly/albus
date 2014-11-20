@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.bus.Bus;
-import net.butfly.bus.context.Context;
 import net.butfly.bus.deploy.JettyStarter;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +19,6 @@ public abstract class BusTest {
 
 	protected BusTest(boolean remote) throws Exception {
 		this.remote = remote;
-		Context.initialize(null, true);
 		if (remote) {
 			System.setProperty("bus.server.class", getBusClass().getName());
 			System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.WebServiceServlet");

@@ -99,8 +99,6 @@ public class WebServiceServlet extends BusServlet {
 					response.flushBuffer();
 				} catch (IOException ex) {
 					throw new SystemException("", ex);
-				} finally {
-					Context.cleanup();
 				}
 			}
 		};
@@ -110,7 +108,7 @@ public class WebServiceServlet extends BusServlet {
 				return server.invoke(req);
 			}
 		};
-		Context.initialize(Context.deserialize(req.context()), true);
+		Context.initialize(Context.deserialize(req.context()));
 		try {
 			AsyncUtils.execute(new Task<Response>(task, callback, info.options));
 		} catch (Signal e) {

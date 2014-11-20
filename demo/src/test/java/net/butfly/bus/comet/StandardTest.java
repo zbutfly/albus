@@ -43,13 +43,9 @@ public class StandardTest extends BusTest {
 	}
 
 	@Override
-	protected void beforeBus(boolean remote) throws Exception {
+	protected void beforeTest() {
 		Context.token(new Token("user", "pass"));
 		Context.sourceAppID("CometTestClient");
-	}
-
-	@Override
-	protected void beforeTest() {
 		this.facade = this.client.getService(CometFacade.class);
 	}
 

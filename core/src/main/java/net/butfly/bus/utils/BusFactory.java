@@ -2,7 +2,6 @@ package net.butfly.bus.utils;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;
@@ -14,7 +13,7 @@ import net.butfly.bus.policy.SimpleRouter;
 public final class BusFactory {
 	public static Config createConfiguration(String configLocation) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
-		if (config.side() == Side.CLIENT) Context.initialize(null, false);
+		Context.initialize(null);
 		return config;
 	}
 

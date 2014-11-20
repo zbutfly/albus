@@ -1,7 +1,7 @@
 package net.butfly.bus.utils.async;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import net.butfly.albacore.utils.UtilsBase;
@@ -14,8 +14,8 @@ import net.butfly.bus.context.Context;
 
 public final class AsyncUtils extends UtilsBase {
 	public static Response execute(final Task<Response> task) throws Signal {
-		if (task.options() instanceof ContinuousOptions) {
-			executeContinuous(null, task);
+		if (task.options() != null && task.options() instanceof ContinuousOptions) {
+			executeContinuous(null, new TaskWrapper(task));
 			return null;
 		} else return net.butfly.albacore.utils.async.AsyncUtils.execute(new TaskWrapper(task));
 	}
@@ -72,25 +72,29 @@ public final class AsyncUtils extends UtilsBase {
 	 *         transporting between async threads.
 	 */
 	private static class TaskWrapper extends Task<Response> {
-		private final Map<String, Object> context = new HashMap<String, Object>();
+		private final Map<String, Object> context = new ConcurrentHashMap<String, Object>();
 
 		public TaskWrapper(final Task<Response> original) {
 			context.putAll(Context.toMap());
 			this.task = new Callable<Response>() {
 				@Override
 				public Response call() throws Signal {
-					Context.initialize(context, true);
+					Context.initialize(context);
 					Response r = original.task().call();
 					context.putAll(Context.toMap());
 					return r;
 				}
 			};
-			this.callback = new Callback<Response>() {
+			this.callback = null == original.callback() ? null : new Callback<Response>() {
 				@Override
 				public void callback(Response result) throws Signal {
-					Context.initialize(context, true);
-					original.callback().callback(result);
-					context.putAll(Context.toMap());
+					try {
+						Context.initialize(context);
+						original.callback().callback(result);
+						context.putAll(Context.toMap());
+					} finally {
+						Context.cleanup();
+					}
 				}
 			};
 			this.options = original.options();

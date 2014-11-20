@@ -13,7 +13,6 @@ public abstract class BusServlet extends HttpServlet implements Servlet {
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		// Context.initialize(null, false);
 		super.service(request, response);
 	}
 }

@@ -20,9 +20,17 @@ public abstract class Context implements Map<String, Object> {
 		return CURRENT.toString();
 	}
 
-	public static void initialize(Map<String, Object> original, boolean sharing) {
-		CURRENT = sharing ? new RequestContext() : new SimpleContext();
-		CURRENT.initialize(original == null ? new HashMap<String, Object>() : original);
+	public static void initialize(Map<String, Object> original) {
+		initialize(original, RequestContext.class);
+	}
+
+	public static void initialize(Map<String, Object> original, Class<? extends Context> clazz) {
+		try {
+			CURRENT = clazz.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		CURRENT.load(original);
 	}
 
 	public static void cleanup() {
@@ -215,7 +223,7 @@ public abstract class Context implements Map<String, Object> {
 
 	protected abstract boolean sharing();
 
-	protected void initialize(Map<String, Object> original) {
+	protected void load(Map<String, Object> original) {
 		if (null != original) impl().putAll(original);
 	}
 
