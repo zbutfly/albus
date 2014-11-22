@@ -20,7 +20,6 @@ public final class AsyncUtils extends UtilsBase {
 		} else return net.butfly.albacore.utils.async.AsyncUtils.execute(new TaskWrapper(task));
 	}
 
-	@Deprecated
 	public static Response execute(final Task<Response> task, final ExecutorService executor) throws Signal {
 		if (task.options() instanceof ContinuousOptions) {
 			executeContinuous(executor, task);
@@ -40,27 +39,14 @@ public final class AsyncUtils extends UtilsBase {
 	}
 
 	private static void executeContinuous(final ExecutorService executor, final Task<Response> task) throws Signal {
-		if (task.callback() == null) throw new UnsupportedOperationException("Continuous need callback.");
-		ContinuousOptions options = (ContinuousOptions) task.options();
-		int countdown = options.retries();
-		boolean uninfinite = options.retries() >= 0;
-		while (uninfinite && countdown > 0) {
-			try {
-				for (int i = 0; i < options.concurrence(); i++)
-					if (null == executor) net.butfly.albacore.utils.async.AsyncUtils.execute(task);
-					else net.butfly.albacore.utils.async.AsyncUtils.execute(task, executor);
-			} catch (Signal.Completed signal) {
-				countdown -= options.concurrence();
-			} catch (Signal.Suspend signal) {
-				countdown -= options.concurrence();
-				try {
-					Thread.sleep(signal.timeout());
-				} catch (InterruptedException e) {}
-			} catch (Signal.Timeout signal) {
-				countdown -= options.concurrence();
-			} catch (Throwable th) {
-				countdown -= options.concurrence();
-			}
+		if (task.callback() == null) throw new IllegalArgumentException("Continuous need callback.");
+		ContinuousOptions copts = (ContinuousOptions) task.options();
+		try {
+			while (true)
+				for (int i = 0; i < copts.concurrence(); i++)
+					net.butfly.albacore.utils.async.AsyncUtils.execute(task, executor);
+		} catch (Signal signal) {
+			AsyncUtils.handleSignal(signal);
 		}
 	}
 

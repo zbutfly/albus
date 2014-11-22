@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BusTest {
 	protected static final Logger logger = LoggerFactory.getLogger(BusTest.class);
+
 	private boolean remote;
 	protected Bus client;
-	private boolean enableLocal = true, enableRemote = true;
 
 	protected BusTest(boolean remote) throws Exception {
 		this.remote = remote;
@@ -37,9 +37,11 @@ public abstract class BusTest {
 		beforeTest();
 	}
 
-	protected static void run() throws Exception {
-		getTestInstance(false).doTestWrapper();
-		getTestInstance(true).doTestWrapper();
+	protected static void run(boolean... isRemote) throws Exception {
+		if (null == isRemote) isRemote = new boolean[] { false, true };
+
+		for (boolean remote : isRemote)
+			getTestInstance(remote).doTestWrapper();
 	};
 
 	protected void doAllTest() throws BusinessException {}
@@ -68,14 +70,6 @@ public abstract class BusTest {
 		return this.remote;
 	}
 
-	protected final void enableLocal(boolean enable) {
-		this.enableLocal = enable;
-	}
-
-	protected final void enableRemote(boolean enable) {
-		this.enableRemote = enable;
-	}
-
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Object remote) throws Exception {
 		Constructor<T> constructor = ((Class<T>) Class.forName(Thread.currentThread().getStackTrace()[3].getClassName()))
@@ -88,15 +82,24 @@ public abstract class BusTest {
 	}
 
 	private void doTestWrapper() throws BusinessException {
-		if ((!remote && enableLocal) || (remote && enableRemote)) {
-			String desc = (remote ? "Remote" : "Local");
-			logger.info("==========================");
-			logger.info(desc + " test: test starting.");
-			logger.info("==========================");
-			doAllTest();
-			logger.info("==========================");
-			logger.info(desc + " test: test finished.");
-			logger.info("==========================");
-		}
+		String desc = (remote ? "Remote" : "Local");
+		logger.info("==========================");
+		logger.info(desc + " test: test starting.");
+		logger.info("==========================");
+		doAllTest();
+		logger.info("==========================");
+		logger.info(desc + " test: test finished.");
+		logger.info("==========================");
+	}
+
+	protected static final void waiting() {
+		while (true)
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {}
+	}
+
+	protected static final void finish() {
+		System.exit(0);
 	}
 }

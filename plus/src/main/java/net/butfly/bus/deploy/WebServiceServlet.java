@@ -105,15 +105,16 @@ public class WebServiceServlet extends BusServlet {
 		Callable<Response> task = new Callable<Response>() {
 			@Override
 			public Response call() throws Signal {
-				return server.invoke(req);
+				return server.invoke(req, info.options);
 			}
 		};
 		Context.initialize(Context.deserialize(req.context()));
 		try {
-			AsyncUtils.execute(new Task<Response>(task, callback, info.options));
+			AsyncUtils.execute(new Task<Response>(task, callback));
 		} catch (Signal e) {
 			// TODO
 		}
+		logger.info("Servlet releasing.");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

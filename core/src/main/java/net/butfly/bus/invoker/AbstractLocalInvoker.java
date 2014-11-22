@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.Callable;
+import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
@@ -26,38 +27,50 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 		return METHOD_POOL.get(key);
 	}
 
-	@Override
-	public Response invoke(Request request, Options options) throws Signal {
-		return AsyncUtils.execute(new Task<Response>(new Callable<Response>() {
-			@Override
-			public Response call() throws Signal {
-				if (auth != null) auth.login(token());
-				TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
-				if (null == key)
-					throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
-							+ METHOD_POOL.keySet().toString() + "].");
-
-				Method method = METHOD_POOL.get(key);
-				Object bean = INSTANCE_POOL.get(key);
-				Object[] args = request.arguments();
-				Class<?> clazz = null == bean ? method.getDeclaringClass() : bean.getClass();
-				try {
-					return new Response(request).result(method.invoke(bean, args));
-				} catch (IllegalArgumentException e) {
-					throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Invoking method [" + clazz.getName() + "."
-							+ method.getName() + "] failure: Arguments mismatch.", e);
-				} catch (IllegalAccessException e) {
-					throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Invoking method [" + clazz.getName() + "."
-							+ method.getName() + "] failure: Not public", e);
-				} catch (InvocationTargetException e) {
-					Throwable cause = e.getTargetException();
-					if (cause instanceof Signal) throw (Signal) cause;
-					else throw new Signal.Completed(cause);
-				}
-			}
-		}, options));
-
+	public void invoke(final Request request, final Callback<Response> callback, final Options options) throws Signal {
+		AsyncUtils.execute(new Task<Response>(new InvokeTask(request), callback, options));
 	}
+
+	@Override
+	public Response invoke(final Request request, final Options options) throws Signal {
+		return AsyncUtils.execute(new Task<Response>(new InvokeTask(request), options));
+	}
+
+	private class InvokeTask implements Callable<Response> {
+		private Request request;
+
+		public InvokeTask(Request request) {
+			this.request = request;
+		}
+
+		@Override
+		public Response call() throws Signal {
+			if (auth != null) auth.login(token());
+			TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
+			if (null == key)
+				throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key
+						+ "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
+
+			Method method = METHOD_POOL.get(key);
+			Object bean = INSTANCE_POOL.get(key);
+			Object[] args = request.arguments();
+			Class<?> clazz = null == bean ? method.getDeclaringClass() : bean.getClass();
+			try {
+				return new Response(request).result(method.invoke(bean, args));
+			} catch (IllegalArgumentException e) {
+				throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Invoking method [" + clazz.getName() + "."
+						+ method.getName() + "] failure: Arguments mismatch.", e);
+			} catch (IllegalAccessException e) {
+				throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Invoking method [" + clazz.getName() + "."
+						+ method.getName() + "] failure: Not public", e);
+			} catch (InvocationTargetException e) {
+				Throwable cause = e.getTargetException();
+				if (cause instanceof Signal) throw (Signal) cause;
+				else throw new Signal.Completed(cause);
+			}
+		}
+	}
+
 	private TXImpl scanTXInPools(TXImpl requestTX) {
 		if (!TX_POOL.containsKey(requestTX.value())) return null;
 		if (TX.ALL_VERSION.equals(requestTX)) return TX_POOL.get(requestTX.value()).first();

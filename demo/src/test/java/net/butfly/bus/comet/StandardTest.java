@@ -1,5 +1,6 @@
 package net.butfly.bus.comet;
 
+import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Bus;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.CometFacade;
@@ -16,8 +17,16 @@ public class StandardTest extends BusTest {
 	}
 
 	public static void main(String args[]) throws Exception {
-		run();
-		System.exit(0);
+		run(false, true);
+		waiting();
+		// finish();
+	}
+
+	@Override
+	protected void beforeTest() {
+		Context.token(new Token("user", "pass"));
+		Context.sourceAppID("CometTestClient");
+		this.facade = this.client.getService(CometFacade.class, new Options().fork());
 	}
 
 	@Override
@@ -40,13 +49,6 @@ public class StandardTest extends BusTest {
 	@Override
 	protected Class<? extends Bus> getBusClass() {
 		return net.butfly.bus.ext.Bus.class;
-	}
-
-	@Override
-	protected void beforeTest() {
-		Context.token(new Token("user", "pass"));
-		Context.sourceAppID("CometTestClient");
-		this.facade = this.client.getService(CometFacade.class);
 	}
 
 	/*****************************************************/

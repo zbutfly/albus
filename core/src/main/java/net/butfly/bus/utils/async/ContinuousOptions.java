@@ -12,7 +12,7 @@ public class ContinuousOptions extends Options {
 		return this;
 	}
 
-	int retries() {
+	public int retries() {
 		return retries;
 	}
 

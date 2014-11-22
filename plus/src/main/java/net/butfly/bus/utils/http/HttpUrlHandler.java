@@ -53,9 +53,7 @@ public class HttpUrlHandler extends HttpHandler {
 		statusCode = conn.getResponseCode();
 		if (statusCode != 200) throw new SystemException("", "Http resposne status code: " + statusCode);
 		InputStream resp = conn.getInputStream();
-		if ("deflate".equals(conn.getContentEncoding())) {
-			resp = new InflaterInputStream(resp, new Inflater(true));
-		}
-		return resp;
+		if (!"deflate".equals(conn.getContentEncoding())) return resp;
+		return new InflaterInputStream(resp, new Inflater(true));
 	}
 }
