@@ -2,7 +2,7 @@
 <bus>
 	<router type="net.butfly.bus.policy.SingleRouter" />
 	<node id="albus-default" tx="*">
-		<invoker type="net.butfly.bus.invoker.SpringInvoker">
+		<invoker class="net.butfly.bus.invoker.SpringInvoker">
 			<files>beans.xml</files>
 		</invoker>
 	</node>

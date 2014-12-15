@@ -82,8 +82,8 @@ public class XMLConfigParser extends ConfigParser {
 			return null;
 		}
 		logAsXml(element);
-		String type = element.attributeValue("type");
-		if (StringUtils.isEmpty(type))
+		String className = element.attributeValue("class");
+		if (StringUtils.isEmpty(className))
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need type attribute.");
 		Class<? extends Invoker<?>> clazz = classForName(element.attributeValue("type"));
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
