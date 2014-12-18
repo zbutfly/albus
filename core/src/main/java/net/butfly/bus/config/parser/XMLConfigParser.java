@@ -84,8 +84,8 @@ public class XMLConfigParser extends ConfigParser {
 		logAsXml(element);
 		String className = element.attributeValue("class");
 		if (StringUtils.isEmpty(className))
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need type attribute.");
-		Class<? extends Invoker<?>> clazz = classForName(element.attributeValue("type"));
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
+		Class<? extends Invoker<?>> clazz = classForName(className);
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
 		processConfigObj(config, element);
 		logger.info("Node [" + id + "] enabled.");

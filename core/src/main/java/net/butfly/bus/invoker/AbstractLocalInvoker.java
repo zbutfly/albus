@@ -3,6 +3,7 @@ package net.butfly.bus.invoker;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Callback;
@@ -45,7 +46,11 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 
 		@Override
 		public Response call() throws Signal {
-			if (auth != null) auth.login(token());
+			if (auth != null) try {
+				auth.login(token());
+			} catch (BusinessException e) {
+				throw new RuntimeException(e);
+			}
 			TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
 			if (null == key)
 				throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key

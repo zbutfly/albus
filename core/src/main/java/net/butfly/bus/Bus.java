@@ -183,11 +183,6 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 		internal.sleep(ms);
 	}
 
-	@Override
-	public boolean isDebug() {
-		return false;
-	}
-
 	protected class InvokerFilter extends FilterBase implements Filter {
 		@Override
 		public Response execute(Request request) throws Signal {
