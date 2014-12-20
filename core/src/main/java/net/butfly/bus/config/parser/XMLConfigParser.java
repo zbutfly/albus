@@ -45,7 +45,7 @@ public class XMLConfigParser extends ConfigParser {
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
 		config.id(this.root.attributeValue("id", UUID.randomUUID().toString()));
-		config.side(Side.valueOf(this.root.attributeValue("side", "UNDEFINED").toUpperCase()));
+		config.side(Side.valueOf(this.root.attributeValue("side", "SERVER").toUpperCase()));
 		return config;
 	}
 

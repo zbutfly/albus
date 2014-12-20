@@ -38,7 +38,7 @@ public abstract class BusTest {
 	}
 
 	protected static void run(boolean... isRemote) throws Exception {
-		if (null == isRemote) isRemote = new boolean[] { false, true };
+		if (null == isRemote || isRemote.length == 0) isRemote = new boolean[] { false, true };
 
 		for (boolean remote : isRemote)
 			getTestInstance(remote).doTestWrapper();

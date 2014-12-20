@@ -3,7 +3,6 @@ package net.butfly.bus.serialize.converter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import net.butfly.albacore.support.EnumSupport;
 import net.butfly.albacore.utils.EnumUtils;
 
 import com.caucho.hessian.io.AbstractDeserializer;
@@ -19,13 +18,13 @@ import com.caucho.hessian.io.Serializer;
 public class HessianEnumFactory extends AbstractSerializerFactory {
 	@Override
 	public Deserializer getDeserializer(Class clazz) throws HessianProtocolException {
-		if (EnumSupport.class.isAssignableFrom(clazz)) { return new EnumDeserializer(clazz); }
+		if (Enum.class.isAssignableFrom(clazz)) { return new EnumDeserializer(clazz); }
 		return null;
 	}
 
 	@Override
 	public Serializer getSerializer(Class clazz) throws HessianProtocolException {
-		if (EnumSupport.class.isAssignableFrom(clazz)) { return EnumSerializer.instance(); }
+		if (Enum.class.isAssignableFrom(clazz)) { return EnumSerializer.instance(); }
 		return null;
 	}
 
@@ -38,14 +37,14 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 
 		@Override
 		public void writeObject(Object obj, AbstractHessianOutput out) throws IOException {
-			out.writeInt(((EnumSupport<?>) obj).value());
+			out.writeInt(EnumUtils.value((Enum<?>) obj));
 		}
 	}
 
 	public static class EnumDeserializer extends AbstractDeserializer implements Deserializer {
-		private Class<EnumSupport<?>> clazz;
+		private Class<Enum<? extends Enum>> clazz;
 
-		public EnumDeserializer(Class<EnumSupport<?>> clazz) {
+		public EnumDeserializer(Class<Enum<? extends Enum>> clazz) {
 			// hessian/33b[34], hessian/3bb[78]
 			this.clazz = clazz;
 		}
@@ -63,7 +62,7 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 		@Override
 		public Object readList(AbstractHessianInput in, int length) throws IOException {
 			if (length >= 0) {
-				EnumSupport<?>[] data = new EnumSupport[length];
+				Enum<?>[] data = new Enum[length];
 				in.addRef(data);
 				for (int i = 0; i < data.length; i++) {
 					data[i] = this.readEnum(in);
@@ -71,12 +70,12 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 				in.readEnd();
 				return data;
 			} else {
-				ArrayList<EnumSupport<?>> list = new ArrayList<EnumSupport<?>>();
+				ArrayList<Enum<?>> list = new ArrayList<Enum<?>>();
 				while (!in.isEnd()) {
 					list.add(this.readEnum(in));
 				}
 				in.readEnd();
-				EnumSupport<?>[] data = (EnumSupport[]) list.toArray(new EnumSupport[list.size()]);
+				Enum<?>[] data = (Enum[]) list.toArray(new Enum[list.size()]);
 				in.addRef(data);
 				return data;
 			}
@@ -84,7 +83,7 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 
 		@Override
 		public Object readLengthList(AbstractHessianInput in, int length) throws IOException {
-			EnumSupport<?>[] data = new EnumSupport[length];
+			Enum<?>[] data = new Enum[length];
 			in.addRef(data);
 			for (int i = 0; i < data.length; i++) {
 				data[i] = this.readEnum(in);
@@ -92,8 +91,10 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 			return data;
 		}
 
-		private <E extends EnumSupport<?>> E readEnum(AbstractHessianInput in) throws IOException {
-			return (E) EnumUtils.valueOf(this.clazz, in.readInt());
+		private <E extends Enum<E>> E readEnum(AbstractHessianInput in) throws IOException {
+			Class<E> clazz = (Class<E>) this.clazz;
+			E e = EnumUtils.parse(clazz, (byte) in.readInt());
+			return e;
 		}
 	}
 }
