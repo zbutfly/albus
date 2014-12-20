@@ -15,6 +15,7 @@ import com.google.gson.JsonSerializer;
 
 @SuppressWarnings("rawtypes")
 public class JSONEnumSerializer implements JsonSerializer<Enum>, JsonDeserializer<Enum> {
+	@SuppressWarnings("unchecked")
 	@Override
 	public JsonElement serialize(Enum src, Type typeOfSrc, JsonSerializationContext context) {
 		return new JsonPrimitive(EnumUtils.value(src));
@@ -22,20 +23,18 @@ public class JSONEnumSerializer implements JsonSerializer<Enum>, JsonDeserialize
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Enum<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-			throws JsonParseException {
+	public Enum<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		Class clazz = (Class) typeOfT;
 		if (!clazz.isEnum()) throw new SystemException("", "only enum could be deserialized to.");
-		Integer value = json.getAsInt();
+		byte value = (byte) json.getAsInt();
 		Enum<?>[] values;
 		try {
 			values = (Enum<?>[]) clazz.getMethod("values").invoke(null);
 		} catch (Exception e) {
 			throw new SystemException("", "only enum could be deserialized to.");
 		}
-		for (Enum<?> e : values) {
+		for (Enum<?> e : values)
 			if (EnumUtils.value(e) == value) return e;
-		}
 		return null;
 	}
 }
