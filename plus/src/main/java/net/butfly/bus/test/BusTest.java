@@ -3,6 +3,7 @@ package net.butfly.bus.test;
 import java.lang.reflect.Constructor;
 
 import net.butfly.albacore.exception.BusinessException;
+import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.bus.Bus;
 import net.butfly.bus.deploy.JettyStarter;
@@ -34,7 +35,6 @@ public abstract class BusTest {
 			logger.info("Local test: bus instance starting.");
 			client = getBusInstance(getBusClass(), StringUtils.join(getServerConfiguration(), ','));
 		}
-		beforeTest();
 	}
 
 	protected static void run(boolean... isRemote) throws Exception {
@@ -64,16 +64,18 @@ public abstract class BusTest {
 
 	protected void beforeBus(boolean remote) throws Exception {}
 
-	protected void beforeTest() {}
-
 	protected boolean isRemote() {
 		return this.remote;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T extends BusTest> T getTestInstance(Object remote) throws Exception {
-		Constructor<T> constructor = ((Class<T>) Class.forName(Thread.currentThread().getStackTrace()[3].getClassName()))
-				.getDeclaredConstructor(boolean.class);
+	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
+		Constructor<T> constructor;
+		try {
+			constructor = ((Class<T>) ReflectionUtils.getMainClass()).getDeclaredConstructor(boolean.class);
+		} catch (Exception e) {
+			throw new SystemException("", e);
+		}
 		return ReflectionUtils.safeConstruct(constructor, remote);
 	}
 
