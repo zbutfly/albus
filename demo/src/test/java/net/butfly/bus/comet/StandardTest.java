@@ -14,19 +14,15 @@ public class StandardTest extends BusTest {
 
 	protected StandardTest(boolean remote) throws Exception {
 		super(remote);
+		Context.token(new Token("user", "pass"));
+		Context.sourceAppID("CometTestClient");
+		this.facade = this.client.getService(CometFacade.class, new Options().fork());
 	}
 
 	public static void main(String args[]) throws Exception {
 		run(false, true);
 		waiting();
 		// finish();
-	}
-
-	@Override
-	protected void beforeTest() {
-		Context.token(new Token("user", "pass"));
-		Context.sourceAppID("CometTestClient");
-		this.facade = this.client.getService(CometFacade.class, new Options().fork());
 	}
 
 	@Override

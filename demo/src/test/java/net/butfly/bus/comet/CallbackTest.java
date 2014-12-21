@@ -8,6 +8,14 @@ import net.butfly.bus.ext.Bus;
 public class CallbackTest extends StandardTest {
 	protected CallbackTest(boolean remote) throws Exception {
 		super(remote);
+		this.echoCallback = new Callback<CometEchoReponse>() {
+			@Override
+			public void callback(CometEchoReponse echo) {
+				// consume one result.
+				if (echo != null) System.out.println("Callback echo: " + echo.toString());
+			}
+		};
+		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback);
 	}
 
 	public static void main(String args[]) throws Exception {
@@ -20,19 +28,6 @@ public class CallbackTest extends StandardTest {
 	protected void doAllTest() {
 		for (int i = 0; i < 5; i++)
 			this.composetest(i);
-	}
-
-	@Override
-	protected void beforeTest() {
-//		this.enableLocal(false);
-		this.echoCallback = new Callback<CometEchoReponse>() {
-			@Override
-			public void callback(CometEchoReponse echo) {
-				// consume one result.
-				if (echo != null) System.out.println("Callback echo: " + echo.toString());
-			}
-		};
-		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback);
 	}
 
 	/*****************************************************/
