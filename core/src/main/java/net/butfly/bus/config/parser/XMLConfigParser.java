@@ -182,22 +182,18 @@ public class XMLConfigParser extends ConfigParser {
 	@SuppressWarnings("unchecked")
 	private void processConfigObj(InvokerConfigBean config, Element element) {
 		if (null == config) return;
-		Class<?> clazz = config.getClass();
-		while (!clazz.equals(Object.class)) {
-			for (Field f : clazz.getDeclaredFields()) {
-				if (List.class.isAssignableFrom(f.getType())) {
-					List<Object> values = new ArrayList<Object>();
-					for (Element ele : (List<Element>) element.selectNodes(f.getName())) {
-						Object to = XMLUtils.parseObject(ele);
-						if (to != null) values.add(to);
-					}
-					ReflectionUtils.safeFieldSet(f, config, values);
-				} else {
-					Object value = XMLUtils.parseObject((Element) element.selectSingleNode(f.getName()));
-					if (value != null) ReflectionUtils.safeFieldSet(f, config, value);
+		for (Field f : ReflectionUtils.getAllFieldsDeeply(config.getClass())) {
+			if (List.class.isAssignableFrom(f.getType())) {
+				List<Object> values = new ArrayList<Object>();
+				for (Element ele : (List<Element>) element.selectNodes(f.getName())) {
+					Object to = XMLUtils.parseObject(ele);
+					if (to != null) values.add(to);
 				}
+				ReflectionUtils.safeFieldSet(f, config, values);
+			} else {
+				Object value = XMLUtils.parseObject((Element) element.selectSingleNode(f.getName()));
+				if (value != null) ReflectionUtils.safeFieldSet(f, config, value);
 			}
-			clazz = clazz.getSuperclass();
 		}
 	}
 
