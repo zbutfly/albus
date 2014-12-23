@@ -23,8 +23,9 @@ public class HttpUrlHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, byte[] data, ContentType contentType, Map<String, String> headers, boolean streaming)
+	public InputStream post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
 			throws IOException {
+		this.logRequest(url, headers, new String(data, contentType.getCharset()), streaming);
 		URL u;
 		try {
 			u = new URL(url);

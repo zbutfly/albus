@@ -23,7 +23,7 @@ public class HttpClientHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, byte[] data, ContentType contentType, Map<String, String> headers, boolean streaming)
+	public InputStream post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
 			throws IOException {
 		HttpPost postReq = new HttpPost(url);
 

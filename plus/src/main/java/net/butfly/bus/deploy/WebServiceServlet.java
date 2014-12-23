@@ -39,6 +39,7 @@ import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.async.AsyncUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -81,7 +82,7 @@ public class WebServiceServlet extends BusServlet {
 		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
-		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType().toString());
+		ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
 		Bus server = this.router.route(info.tx.value(), servers.servers());
 		if (null == server) throw new SystemException("", "Server routing failure.");
 		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
@@ -95,7 +96,10 @@ public class WebServiceServlet extends BusServlet {
 				if (r.context() != null) for (Entry<String, String> ctx : r.context().entrySet())
 					response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 				try {
-					serializer.write(response.getOutputStream(), info.supportClass ? r : new ResponseWrapper(r));
+					byte[] data = serializer.serialize(info.supportClass ? r : new ResponseWrapper(r));
+					logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
+					response.getOutputStream().write(data);
+					response.getOutputStream().flush();
 					response.flushBuffer();
 				} catch (IOException ex) {
 					throw new SystemException("", ex);
@@ -120,7 +124,10 @@ public class WebServiceServlet extends BusServlet {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object[] readFromBody(Serializer serializer, InputStream is, Class<?>[] parameterTypes) throws ServletException,
 			IOException {
-		Object r = serializer.read(is, parameterTypes);
+		byte[] data = IOUtils.toByteArray(is);
+		logger.trace("HTTP Request RECV <== "
+				+ new String(data, ((HTTPStreamingSupport) serializer).getOutputContentType().getCharset()));
+		Object r = serializer.deserialize(data, parameterTypes);
 		if (r == null) return null;
 		if (r.getClass().isArray()) return (Object[]) r;
 		if (Collection.class.isAssignableFrom(r.getClass())) {

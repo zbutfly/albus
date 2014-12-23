@@ -25,7 +25,9 @@ import net.butfly.bus.utils.async.ContinuousOptions;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +77,6 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			byte[] data = this.serializer.serialize(request.arguments());
 			for (int i = 0; i < copts.retries(); i++)
 				this.webservice(data, headers, callback, copts);
-
 		} else {
 			callback.callback(this.invokeRemote(request, options));
 		}
@@ -92,12 +93,15 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			throws IOException, Signal {
 		InputStream http = null;
 		Response resp = null;
+		ContentType contentType = ((HTTPStreamingSupport) this.serializer).getOutputContentType();
 		try {
-			http = this.handler.post(this.path, data, ((HTTPStreamingSupport) this.serializer).getOutputContentType(), headers,
-					null != options && options instanceof ContinuousOptions);
+			http = this.handler.post(this.path, headers, data, contentType, null != options
+					&& options instanceof ContinuousOptions);
 			do {
-				resp = this.convertResult(this.serializer.supportClass() ? this.serializer.read(http, Response.class)
-						: this.serializer.read(http, ResponseWrapper.class));
+				byte[] recv = IOUtils.toByteArray(http);
+				logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
+				resp = this.convertResult(serializer.deserialize(recv, this.serializer.supportClass() ? Response.class
+						: ResponseWrapper.class));
 				if (null == callback) return resp;
 				callback.callback(resp);
 			} while (resp != null);
