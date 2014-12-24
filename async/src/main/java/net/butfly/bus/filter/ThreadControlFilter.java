@@ -48,7 +48,7 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(Request request) throws Signal {
+	public Response execute(final Request request) throws Signal {
 		return AsyncUtils.execute(new Task<Response>(new Callable<Response>() {
 			@Override
 			public Response call() throws Signal {

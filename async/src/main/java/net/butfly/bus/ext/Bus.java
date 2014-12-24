@@ -50,7 +50,7 @@ public class Bus extends net.butfly.bus.Bus implements InvokeExSupport {
 	 * but transfer it into Bus.InvokerFilter for handling.
 	 */
 	@Override
-	public <T> void invoke(Request request, Callback<T> callback, Options... options) throws Signal {
+	public <T> void invoke(final Request request, Callback<T> callback, Options... options) throws Signal {
 		final Options[] opts = normalize(options);
 		Task<Response> task = new Task<Response>(new Callable<Response>() {
 			@Override
