@@ -1,15 +1,10 @@
 package net.butfly.bus.comet.facade;
 
-import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.FacadeBase;
-import net.butfly.bus.argument.Constants;
-import net.butfly.bus.auth.Token;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
-import net.butfly.bus.context.Context;
-import net.butfly.bus.facade.AuthFacade;
 
-public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFacade {
+public class CometFacadeImpl extends FacadeBase implements CometFacade {
 	private static final long serialVersionUID = 4279578356782869791L;
 	private long count = 0;
 
@@ -40,30 +35,5 @@ public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFaca
 	@Override
 	public CometEchoReponse echoObject(CometEchoRequest echo) {
 		return new CometEchoReponse(echo.getValue() + " [from echo2][" + count() + "]", echo.getValues());
-	}
-
-	@Override
-	public void logout() {
-		Context.untoken();
-	}
-
-	@Override
-	public void login(Token token) {
-		if (null == token) throw new SystemException(Constants.BusinessError.AUTH_NOT_EXIST, "Authorization lost.");
-		if (null != token.getKey()) {
-			if (!"token".equals(token.getKey()))
-				throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID,
-						"Authorization failure for invalid token.");;
-			Context.token(token);
-			return;
-		}
-		if (null != token.getUsername() && null != token.getPassword()) {
-			if (!"user".equals(token.getUsername()) || !"pass".equals(token.getPassword()))
-				throw new SystemException(Constants.BusinessError.AUTH_PASS_INVALID,
-						"Authorization failure for invalid username/password.");
-			Context.token(new Token("token"));
-			return;
-		}
-		throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID, "Authorization failure for no token provided.");
 	}
 }

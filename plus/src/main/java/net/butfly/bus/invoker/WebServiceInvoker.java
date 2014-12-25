@@ -77,9 +77,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			byte[] data = this.serializer.serialize(request.arguments());
 			for (int i = 0; i < copts.retries(); i++)
 				this.webservice(data, headers, callback, copts);
-		} else {
-			callback.callback(this.invokeRemote(request, options));
-		}
+		} else callback.callback(this.invokeRemote(request, options));
 	}
 
 	@Override

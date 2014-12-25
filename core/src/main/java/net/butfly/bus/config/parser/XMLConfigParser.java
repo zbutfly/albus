@@ -1,9 +1,6 @@
 package net.butfly.bus.config.parser;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,18 +94,19 @@ public class XMLConfigParser extends ConfigParser {
 		if (node == null) return null;
 		String token = node.attributeValue("token");
 		if (token != null) return new Token(token);
-		token = node.attributeValue("file");
-		if (token != null) {
-			BufferedReader r = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader()
-					.getResourceAsStream(token)));
-			String line;
-			StringBuilder sb = new StringBuilder();
-			try {
-				while ((line = r.readLine()) != null)
-					sb.append(line);
-			} catch (IOException e) {}
-			return new Token(sb.toString());
-		}
+		// TODO: suppurt key file (one key per line) 
+//		token = node.attributeValue("file");
+//		if (token != null) {
+//			BufferedReader r = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader()
+//					.getResourceAsStream(token)));
+//			String line;
+//			StringBuilder sb = new StringBuilder();
+//			try {
+//				while ((line = r.readLine()) != null)
+//					sb.append(line).append("\n");
+//			} catch (IOException e) {}
+//			return new Token(sb.toString());
+//		}
 		String user = node.attributeValue("username");
 		String pass = node.attributeValue("password");
 		if (user != null && pass != null) return new Token(user, pass);

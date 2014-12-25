@@ -1,4 +1,4 @@
-package net.butfly.bus.facade;
+package net.butfly.bus.service;
 
 import net.butfly.albacore.facade.Facade;
 import net.butfly.bus.TX;

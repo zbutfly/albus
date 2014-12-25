@@ -12,7 +12,7 @@ import net.butfly.bus.argument.Constants;
 import net.butfly.bus.auth.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.facade.AuthFacade;
+import net.butfly.bus.service.AuthService;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
 
@@ -25,7 +25,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected Map<String, TreeSet<TXImpl>> TX_POOL = new HashMap<String, TreeSet<TXImpl>>();
 	protected Map<TXImpl, Object> INSTANCE_POOL = new HashMap<TXImpl, Object>();
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
-	protected AuthFacade auth;
+	protected AuthService auth;
 	private Token token;
 
 	@Override
@@ -44,7 +44,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 				// scanMethodsForTX(implClass, bean);
 			for (Class<?> clazz : implClass.getInterfaces())
 				scanMethodsForTX(clazz, bean);
-			if (AuthFacade.class.isAssignableFrom(implClass)) this.auth = (AuthFacade) bean;
+			if (AuthService.class.isAssignableFrom(implClass)) this.auth = (AuthService) bean;
 		}
 		logger.trace("Invoker parsed.");
 	} catch (Exception _ex) {

@@ -47,9 +47,9 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 		@Override
 		public Response call() throws Signal {
 			if (auth != null) try {
-				auth.login(token());
+				auth.login(AbstractLocalInvoker.this.token());
 			} catch (BusinessException e) {
-				throw new RuntimeException(e);
+				throw new Signal.Completed(e);
 			}
 			TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
 			if (null == key)

@@ -1,14 +1,11 @@
-package net.butfly.bus.facade;
+package net.butfly.bus.service;
 
 import net.butfly.albacore.exception.BusinessException;
-import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.TX;
+import net.butfly.albacore.service.Service;
 import net.butfly.bus.auth.Token;
 
-public interface AuthFacade extends Facade {
-	@TX("BUS_AUTH-000")
+public interface AuthService extends Service {
 	void logout() throws BusinessException;
 
-	@TX("BUS_AUTH-001")
 	void login(Token token) throws BusinessException;
 }
