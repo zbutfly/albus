@@ -11,7 +11,7 @@
 	<filter title="exception-handler" enabled="true"
 		class="net.butfly.bus.filter.ExceptionHandleFilter" />
 	<router type="net.butfly.bus.policy.SimpleRouter" />
-	<invoker type="net.butfly.bus.invoker.SpringInvoker" id="bus-default"
+	<invoker class="net.butfly.bus.invoker.SpringInvoker" id="bus-default"
 		tx="*" enabled="true">
 		<files>net/butfly/bus/internal/spring/beans.xml</files>
 	</invoker>

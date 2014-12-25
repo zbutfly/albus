@@ -23,8 +23,9 @@ public class HttpUrlHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, byte[] data, ContentType contentType, Map<String, String> headers, boolean streaming)
+	public InputStream post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
 			throws IOException {
+		this.logRequest(url, headers, new String(data, contentType.getCharset()), streaming);
 		URL u;
 		try {
 			u = new URL(url);
@@ -53,9 +54,7 @@ public class HttpUrlHandler extends HttpHandler {
 		statusCode = conn.getResponseCode();
 		if (statusCode != 200) throw new SystemException("", "Http resposne status code: " + statusCode);
 		InputStream resp = conn.getInputStream();
-		if ("deflate".equals(conn.getContentEncoding())) {
-			resp = new InflaterInputStream(resp, new Inflater(true));
-		}
-		return resp;
+		if (!"deflate".equals(conn.getContentEncoding())) return resp;
+		return new InflaterInputStream(resp, new Inflater(true));
 	}
 }

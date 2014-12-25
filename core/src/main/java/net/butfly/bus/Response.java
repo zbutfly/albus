@@ -10,12 +10,12 @@ import net.butfly.bus.argument.Error;
 public class Response implements Serializable {
 	private static final long serialVersionUID = 5897857767191140750L;
 
+	protected Object result = null;
+	protected Error error = null;
+	protected Map<String, String> context = new HashMap<String, String>();
+
 	protected String id;
 	protected String requestId;
-
-	protected Object result = null;
-	protected Map<String, String> context = new HashMap<String, String>();
-	protected Error error = null;
 
 	protected Response() {}
 
@@ -48,7 +48,8 @@ public class Response implements Serializable {
 
 	public String context(String key, String value) {
 		String val = this.context.get(key);
-		this.context.put(key, value);
+		if (null == value) this.context.remove(key);
+		else this.context.put(key, value);
 		return val;
 	}
 

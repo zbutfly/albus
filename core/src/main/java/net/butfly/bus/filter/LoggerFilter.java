@@ -20,8 +20,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 		sb.append(":");
 		long now = System.currentTimeMillis();
 		String prefix = sb.toString();
-		logger.debug(prefix + " invoking begin...");
-		logger.debug(prefix + getDebugDetail(request));
+		logger.trace(prefix + " invoking begin...");
+		logger.trace(prefix + getDebugDetail(request));
 		this.putParams(request, new Object[] { now, prefix });
 	}
 
@@ -33,7 +33,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 		long spent = System.currentTimeMillis() - now;
 		if (null != response && response.error() != null) logger.error("Bus error: \n" + response.error().toString());
 		logger.info(prefix + " invoking ended in [" + spent + "ms].");
-		logger.debug(prefix + getDebugDetail(response));
+		logger.trace(prefix + getDebugDetail(response));
 	}
 
 	private String getDebugDetail(Response response) {

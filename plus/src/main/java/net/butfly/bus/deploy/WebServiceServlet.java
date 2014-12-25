@@ -20,6 +20,7 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Callback;
+import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
@@ -36,10 +37,9 @@ import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
-import net.butfly.bus.utils.async.ContinuousUtils;
-import net.butfly.bus.utils.async.InvokeTask;
-import net.butfly.bus.utils.async.ContinuousOptions;
+import net.butfly.bus.utils.async.AsyncUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -76,13 +76,13 @@ public class WebServiceServlet extends BusServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HeaderInfo info = this.header(request);
 		Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
+		HeaderInfo info = this.header(request, serializer);
 		if (serializer == null) throw new ServletException("Unmapped content type: " + request.getContentType());
 		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
-		response.setContentType(((HTTPStreamingSupport) serializer).getOutputContentType().toString());
+		ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
 		Bus server = this.router.route(info.tx.value(), servers.servers());
 		if (null == server) throw new SystemException("", "Server routing failure.");
 		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
@@ -96,38 +96,38 @@ public class WebServiceServlet extends BusServlet {
 				if (r.context() != null) for (Entry<String, String> ctx : r.context().entrySet())
 					response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 				try {
-					serializer.write(response.getOutputStream(), info.supportClass ? r : new ResponseWrapper(r));
+					byte[] data = serializer.serialize(info.supportClass ? r : new ResponseWrapper(r));
+					logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
+					response.getOutputStream().write(data);
+					response.getOutputStream().flush();
 					response.flushBuffer();
 				} catch (IOException ex) {
 					throw new SystemException("", ex);
-				} finally {
-					Context.cleanup();
 				}
 			}
 		};
 		Callable<Response> task = new Callable<Response>() {
 			@Override
 			public Response call() throws Signal {
-				return server.invoke(req);
+				return server.invoke(req, info.options);
 			}
 		};
-		Context.initialize(Context.deserialize(req.context()), true);
-		if (info.continuous) try {
-			ContinuousUtils.execute(new InvokeTask(new Task<Response>(task, callback, new ContinuousOptions())));
+		Context.initialize(Context.deserialize(req.context()));
+		try {
+			AsyncUtils.execute(new Task<Response>(task, callback));
 		} catch (Signal e) {
 			// TODO
 		}
-		else try {
-			callback.callback(task.call());
-		} catch (Signal e) {
-			// TODO
-		}
+		logger.info("Servlet releasing.");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object[] readFromBody(Serializer serializer, InputStream is, Class<?>[] parameterTypes) throws ServletException,
 			IOException {
-		Object r = serializer.read(is, parameterTypes);
+		byte[] data = IOUtils.toByteArray(is);
+		logger.trace("HTTP Request RECV <== "
+				+ new String(data, ((HTTPStreamingSupport) serializer).getOutputContentType().getCharset()));
+		Object r = serializer.deserialize(data, parameterTypes);
 		if (r == null) return null;
 		if (r.getClass().isArray()) return (Object[]) r;
 		if (Collection.class.isAssignableFrom(r.getClass())) {
@@ -150,7 +150,7 @@ public class WebServiceServlet extends BusServlet {
 		return new Object[] { r };
 	}
 
-	protected HeaderInfo header(HttpServletRequest request) throws ServletException {
+	protected HeaderInfo header(HttpServletRequest request, Serializer serializer) throws ServletException {
 		HeaderInfo info = new HeaderInfo();
 		info.context = new HashMap<String, String>();
 		String path = request.getPathInfo();
@@ -176,8 +176,14 @@ public class WebServiceServlet extends BusServlet {
 			if (name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
 				info.context.put(name.substring(BusHttpHeaders.HEADER_CONTEXT_PREFIX.length()), request.getHeader(name));
 		}
-		String cont = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS);
-		info.continuous = null != cont && Boolean.parseBoolean(cont);
+		String optionsClass = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS);
+		try {
+			info.options = null == optionsClass ? null : serializer.fromString(
+					request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS), Class.forName(optionsClass));
+		} catch (ClassNotFoundException e) {
+			logger.warn("Invalid options class parsing with [" + BusHttpHeaders.HEADER_CONTINUOUS_PARAMS + "]");
+			info.options = null;
+		}
 		String supportClass = request.getHeader(BusHttpHeaders.HEADER_SUPPORT_CLASS);
 		info.supportClass = null == supportClass || Boolean.parseBoolean(supportClass);
 		return info;
@@ -186,7 +192,7 @@ public class WebServiceServlet extends BusServlet {
 	protected static class HeaderInfo {
 		TX tx;
 		boolean supportClass;
-		boolean continuous;
+		Options options;
 		Map<String, String> context;
 	}
 

@@ -66,5 +66,4 @@ public class CometFacadeImpl extends FacadeBase implements CometFacade, AuthFaca
 		}
 		throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID, "Authorization failure for no token provided.");
 	}
-
 }

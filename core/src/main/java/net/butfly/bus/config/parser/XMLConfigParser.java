@@ -45,7 +45,7 @@ public class XMLConfigParser extends ConfigParser {
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
 		config.id(this.root.attributeValue("id", UUID.randomUUID().toString()));
-		config.side(Side.valueOf(this.root.attributeValue("side", "UNDEFINED").toUpperCase()));
+		config.side(Side.valueOf(this.root.attributeValue("side", "SERVER").toUpperCase()));
 		return config;
 	}
 
@@ -76,19 +76,19 @@ public class XMLConfigParser extends ConfigParser {
 		String id = element.attributeValue("id");
 		if (StringUtils.isEmpty(id))
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need id attribute.");
-		logger.info("Invoker [" + id + "] parsing...");
+		logger.trace("Invoker [" + id + "] parsing...");
 		if ("false".equals(element.attributeValue("enabled"))) {
 			logger.trace("Invoker [" + id + "] disabled.");
 			return null;
 		}
 		logAsXml(element);
-		String type = element.attributeValue("type");
-		if (StringUtils.isEmpty(type))
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need type attribute.");
-		Class<? extends Invoker<?>> clazz = classForName(element.attributeValue("type"));
+		String className = element.attributeValue("class");
+		if (StringUtils.isEmpty(className))
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
+		Class<? extends Invoker<?>> clazz = classForName(className);
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
 		processConfigObj(config, element);
-		logger.info("Node [" + id + "] enabled.");
+		logger.debug("Node [" + id + "] enabled.");
 		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
 	}
 
@@ -142,7 +142,7 @@ public class XMLConfigParser extends ConfigParser {
 				throw new SystemException(Constants.UserError.FILTER_INVOKE, "Filter class invalid", e);
 			}
 			FilterBean f = new FilterBean(title, clazz, params);
-			logger.info("Filter [" + title + "] enbled.");
+			logger.debug("Filter [" + title + "] enabled.");
 			logAsXml(filter);
 			return f;
 		} else {
@@ -153,7 +153,7 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected static void logAsXml(Element element) {
-		logger.debug(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+		logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
 				.replaceAll("\n$$", ""));
 	}
 
@@ -182,22 +182,18 @@ public class XMLConfigParser extends ConfigParser {
 	@SuppressWarnings("unchecked")
 	private void processConfigObj(InvokerConfigBean config, Element element) {
 		if (null == config) return;
-		Class<?> clazz = config.getClass();
-		while (!clazz.equals(Object.class)) {
-			for (Field f : clazz.getDeclaredFields()) {
-				if (List.class.isAssignableFrom(f.getType())) {
-					List<Object> values = new ArrayList<Object>();
-					for (Element ele : (List<Element>) element.selectNodes(f.getName())) {
-						Object to = XMLUtils.parseObject(ele);
-						if (to != null) values.add(to);
-					}
-					ReflectionUtils.safeFieldSet(f, config, values);
-				} else {
-					Object value = XMLUtils.parseObject((Element) element.selectSingleNode(f.getName()));
-					if (value != null) ReflectionUtils.safeFieldSet(f, config, value);
+		for (Field f : ReflectionUtils.getAllFieldsDeeply(config.getClass())) {
+			if (List.class.isAssignableFrom(f.getType())) {
+				List<Object> values = new ArrayList<Object>();
+				for (Element ele : (List<Element>) element.selectNodes(f.getName())) {
+					Object to = XMLUtils.parseObject(ele);
+					if (to != null) values.add(to);
 				}
+				ReflectionUtils.safeFieldSet(f, config, values);
+			} else {
+				Object value = XMLUtils.parseObject((Element) element.selectSingleNode(f.getName()));
+				if (value != null) ReflectionUtils.safeFieldSet(f, config, value);
 			}
-			clazz = clazz.getSuperclass();
 		}
 	}
 

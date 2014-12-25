@@ -3,7 +3,7 @@ package net.butfly.bus.serialize;
 import java.lang.reflect.Type;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.support.EnumSupport;
+import net.butfly.albacore.utils.EnumUtils;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -14,28 +14,27 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 @SuppressWarnings("rawtypes")
-public class JSONEnumSerializer implements JsonSerializer<EnumSupport>, JsonDeserializer<EnumSupport> {
+public class JSONEnumSerializer implements JsonSerializer<Enum>, JsonDeserializer<Enum> {
+	@SuppressWarnings("unchecked")
 	@Override
-	public JsonElement serialize(EnumSupport src, Type typeOfSrc, JsonSerializationContext context) {
-		return new JsonPrimitive(src.value());
+	public JsonElement serialize(Enum src, Type typeOfSrc, JsonSerializationContext context) {
+		return new JsonPrimitive(EnumUtils.value(src));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public EnumSupport deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-			throws JsonParseException {
+	public Enum<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		Class clazz = (Class) typeOfT;
 		if (!clazz.isEnum()) throw new SystemException("", "only enum could be deserialized to.");
-		Integer value = json.getAsInt();
-		EnumSupport[] values;
+		byte value = (byte) json.getAsInt();
+		Enum<?>[] values;
 		try {
-			values = (EnumSupport[]) clazz.getMethod("values").invoke(null);
+			values = (Enum<?>[]) clazz.getMethod("values").invoke(null);
 		} catch (Exception e) {
 			throw new SystemException("", "only enum could be deserialized to.");
 		}
-		for (EnumSupport e : values) {
-			if (e.value() == value) return e;
-		}
+		for (Enum<?> e : values)
+			if (EnumUtils.value(e) == value) return e;
 		return null;
 	}
 }

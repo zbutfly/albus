@@ -141,12 +141,9 @@ public class JettyStarter implements Runnable {
 		for (Class<? extends BusServlet> c : classes)
 			if (!c.getName().startsWith("net.butfly.bus.")) return c;
 		try {
-			return (Class<? extends BusServlet>) Class.forName(Constants.Configuration.RECOMMEND_EXTERNAL_SERVLET_CLASSNAME);
+			return (Class<? extends BusServlet>) Class.forName(Constants.Configuration.RECOMMEND_SERVLET_CLASSNAME);
 		} catch (ClassNotFoundException e) {}
-		try {
-			return (Class<? extends BusServlet>) Class.forName(Constants.Configuration.RECOMMEND_INTERNAL_SERVLET_CLASSNAME);
-		} catch (ClassNotFoundException ee) {}
-		return null;
+		throw new RuntimeException("Could not found servlet class to implement bus service.");
 	}
 
 	protected void createServer(int port) {
@@ -307,7 +304,7 @@ public class JettyStarter implements Runnable {
 				this.printWrapped(f, pw, "bus.server.class",
 						"Class name for the core bus instance (default net.butfly.bus.Bus)");
 				this.printWrapped(f, pw, "bus.servlet.class",
-						"Class name for the servlet of container of bus deployment (default net.butfly.bus.deploy.BusJSONServlet)");
+						"Class name for the servlet of container of bus deployment (default net.butfly.bus.deploy.WebServiceServlet)");
 				pw.flush();
 				return null;
 			} else return cmd;
@@ -375,10 +372,13 @@ public class JettyStarter implements Runnable {
 			for (Field f : this.getClass().getDeclaredFields())
 				if (f.getType().isArray()) {
 					sb.append("\t").append(f.getName()).append(": \n");
-					for (Object e : (Object[]) ReflectionUtils.safeFieldGet(f, this))
-						sb.append("\t\t").append(e).append("\n");
-				} else sb.append("\t").append(f.getName()).append(": ").append((Object) ReflectionUtils.safeFieldGet(f, this))
-						.append("\n");
+					try {
+						for (Object e : (Object[]) f.get(this))
+							sb.append("\t\t").append(e).append("\n");
+					} catch (IllegalAccessException e) {}
+				} else try {
+					sb.append("\t").append(f.getName()).append(": ").append((Object) f.get(this)).append("\n");
+				} catch (IllegalAccessException e) {}
 			return sb.toString();
 		}
 	}

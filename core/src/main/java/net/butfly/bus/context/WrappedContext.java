@@ -11,13 +11,13 @@ public abstract class WrappedContext extends Context {
 	protected abstract void current(SimpleContext c);
 
 	@Override
-	protected void initialize(Map<String, Object> original) {
+	protected void load(Map<String, Object> original) {
 		Context c = current();
 		if (null == c) {
 			c = new SimpleContext();
 			this.current((SimpleContext) c);
 		}
-		super.initialize(original);;
+		super.load(original);;
 	}
 
 	@Override

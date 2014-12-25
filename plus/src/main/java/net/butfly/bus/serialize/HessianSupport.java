@@ -8,7 +8,6 @@ import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
 
-
 //import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 
@@ -16,8 +15,9 @@ import com.caucho.hessian.io.AbstractSerializerFactory;
 import com.caucho.hessian.io.SerializerFactory;
 
 public abstract class HessianSupport extends HTTPStreamingSupport implements Serializer, SerializerFactorySupport {
-	public static final ContentType HESSIAN_CONTENT_TYPE = ContentType.create("x-application/hessian"/*, Consts.ISO_8859_1*/);
-	public static final ContentType BURLAP_CONTENT_TYPE = ContentType.create("x-application/burlap"/*, Consts.ISO_8859_1*/);
+	// , Consts . ISO_8859_1
+	public static final ContentType HESSIAN_CONTENT_TYPE = ContentType.create("x-application/hessian");
+	public static final ContentType BURLAP_CONTENT_TYPE = ContentType.create("x-application/burlap");
 	protected SerializerFactory factory;
 
 	@Override
@@ -54,5 +54,15 @@ public abstract class HessianSupport extends HTTPStreamingSupport implements Ser
 	@Override
 	public boolean supportClass() {
 		return true;
+	}
+
+	@Override
+	public String asString(Object obj) {
+		return new String(serialize(obj), this.getOutputContentType().getCharset());
+	}
+
+	@Override
+	public <T> T fromString(String str, Type... types) {
+		return deserialize(str.getBytes(this.getOutputContentType().getCharset()), types);
 	}
 }

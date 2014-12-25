@@ -17,4 +17,8 @@ public interface Serializer {
 	void readThenWrite(InputStream is, OutputStream os, Type... type) throws IOException;
 
 	boolean supportClass();
+
+	<T> T fromString(String str, Type... types);
+
+	String asString(Object obj);
 }

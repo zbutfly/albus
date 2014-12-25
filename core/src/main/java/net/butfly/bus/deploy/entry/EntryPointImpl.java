@@ -17,10 +17,6 @@ public class EntryPointImpl implements EntryPoint {
 
 	@Override
 	public Response invoke(Request request) throws Signal {
-		try {
-			return this.router.route(request.code(), servers.servers()).invoke(request);
-		} catch (Signal signal) {
-			throw signal;
-		}
+		return this.router.route(request.code(), servers.servers()).invoke(request);
 	}
 }
