@@ -41,8 +41,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 		sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.string())
 				.append("\n\tresponse result: ");
 		if (response != null && response.result() != null) {
-			sb.append("[").append(response.result().getClass().getName()).append("]").append("\n\t\t")
-					.append(response.result());
+			String result = response.result().toString();
+			sb.append("[").append(response.result().getClass().getName()).append("]").append("\n\t\t").append(result);
 		} else sb.append("[NULL]");
 		return sb.toString();
 	}
