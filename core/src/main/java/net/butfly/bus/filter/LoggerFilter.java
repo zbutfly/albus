@@ -40,10 +40,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 		StringBuilder sb = new StringBuilder();
 		sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.string())
 				.append("\n\tresponse result: ");
-		if (response != null && response.result() != null) {
-			String result = response.result().toString();
-			sb.append("[").append(response.result().getClass().getName()).append("]").append("\n\t\t").append(result);
-		} else sb.append("[NULL]");
+		if (null != response) this.printObject(sb, response.result());
 		return sb.toString();
 	}
 
@@ -54,10 +51,14 @@ public class LoggerFilter extends FilterBase implements Filter {
 		int ai = 1;
 		if (request.arguments() != null) for (Object arg : request.arguments()) {
 			sb.append("\n\t\t").append("[").append(ai++).append("]: ");
-			if (null != arg) sb.append(arg).append("\n\t\t\t").append("[").append(arg.getClass().getName()).append("]");
-			else sb.append("[NULL]");
+			this.printObject(sb, arg);
 		}
 		else sb.append("[NULL]");
 		return sb.toString();
+	}
+
+	private void printObject(StringBuilder sb, Object obj) {
+		if (null != obj) sb.append("[").append(obj.getClass().getName()).append("]").append(":").append(obj.toString());
+		else sb.append("[NULL]");
 	}
 }
