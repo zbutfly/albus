@@ -2,13 +2,13 @@ package net.butfly.bus.comet;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.context.Context;
 
 public class CometContext {
@@ -27,7 +27,7 @@ public class CometContext {
 //		Context.CURRENT.put(SERVLET_REQUEST_KEY, options);
 //		Context.CURRENT.put(SERVLET_RESPONSE_KEY, response);
 		response.setHeader("Access-Control-Allow-Origin", "*");
-		final String id = UUID.randomUUID().toString();
+		final String id = KeyUtils.generateObjectId();
 		if (!request.isAsyncStarted()) {
 			final AsyncContext ac = request.startAsync(request, response);
 

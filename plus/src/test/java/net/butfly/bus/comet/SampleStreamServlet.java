@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.utils.KeyUtils;
+
 import com.google.gson.Gson;
 
 @WebServlet(urlPatterns = "/chat", asyncSupported = true)
@@ -77,7 +79,7 @@ public class SampleStreamServlet extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 
 		// Id
-		final String id = UUID.randomUUID().toString();
+		final String id = KeyUtils.generateObjectId();
 		writer.print(id);
 		writer.print(';');
 

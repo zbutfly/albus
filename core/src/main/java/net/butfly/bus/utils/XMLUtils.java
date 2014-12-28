@@ -50,7 +50,7 @@ import org.xml.sax.SAXException;
  */
 @SuppressWarnings("deprecation")
 public class XMLUtils {
-	private final static String DEFAULT_KEY = "type";
+	private final static String DEFAULT_KEY = "class";
 	private final static String DEFAULT_TYPE = "String";
 	private final static String INTEGER_TYPE = "Integer";
 	private final static String DOUBLE_TYPE = "Double";

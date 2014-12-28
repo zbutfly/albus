@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.bus.argument.Constants;
 import net.butfly.bus.argument.Constants.Side;
@@ -41,7 +41,7 @@ public class XMLConfigParser extends ConfigParser {
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
-		config.id(this.root.attributeValue("id", UUID.randomUUID().toString()));
+		config.id(this.root.attributeValue("id", KeyUtils.generateObjectId()));
 		config.side(Side.valueOf(this.root.attributeValue("side", "SERVER").toUpperCase()));
 		return config;
 	}
@@ -169,7 +169,7 @@ public class XMLConfigParser extends ConfigParser {
 		Element element = this.element("router");
 		if (element == null) return null;
 		try {
-			Class<? extends Router> routeClass = (Class<? extends Router>) Class.forName(element.attributeValue("type"));
+			Class<? extends Router> routeClass = (Class<? extends Router>) Class.forName(element.attributeValue("class"));
 			return new RouterBean(routeClass);
 		} catch (Throwable th) {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR,

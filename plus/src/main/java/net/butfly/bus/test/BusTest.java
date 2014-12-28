@@ -25,16 +25,17 @@ public abstract class BusTest {
 			System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.WebServiceServlet");
 			System.setProperty("bus.server.base", "src/test/webapp");
 			System.setProperty("bus.threadpool.size", "3");
-			beforeBus(remote);
 			logger.info("Remote test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
 			logger.info("Remote test: bus client starting.");
-			client = getBusInstance(getBusClass(), StringUtils.join(getClientConfiguration(), ','));
 		} else {
-			beforeBus(remote);
 			logger.info("Local test: bus instance starting.");
-			client = getBusInstance(getBusClass(), StringUtils.join(getServerConfiguration(), ','));
 		}
+		client = getBusInstance(getBusClass(), this.getClientConfigurationForType(remote));
+	}
+
+	protected final String getClientConfigurationForType(boolean remote) {
+		return StringUtils.join(remote ? this.getClientConfiguration() : this.getServerConfiguration(), ',');
 	}
 
 	protected static void run(boolean... isRemote) throws Exception {
@@ -61,8 +62,6 @@ public abstract class BusTest {
 	protected String[] getServerMainArguments() {
 		return new String[] { "-k", StringUtils.join(getServerConfiguration(), ',') };
 	}
-
-	protected void beforeBus(boolean remote) throws Exception {}
 
 	protected boolean isRemote() {
 		return this.remote;

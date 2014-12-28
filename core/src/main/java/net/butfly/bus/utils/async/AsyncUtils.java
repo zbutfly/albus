@@ -9,22 +9,21 @@ import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 
 public final class AsyncUtils extends UtilsBase {
-	public static Response execute(final Task<Response> task) throws Signal {
+	public static <R> R execute(final Task<R> task) throws Signal {
 		if (task.options() != null && task.options() instanceof ContinuousOptions) {
-			executeContinuous(null, new TaskWrapper(task));
+			executeContinuous(null, new TaskWrapper<R>(task));
 			return null;
-		} else return net.butfly.albacore.utils.async.AsyncUtils.execute(new TaskWrapper(task));
+		} else return net.butfly.albacore.utils.async.AsyncUtils.execute(new TaskWrapper<R>(task));
 	}
 
-	public static Response execute(final Task<Response> task, final ExecutorService executor) throws Signal {
+	public static <R> R execute(final Task<R> task, final ExecutorService executor) throws Signal {
 		if (task.options() instanceof ContinuousOptions) {
 			executeContinuous(executor, task);
 			return null;
-		} else return net.butfly.albacore.utils.async.AsyncUtils.execute(new TaskWrapper(task), executor);
+		} else return net.butfly.albacore.utils.async.AsyncUtils.execute(new TaskWrapper<R>(task), executor);
 	}
 
 	public static void handleSignal(Signal signal) throws Signal {
@@ -38,7 +37,7 @@ public final class AsyncUtils extends UtilsBase {
 		} else throw signal;
 	}
 
-	private static void executeContinuous(final ExecutorService executor, final Task<Response> task) throws Signal {
+	private static <R> void executeContinuous(final ExecutorService executor, final Task<R> task) throws Signal {
 		if (task.callback() == null) throw new IllegalArgumentException("Continuous need callback.");
 		ContinuousOptions copts = (ContinuousOptions) task.options();
 		try {
@@ -57,23 +56,23 @@ public final class AsyncUtils extends UtilsBase {
 	 *         <Response>}, support {@link net.butfly.bus.context.Context}
 	 *         transporting between async threads.
 	 */
-	private static class TaskWrapper extends Task<Response> {
+	private static class TaskWrapper<R> extends Task<R> {
 		private final Map<String, Object> context = new ConcurrentHashMap<String, Object>();
 
-		public TaskWrapper(final Task<Response> original) {
+		public TaskWrapper(final Task<R> original) {
 			context.putAll(Context.toMap());
-			this.task = new Callable<Response>() {
+			this.task = new Callable<R>() {
 				@Override
-				public Response call() throws Signal {
+				public R call() throws Signal {
 					Context.initialize(context);
-					Response r = original.task().call();
+					R r = original.task().call();
 					context.putAll(Context.toMap());
 					return r;
 				}
 			};
-			this.callback = null == original.callback() ? null : new Callback<Response>() {
+			this.callback = null == original.callback() ? null : new Callback<R>() {
 				@Override
-				public void callback(Response result) throws Signal {
+				public void callback(R result) throws Signal {
 					try {
 						Context.initialize(context);
 						original.callback().callback(result);

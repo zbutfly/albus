@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.argument.Error;
 
 public class Response implements Serializable {
@@ -20,7 +21,7 @@ public class Response implements Serializable {
 	protected Response() {}
 
 	public Response(Request request) {
-		this.id = UUID.randomUUID().toString();
+		this.id = KeyUtils.generateObjectId();
 		this.requestId = request.id;
 	}
 

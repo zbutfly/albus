@@ -2,8 +2,9 @@ package net.butfly.bus.context;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import net.butfly.albacore.utils.KeyUtils;
 
 class RequestContext extends WrappedContext {
 	private static final ThreadLocal<String> KEY_LOCAL = new ThreadLocal<String>();
@@ -13,7 +14,7 @@ class RequestContext extends WrappedContext {
 	protected void load(Map<String, Object> original) {
 		if (null == original) original = new HashMap<String, Object>();
 		// emulate request id for local testing.
-		if (!original.containsKey(Key.RequestID.name())) original.put(Key.RequestID.name(), UUID.randomUUID().toString());
+		if (!original.containsKey(Key.RequestID.name())) original.put(Key.RequestID.name(), KeyUtils.generateObjectId());
 		KEY_LOCAL.set((String) original.get(Key.RequestID.name()));
 		super.load(original);
 	}

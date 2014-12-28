@@ -1,5 +1,6 @@
 package net.butfly.bus.comet;
 
+
 //import java.io.IOException;
 //import java.io.PrintWriter;
 //import java.util.LinkedHashMap;
@@ -95,7 +96,7 @@ package net.butfly.bus.comet;
 //                PrintWriter writer = response.getWriter();
 //
 //                // Id
-//                final String id = UUID.randomUUID().toString();
+//                final String id = KeyUtils.generateObjectId();
 //                writer.print(id);
 //                writer.print(';');
 //
