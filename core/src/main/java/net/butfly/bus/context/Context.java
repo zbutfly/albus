@@ -14,6 +14,7 @@ public abstract class Context implements Map<String, Object> {
 
 	public enum Key {
 		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID;
+		private static final String TEMP_PREFIX = "_Inner";
 	}
 
 	public static String string() {
@@ -94,6 +95,15 @@ public abstract class Context implements Map<String, Object> {
 
 	public static void txInfo(TX tx) {
 		CURRENT.put(Key.TXInfo.name(), (TXUtils.TXImpl) TXUtils.TXImpl(tx));
+	}
+
+	public static void temp(String key, Object value) {
+		CURRENT.put(Key.TEMP_PREFIX + key, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T temp(String key) {
+		return (T) CURRENT.get(Key.TEMP_PREFIX + key);
 	}
 
 	/****************************************************/
