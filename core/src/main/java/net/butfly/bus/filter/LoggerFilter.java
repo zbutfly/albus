@@ -13,27 +13,34 @@ public class LoggerFilter extends FilterBase implements Filter {
 
 	@Override
 	public void before(Request request) {
-		StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":").append(request.version())
-				.append("]").append("[").append(side.name()).append("]");
-		FlowNo fn = Context.flowNo();
-		if (null != fn) sb.append("[").append(fn.toString()).append("]");
-		sb.append(":");
+		String prefix = null;
 		long now = System.currentTimeMillis();
-		String prefix = sb.toString();
-		logger.trace(prefix + " invoking begin...");
-		logger.trace(prefix + getDebugDetail(request));
-		this.putParams(request, new Object[] { now, prefix });
+		if (logger.isInfoEnabled() || logger.isTraceEnabled()) {
+			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":")
+					.append(request.version()).append("]").append("[").append(side.name()).append("]");
+			FlowNo fn = Context.flowNo();
+			if (null != fn) sb.append("[").append(fn.toString()).append("]");
+			sb.append(":");
+			prefix = sb.toString();
+		}
+		this.putParams(request, now, prefix);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace(prefix + " invoking begin...");
+			logger.trace(prefix + getDebugDetail(request));
+		}
 	}
 
 	@Override
 	public void after(Request request, Response response) {
 		Object[] params = this.getParams(request);
-		long now = (Long) params[0];
 		String prefix = (String) params[1];
-		long spent = System.currentTimeMillis() - now;
+		if (logger.isInfoEnabled()) {
+			long spent = System.currentTimeMillis() - (Long) params[0];
+			logger.info(prefix + " invoking ended in [" + spent + "ms].");
+		}
 		if (null != response && response.error() != null) logger.error("Bus error: \n" + response.error().toString());
-		logger.info(prefix + " invoking ended in [" + spent + "ms].");
-		logger.trace(prefix + getDebugDetail(response));
+		if (logger.isTraceEnabled()) logger.trace(prefix + getDebugDetail(response));
 	}
 
 	private String getDebugDetail(Response response) {
