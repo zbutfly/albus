@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bus side="client">
-	<filter title="async-filter" class="net.butfly.bus.filter.AsyncFilter"
-		enabled="false" />
-	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter"
-		enabled="true" />
-	<filter title="exception-filter" class="net.butfly.bus.filter.ExceptionHandleFilter"
-		enabled="true" />
+	<filter title="async-filter" class="net.butfly.bus.filter.AsyncFilter" enabled="false" />
+	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter" enabled="true" />
+	<filter title="exception-filter" class="net.butfly.bus.filter.ExceptionHandleFilter" enabled="true" />
 	<invoker id="albus-test-comet" tx="TST_CMT-*" class="net.butfly.bus.invoker.WebServiceInvoker">
 		<path>http://127.0.0.1:19080/bus</path>
 		<!-- <serializer>net.butfly.bus.serialize.HessianSerializer</serializer> -->

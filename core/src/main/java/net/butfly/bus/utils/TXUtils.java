@@ -26,6 +26,7 @@ public class TXUtils extends UtilsBase {
 		return impl;
 	}
 
+	@SuppressWarnings("all")
 	public static class TXImpl implements TX, Serializable, Comparable<TX> {
 		private static final long serialVersionUID = 2457478261818103564L;
 

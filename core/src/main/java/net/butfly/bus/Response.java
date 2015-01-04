@@ -3,7 +3,6 @@ package net.butfly.bus;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.argument.Error;
