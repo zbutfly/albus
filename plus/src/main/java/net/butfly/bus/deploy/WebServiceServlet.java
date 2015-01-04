@@ -82,6 +82,7 @@ public class WebServiceServlet extends BusServlet {
 		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
+		this.allowCrossDomain(response);
 		ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
 		Bus server = this.router.route(info.tx.value(), servers.servers());
 		if (null == server) throw new SystemException("", "Server routing failure.");
@@ -119,6 +120,13 @@ public class WebServiceServlet extends BusServlet {
 			// TODO
 		}
 		logger.info("Servlet releasing.");
+	}
+
+	private void allowCrossDomain(HttpServletResponse response) {
+		response.setHeader("Access-Control-Allow-Origin", "*");
+		response.setHeader("Access-Control-Allow-Methods", "POST");
+		response.setHeader("Access-Control-Allow-Headers",
+				"Content-Type, Content-Range, Content-Disposition, Content-Description");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
