@@ -125,8 +125,7 @@ public class WebServiceServlet extends BusServlet {
 	private void allowCrossDomain(HttpServletResponse response) {
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-Control-Allow-Methods", "POST");
-		response.setHeader("Access-Control-Allow-Headers",
-				"Content-Type, Content-Range, Content-Disposition, Content-Description");
+		response.setHeader("Access-Control-Allow-Headers", "*");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
