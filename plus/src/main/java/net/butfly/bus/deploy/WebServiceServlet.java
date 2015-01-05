@@ -74,6 +74,12 @@ public class WebServiceServlet extends BusServlet {
 		logger.info("Bus started.");
 	}
 
+	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		resp.setHeader("Access-Control-Allow-Origin", "*");
+		resp.setHeader("Access-Control-Allow-Headers", req.getHeader("Access-Control-Request-Headers"));
+		resp.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+	}
+
 	@Override
 	protected void doPost(HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
@@ -82,7 +88,8 @@ public class WebServiceServlet extends BusServlet {
 		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
-		this.allowCrossDomain(response);
+		// XXX: goof off
+		this.doOptions(request, response);
 		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
 		final Bus server = this.router.route(info.tx.value(), servers.servers());
 		if (null == server) throw new SystemException("", "Server routing failure.");
@@ -120,12 +127,6 @@ public class WebServiceServlet extends BusServlet {
 			// TODO
 		}
 		logger.info("Servlet releasing.");
-	}
-
-	private void allowCrossDomain(HttpServletResponse response) {
-		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.setHeader("Access-Control-Allow-Methods", "POST");
-		response.setHeader("Access-Control-Allow-Headers", "*");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
