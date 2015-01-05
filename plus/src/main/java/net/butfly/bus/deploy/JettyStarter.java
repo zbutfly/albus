@@ -9,11 +9,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 
 import javax.naming.NamingException;
 
 import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.async.AsyncUtils;
 import net.butfly.bus.Bus;
 import net.butfly.bus.argument.Constants;
 
@@ -70,7 +70,7 @@ public class JettyStarter implements Runnable {
 
 	public JettyStarter(StarterConfiguration conf) {
 		if (conf.threads > 0) this.server = new Server(new QueuedThreadPool(conf.threads));
-		else if (conf.threads == 0) this.server = new Server(new DelegatingThreadPool(Executors.newWorkStealingPool()));
+		else if (conf.threads == 0) this.server = new Server(new DelegatingThreadPool(AsyncUtils.getDefaultExecutor()));
 		else this.server = new Server();
 		this.context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		this.context.setContextPath("/");

@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bus id="">
-	<filter title="async-filter" class="net.butfly.bus.filter.AsyncFilter"
-		enabled="false" />
-	<filter title="logger-filter" class="net.butfly.bus.filter.LoggerFilter"
-		enabled="true" />
-	<filter title="exception-filter" class="net.butfly.bus.filter.ExceptionHandleFilter"
-		enabled="true" />
-	<invoker class="net.butfly.bus.demo.invoker.BeanFactoryInvoker" id="albus-test-comet"
-		tx="TST_CMT-*" />
+	<filter title="async-filter" class="net.butfly.bus.filter.AsyncFilter" enabled="false" />
+	<filter title="logger-filter" class="net.butfly.bus.filter.LoggerFilter" enabled="true" />
+	<filter title="exception-filter" class="net.butfly.bus.filter.ExceptionHandleFilter" enabled="true" />
+	<invoker class="net.butfly.bus.demo.invoker.BeanFactoryInvoker" id="albus-test-comet" tx="TST_CMT-*" />
 </bus>

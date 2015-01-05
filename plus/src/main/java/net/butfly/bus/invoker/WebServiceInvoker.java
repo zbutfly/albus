@@ -98,8 +98,9 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			do {
 				byte[] recv = IOUtils.toByteArray(http);
 				logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
-				resp = this.convertResult(serializer.deserialize(recv, this.serializer.supportClass() ? Response.class
-						: ResponseWrapper.class));
+				Type c = this.serializer.supportClass() ? Response.class : ResponseWrapper.class;
+				Response r = serializer.deserialize(recv, c);
+				resp = this.convertResult(r);
 				if (null == callback) return resp;
 				callback.callback(resp);
 			} while (resp != null);

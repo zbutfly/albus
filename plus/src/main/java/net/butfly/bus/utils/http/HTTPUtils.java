@@ -74,7 +74,7 @@ public class HTTPUtils extends UtilsBase {
 	}
 
 	public static CloseableHttpClient createFull(int connTimeout, int readTimeout, int maxConnections, int maxPerRoute,
-			Map<String, InetAddress[]> dnsMap) {
+			final Map<String, InetAddress[]> dnsMap) {
 		// Use custom message parser / writer to customize the way HTTP messages
 		// are parsed from and written
 		// out to the data stream.
@@ -174,7 +174,7 @@ public class HTTPUtils extends UtilsBase {
 		if (maxPerRoute > 0) connManager.setDefaultMaxPerRoute(maxPerRoute);
 		// XXX: connManager.setMaxPerRoute(new HttpRoute(new
 		// HttpHost("somehost", 80)), 20);
-//		connManager.setValidateAfterInactivity(50);
+		// connManager.setValidateAfterInactivity(50);
 
 		// Use custom cookie store if necessary.
 		CookieStore cookieStore = new BasicCookieStore();

@@ -132,7 +132,7 @@ public abstract class Context implements Map<String, Object> {
 			return;
 		case MergingOnlyAbsent:
 			for (Entry<String, Object> e : src.entrySet())
-				CURRENT.putIfAbsent(e.getKey(), e.getValue());
+				if (!CURRENT.containsKey(e.getKey())) CURRENT.put(e.getKey(), e.getValue());
 			return;
 		}
 	}

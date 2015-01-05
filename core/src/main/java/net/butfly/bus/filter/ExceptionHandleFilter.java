@@ -35,7 +35,7 @@ public class ExceptionHandleFilter extends FilterBase implements Filter {
 			if (side == Side.SERVER) {
 				response = new Response(request);
 				BusUtils.exceptionToError(response, ex, debugging);
-			} else throw ex;
+			} else throw new Signal.Completed(ex);
 		}
 		return response;
 	}

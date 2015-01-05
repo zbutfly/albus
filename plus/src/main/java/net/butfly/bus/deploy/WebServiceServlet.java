@@ -75,21 +75,21 @@ public class WebServiceServlet extends BusServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
-		HeaderInfo info = this.header(request, serializer);
+	protected void doPost(HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+		final Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
+		final HeaderInfo info = this.header(request, serializer);
 		if (serializer == null) throw new ServletException("Unmapped content type: " + request.getContentType());
 		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
 			throw new ServletException("Unsupported content type: " + request.getContentType());
 		response.setStatus(HttpStatus.SC_OK);
 		this.allowCrossDomain(response);
-		ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-		Bus server = this.router.route(info.tx.value(), servers.servers());
+		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
+		final Bus server = this.router.route(info.tx.value(), servers.servers());
 		if (null == server) throw new SystemException("", "Server routing failure.");
 		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
 		if (null == pi) throw new SystemException("", "Server routing failure.");
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
-		Request req = new Request(info.tx, info.context, arguments);
+		final Request req = new Request(info.tx, info.context, arguments);
 		Callback<Response> callback = new Callback<Response>() {
 			@Override
 			public void callback(Response r) {
@@ -185,8 +185,12 @@ public class WebServiceServlet extends BusServlet {
 		}
 		String optionsClass = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS);
 		try {
-			info.options = null == optionsClass ? null : serializer.fromString(
-					request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS), Class.forName(optionsClass));
+			if (null == optionsClass) info.options = null;
+			else {
+				String h = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS);
+				Class<?> c = Class.forName(optionsClass);
+				info.options = serializer.fromString(h, c);
+			}
 		} catch (ClassNotFoundException e) {
 			logger.warn("Invalid options class parsing with [" + BusHttpHeaders.HEADER_CONTINUOUS_PARAMS + "]");
 			info.options = null;

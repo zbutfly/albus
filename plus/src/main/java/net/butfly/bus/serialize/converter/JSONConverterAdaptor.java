@@ -12,11 +12,11 @@ import com.google.gson.stream.JsonWriter;
 public class JSONConverterAdaptor extends ConverterAdaptor<TypeAdapterFactory> {
 	@Override
 	public <SRC, DST> TypeAdapterFactory create(Class<? extends Converter<SRC, DST>> converterClass) {
-		Converter<SRC, DST> converter = getConverter(converterClass);
+		final Converter<SRC, DST> converter = getConverter(converterClass);
 		TypeAdapterFactory factory = new TypeAdapterFactory() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+			public <T> TypeAdapter<T> create(final Gson gson, TypeToken<T> type) {
 				if (!converter.getOriginalClass().isAssignableFrom(type.getRawType())) return null;
 				TypeAdapter<SRC> adapter = new TypeAdapter<SRC>() {
 					@Override
