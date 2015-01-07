@@ -215,7 +215,6 @@ public class JettyStarter implements Runnable {
 	}
 
 	public static void main(String... args) throws Exception {
-		net.butfly.albacore.logger.LoggerFactory.initialize();
 		StarterParser parser = new StarterParser(PosixParser.class);
 		CommandLine cmd = parser.parse(args);
 		if (null != cmd) {
