@@ -68,6 +68,13 @@
 			<artifactId>jetty-http-spi</artifactId>
 			<version>${deps.version.jetty}</version>
 		</dependency>
+		<!-- http dependencies -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${deps.version.httpclient}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.caucho</groupId>
 			<artifactId>hessian</artifactId>
