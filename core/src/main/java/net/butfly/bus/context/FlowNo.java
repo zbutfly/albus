@@ -5,15 +5,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context.Key;
 
-import org.apache.commons.lang3.time.FastDateFormat;
-
 public final class FlowNo implements Serializable, Cloneable {
 	private static final long serialVersionUID = -3616807811490455640L;
-	private static final FastDateFormat FLOWNO_FORMAT = FastDateFormat.getInstance("yyMMddHHmmssSSS");
-	private static final DateFormat FLOWNO_UNFORMAT = new SimpleDateFormat("yyMMddHHmmssSSS");
 
 	private String code;
 	private String version;
@@ -25,7 +22,7 @@ public final class FlowNo implements Serializable, Cloneable {
 		String fn = request.context(Key.FlowNo.name());
 		FlowNo existed = null == fn ? Context.flowNo() : new FlowNo(fn);
 		if (null == existed) {
-			this.serial = random();
+			this.serial = KeyUtils.objectId();
 			this.sequence = 1;
 			this.timestamp = new Date().getTime();
 		} else {
@@ -41,15 +38,13 @@ public final class FlowNo implements Serializable, Cloneable {
 	public FlowNo(String flowno) {
 		if (null == flowno) throw new IllegalArgumentException();
 		String[] fields = flowno.split("[#@:]");
-		if (fields.length != 4) throw new IllegalArgumentException();
+		if (fields.length != 5) throw new IllegalArgumentException();
 		try {
-			synchronized (FLOWNO_UNFORMAT) {
-				this.timestamp = FLOWNO_UNFORMAT.parse(fields[0].substring(0, fields[0].length() - RANDOM_LENGTH)).getTime();
-			}
-			this.code = fields[2];
-			this.version = fields[3];
-			this.serial = fields[0].substring(fields[0].length() - RANDOM_LENGTH, fields[0].length());
-			this.sequence = Long.parseLong(fields[1]);
+			this.timestamp = formater().parse(fields[0]).getTime();
+			this.code = fields[3];
+			this.version = fields[4];
+			this.serial = fields[1];
+			this.sequence = Long.parseLong(fields[2]);
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
@@ -58,28 +53,18 @@ public final class FlowNo implements Serializable, Cloneable {
 	@Override
 	public String toString() {
 		String timestamp;
-		timestamp = FLOWNO_FORMAT.format(new Date(this.timestamp));
-		return new StringBuilder(timestamp).append(serial).append("#").append(sequence).append("@").append(code).append(":")
-				.append(version).toString();
+		timestamp = formater().format(new Date(this.timestamp));
+		return new StringBuilder(timestamp).append("#").append(serial).append("#").append(sequence).append("@").append(code)
+				.append(":").append(version).toString();
 	}
 
-	private static String RANDOM_SEED = "0123456789";
-	static {
-		RANDOM_SEED = "";
-		for (int i = 0; i < 10; i++) {
-			RANDOM_SEED = RANDOM_SEED + i;
+	ThreadLocal<DateFormat> FORMATERs = new ThreadLocal<DateFormat>() {
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyMMddHHmmssSSS");
 		}
-	}
-	private static int RANDOM_LENGTH = 7;
+	};
 
-	private static synchronized String random() {
-		return random(RANDOM_LENGTH);
-	}
-
-	private static synchronized String random(int length) {
-		StringBuilder rst = new StringBuilder();
-		for (int i = 0; i < length; i++)
-			rst.append(RANDOM_SEED.charAt((int) (Math.random() * RANDOM_SEED.length())));
-		return rst.toString();
+	private DateFormat formater() {
+		return FORMATERs.get();
 	}
 }

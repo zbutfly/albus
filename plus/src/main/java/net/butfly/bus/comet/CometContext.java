@@ -27,7 +27,7 @@ public class CometContext {
 //		Context.CURRENT.put(SERVLET_REQUEST_KEY, options);
 //		Context.CURRENT.put(SERVLET_RESPONSE_KEY, response);
 		response.setHeader("Access-Control-Allow-Origin", "*");
-		final String id = KeyUtils.generateObjectId();
+		final String id = KeyUtils.objectId();
 		if (!request.isAsyncStarted()) {
 			final AsyncContext ac = request.startAsync(request, response);
 

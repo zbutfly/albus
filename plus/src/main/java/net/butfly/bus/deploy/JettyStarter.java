@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,18 +12,17 @@ import java.util.Set;
 import javax.naming.NamingException;
 
 import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.XMLUtils;
 import net.butfly.albacore.utils.async.AsyncUtils;
 import net.butfly.bus.Bus;
 import net.butfly.bus.argument.Constants;
 
-import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.dom4j.Attribute;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -238,19 +236,9 @@ public class JettyStarter implements Runnable {
 		URL url = Thread.currentThread().getContextClassLoader().getResource(contextXML);
 		if (null == contextXML) return;
 		for (Element resource : (List<Element>) new SAXReader().read(url).getRootElement().selectNodes("Resource")) {
-			BeanMap map = new BeanMap(Class.forName(resource.attributeValue("type")).newInstance());
-			Iterator<Attribute> it = resource.attributeIterator();
-			while (it.hasNext()) {
-				Attribute attr = it.next();
-				if ("name".equals(attr.getName()) || "type".equals(attr.getName())) continue;
-				if (String.class.equals(map.getType(attr.getName()))) map.put(attr.getName(), attr.getValue());
-				else if (int.class.equals(map.getType(attr.getName())) || Integer.class.equals(map.getType(attr.getName()))) map
-						.put(attr.getName(), Integer.parseInt(attr.getValue()));
-				else if (boolean.class.equals(map.getType(attr.getName())) || Boolean.class.equals(map.getType(attr.getName())))
-					map.put(attr.getName(), Boolean.parseBoolean(attr.getValue()));
-
-			}
-			new Resource("java:comp/env/" + resource.attributeValue("name"), map.getBean());
+			Object res = Class.forName(resource.attributeValue("type")).newInstance();
+			XMLUtils.setByAttrs(res, resource, "name", "type");
+			new Resource("java:comp/env/" + resource.attributeValue("name"), res);
 		}
 	}
 

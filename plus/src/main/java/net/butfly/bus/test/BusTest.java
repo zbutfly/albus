@@ -4,11 +4,11 @@ import java.lang.reflect.Constructor;
 
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.bus.Bus;
 import net.butfly.bus.deploy.JettyStarter;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public abstract class BusTest {
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
-		return StringUtils.join(remote ? this.getClientConfiguration() : this.getServerConfiguration(), ',');
+		return KeyUtils.join(remote ? this.getClientConfiguration() : this.getServerConfiguration());
 	}
 
 	protected static void run(boolean... isRemote) throws Exception {
@@ -60,7 +60,7 @@ public abstract class BusTest {
 	}
 
 	protected String[] getServerMainArguments() {
-		return new String[] { "-k", StringUtils.join(getServerConfiguration(), ',') };
+		return new String[] { "-k", KeyUtils.join(getServerConfiguration()) };
 	}
 
 	protected boolean isRemote() {

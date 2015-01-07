@@ -20,7 +20,7 @@ public class Response implements Serializable {
 	protected Response() {}
 
 	public Response(Request request) {
-		this.id = KeyUtils.generateObjectId();
+		this.id = KeyUtils.objectId();
 		this.requestId = request.id;
 	}
 

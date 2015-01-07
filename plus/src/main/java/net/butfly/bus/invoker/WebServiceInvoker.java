@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Signal;
@@ -26,7 +27,6 @@ import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			} catch (Exception e) {
 				logger.error(
 						"Serializer factory instance construction failure for class: "
-								+ StringUtils.join(config.getTypeTranslators().toArray(new String[0])), e);
+								+ KeyUtils.join(config.getTypeTranslators().toArray(new String[0])), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 

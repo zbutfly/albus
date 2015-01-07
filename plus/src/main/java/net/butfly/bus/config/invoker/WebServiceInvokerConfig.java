@@ -40,7 +40,7 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[").append(path).append(":").append(timeout);
-		for (String clazz : typeTranslators)
+		if (typeTranslators != null) for (String clazz : typeTranslators)
 			sb.append(":").append(clazz);
 		sb.append("]");
 		return sb.toString();
