@@ -1,10 +1,9 @@
 package net.butfly.bus.context;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import net.butfly.albacore.utils.DateUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context.Key;
@@ -40,7 +39,7 @@ public final class FlowNo implements Serializable, Cloneable {
 		String[] fields = flowno.split("[#@:]");
 		if (fields.length != 5) throw new IllegalArgumentException();
 		try {
-			this.timestamp = formater().parse(fields[0]).getTime();
+			this.timestamp = DateUtils.formater().parse(fields[0]).getTime();
 			this.code = fields[3];
 			this.version = fields[4];
 			this.serial = fields[1];
@@ -53,18 +52,9 @@ public final class FlowNo implements Serializable, Cloneable {
 	@Override
 	public String toString() {
 		String timestamp;
-		timestamp = formater().format(new Date(this.timestamp));
+		timestamp = DateUtils.formater().format(new Date(this.timestamp));
 		return new StringBuilder(timestamp).append("#").append(serial).append("#").append(sequence).append("@").append(code)
 				.append(":").append(version).toString();
 	}
 
-	ThreadLocal<DateFormat> FORMATERs = new ThreadLocal<DateFormat>() {
-		protected DateFormat initialValue() {
-			return new SimpleDateFormat("yyMMddHHmmssSSS");
-		}
-	};
-
-	private DateFormat formater() {
-		return FORMATERs.get();
-	}
 }
