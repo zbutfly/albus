@@ -237,7 +237,7 @@ public class JettyStarter implements Runnable {
 		if (null == contextXML) return;
 		for (Element resource : (List<Element>) new SAXReader().read(url).getRootElement().selectNodes("Resource")) {
 			Object res = Class.forName(resource.attributeValue("type")).newInstance();
-			XMLUtils.setByAttrs(res, resource, "name", "type");
+			XMLUtils.setPropsByAttr(res, resource, "name", "type");
 			new Resource("java:comp/env/" + resource.attributeValue("name"), res);
 		}
 	}

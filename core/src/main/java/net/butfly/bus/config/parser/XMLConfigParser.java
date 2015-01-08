@@ -81,7 +81,7 @@ public class XMLConfigParser extends ConfigParser {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
 		Class<? extends Invoker<?>> clazz = classForName(className);
 		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
-		if (null != config) XMLUtils.setByNodes(config, element);
+		if (null != config) XMLUtils.setPropsByNode(config, element);
 		logger.debug("Node [" + id + "] enabled.");
 		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
 	}
