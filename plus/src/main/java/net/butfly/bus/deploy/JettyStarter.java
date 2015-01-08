@@ -4,15 +4,11 @@ import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-
+import net.butfly.albacore.utils.JNDIUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.albacore.utils.XMLUtils;
 import net.butfly.albacore.utils.async.AsyncUtils;
 import net.butfly.bus.Bus;
 import net.butfly.bus.argument.Constants;
@@ -23,9 +19,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.eclipse.jetty.http.spi.DelegatingThreadPool;
 import org.eclipse.jetty.plus.jndi.Resource;
 import org.eclipse.jetty.server.Connector;
@@ -230,18 +223,6 @@ public class JettyStarter implements Runnable {
 		return this.server.isStarting();
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void addJNDI(String contextXML) throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException, NamingException, DocumentException {
-		URL url = Thread.currentThread().getContextClassLoader().getResource(contextXML);
-		if (null == contextXML) return;
-		for (Element resource : (List<Element>) new SAXReader().read(url).getRootElement().selectNodes("Resource")) {
-			Object res = Class.forName(resource.attributeValue("type")).newInstance();
-			XMLUtils.setPropsByAttr(res, resource, "name", "type");
-			new Resource("java:comp/env/" + resource.attributeValue("name"), res);
-		}
-	}
-
 	private static class StarterParser {
 		private CommandLineParser parser;
 		private Options options;
@@ -368,5 +349,9 @@ public class JettyStarter implements Runnable {
 				} catch (IllegalAccessException e) {}
 			return sb.toString();
 		}
+	}
+
+	public static void addJNDI(String contextXml) {
+		JNDIUtils.addJNDI(contextXml, Resource.class.getName());
 	}
 }

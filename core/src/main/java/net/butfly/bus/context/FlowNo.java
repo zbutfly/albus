@@ -3,13 +3,14 @@ package net.butfly.bus.context;
 import java.io.Serializable;
 import java.util.Date;
 
-import net.butfly.albacore.utils.DateUtils;
+import net.butfly.albacore.utils.FormatUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context.Key;
 
 public final class FlowNo implements Serializable, Cloneable {
 	private static final long serialVersionUID = -3616807811490455640L;
+	private static final String DATE_FORMAT = "yyMMddHHmmssSSS";
 
 	private String code;
 	private String version;
@@ -39,7 +40,7 @@ public final class FlowNo implements Serializable, Cloneable {
 		String[] fields = flowno.split("[#@:]");
 		if (fields.length != 5) throw new IllegalArgumentException();
 		try {
-			this.timestamp = DateUtils.formater().parse(fields[0]).getTime();
+			this.timestamp = FormatUtils.dateFormat(DATE_FORMAT).parse(fields[0]).getTime();
 			this.code = fields[3];
 			this.version = fields[4];
 			this.serial = fields[1];
@@ -52,7 +53,7 @@ public final class FlowNo implements Serializable, Cloneable {
 	@Override
 	public String toString() {
 		String timestamp;
-		timestamp = DateUtils.formater().format(new Date(this.timestamp));
+		timestamp = FormatUtils.dateFormat(DATE_FORMAT).format(new Date(this.timestamp));
 		return new StringBuilder(timestamp).append("#").append(serial).append("#").append(sequence).append("@").append(code)
 				.append(":").append(version).toString();
 	}
