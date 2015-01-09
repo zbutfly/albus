@@ -10,9 +10,9 @@ import net.butfly.albacore.utils.ExceptionUtils;
 public class Error implements Serializable {
 	private static final long serialVersionUID = -8461232615545890309L;
 
-	private String code = null;
+	private String code;
 	private String message;
-	private Error cause = null;
+	private Error cause;
 	private StackTraceElement[] stackTrace;
 
 	public Error(Throwable ex, boolean debugging) {
@@ -24,9 +24,10 @@ public class Error implements Serializable {
 		Throwable ex = list[0];
 		if (ex instanceof SystemException) this.code = ((SystemException) ex).getCode();
 		else if (ex instanceof BusinessException) this.code = ((BusinessException) ex).getCode();
+		else this.code = null;
 
 		this.message = ex.getMessage();
-		this.stackTrace = debugging ? null : ex.getStackTrace();
+		this.stackTrace = debugging ? ex.getStackTrace() : new StackTraceElement[0];
 		if (list.length == 1) this.cause = null;
 		else this.cause = new Error(Arrays.copyOfRange(list, 1, list.length), debugging);
 	}
@@ -54,9 +55,9 @@ public class Error implements Serializable {
 	public String toString(int stackTraceLimit, int causeLimit) {
 		int l = stackTraceLimit;
 		StringBuilder sb = new StringBuilder();
-		sb.append("Error: ").append(this.getMessage()).append("[Code: ").append(this.getCode()).append("]: ");
+		sb.append(this.getMessage()).append("[Code: ").append(this.getCode()).append("]");
 		if (this.getStackTraces() != null) for (StackTraceElement st : this.getStackTraces()) {
-			sb.append("\n").append("\t").append(st.toString());
+			sb.append("\n").append("\tat ").append(st.toString());
 			if (l-- == 0) {
 				sb.append("\n(more......)");
 				break;
