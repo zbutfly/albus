@@ -21,7 +21,7 @@
 		<module>core</module>
 		<module>async</module>
 		<module>plus</module>
-		<module>demo</module>
+		<!--<module>demo</module>-->
 		<!--<module>console</module> -->
 	</modules>
 </project>
