@@ -34,6 +34,7 @@ import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
+import net.butfly.bus.utils.async.BusTask;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -114,7 +115,7 @@ public class WebServiceServlet extends BusServlet {
 		};
 		Context.initialize(Context.deserialize(req.context()));
 		try {
-			new Task<Response>(task, callback).execute();
+			new BusTask<Response>(task, callback).execute();
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}

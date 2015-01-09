@@ -12,6 +12,7 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.argument.Constants;
 import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.utils.async.BusTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 
 	@Override
 	public Response execute(final Request request) throws Exception {
-		return new Task<Response>(new Task.Callable<Response>() {
+		return new BusTask<Response>(new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
 				return ThreadControlFilter.super.execute(request);

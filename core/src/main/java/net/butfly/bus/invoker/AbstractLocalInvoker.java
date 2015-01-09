@@ -13,6 +13,7 @@ import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
+import net.butfly.bus.utils.async.BusTask;
 
 public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
 	public Method getMethod(String code, String version) {
@@ -24,12 +25,12 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	}
 
 	public void invoke(final Request request, final Task.Callback<Response> callback, final Options options) throws Exception {
-		new Task<Response>(new InvokeTask(request), callback, options).execute();
+		new BusTask<Response>(new InvokeTask(request), callback, options).execute();
 	}
 
 	@Override
 	public Response invoke(final Request request, final Options options) throws Exception {
-		return new Task<Response>(new InvokeTask(request), options).execute();
+		return new BusTask<Response>(new InvokeTask(request), options).execute();
 	}
 
 	private class InvokeTask implements Task.Callable<Response> {

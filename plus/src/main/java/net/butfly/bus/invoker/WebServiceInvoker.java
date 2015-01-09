@@ -22,6 +22,7 @@ import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
+import net.butfly.bus.utils.async.BusTask;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
@@ -83,7 +84,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private Response webservice(final byte[] data, final Map<String, String> headers, final Task.Callback<Response> callback,
 			Options options) throws IOException {
-		Task<Response> task = new Task<Response>(new Task.Callable<Response>() {
+		Task<Response> task = new BusTask<Response>(new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
 				InputStream http = null;

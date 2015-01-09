@@ -8,6 +8,7 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.argument.Constants;
 import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.utils.async.BusTask;
 
 public class AsyncFilter extends FilterBase implements Filter {
 	private long timeout;
@@ -21,7 +22,7 @@ public class AsyncFilter extends FilterBase implements Filter {
 
 	@Override
 	public Response execute(final Request request) throws Exception {
-		return new Task<Response>(new Task.Callable<Response>() {
+		return new BusTask<Response>(new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
 				return AsyncFilter.super.execute(request);
