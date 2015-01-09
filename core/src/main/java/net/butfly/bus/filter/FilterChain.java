@@ -7,9 +7,9 @@ import java.util.List;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.config.bean.FilterBean;
+import net.butfly.bus.utils.Constants;
+import net.butfly.bus.utils.Constants.Side;
 
 public final class FilterChain {
 	private Filter[] filters;

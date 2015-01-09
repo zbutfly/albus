@@ -23,8 +23,8 @@ import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
+import net.butfly.bus.ResponseWrapper;
 import net.butfly.bus.TX;
-import net.butfly.bus.argument.ResponseWrapper;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.invoker.ParameterInfo;
@@ -32,9 +32,9 @@ import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
+import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
-import net.butfly.bus.utils.async.BusTask;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -115,7 +115,7 @@ public class WebServiceServlet extends BusServlet {
 		};
 		Context.initialize(Context.deserialize(req.context()));
 		try {
-			new BusTask<Response>(task, callback).execute();
+			new BusTask<Response>(task, callback, new Options().fork()).execute();
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}

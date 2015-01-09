@@ -1,4 +1,4 @@
-package net.butfly.bus.argument;
+package net.butfly.bus.utils;
 
 import javax.annotation.concurrent.Immutable;
 

@@ -1,6 +1,6 @@
 package net.butfly.bus.config.bean.invoker;
 
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.ConfigBean;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.invoker.InvokerFactory;

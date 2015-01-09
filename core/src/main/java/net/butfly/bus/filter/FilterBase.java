@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.utils.Constants.Side;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

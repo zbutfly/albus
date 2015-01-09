@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.bus.auth.Token;
 import net.butfly.bus.context.Context.Key;
 
 public class Request implements Serializable {

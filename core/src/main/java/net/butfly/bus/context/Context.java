@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.bus.TX;
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.utils.TXUtils;
 
 public abstract class Context implements Map<String, Object> {

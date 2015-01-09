@@ -1,4 +1,4 @@
-package net.butfly.bus.utils.async;
+package net.butfly.bus.utils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

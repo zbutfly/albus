@@ -3,8 +3,8 @@ package net.butfly.bus.config.bean;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.argument.Constants;
 import net.butfly.bus.filter.Filter;
+import net.butfly.bus.utils.Constants;
 
 public class FilterBean extends ConfigBean {
 	private static final long serialVersionUID = 7823660786588727817L;

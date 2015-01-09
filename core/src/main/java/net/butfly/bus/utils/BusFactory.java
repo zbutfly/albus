@@ -1,7 +1,6 @@
 package net.butfly.bus.utils;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;

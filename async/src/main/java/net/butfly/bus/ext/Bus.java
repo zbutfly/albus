@@ -12,8 +12,8 @@ import net.butfly.bus.TX;
 import net.butfly.bus.support.ContinuousUtils;
 import net.butfly.bus.support.InvokeExSupport;
 import net.butfly.bus.support.Signal;
+import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.TXUtils;
-import net.butfly.bus.utils.async.BusTask;
 
 public class Bus extends net.butfly.bus.Bus implements InvokeExSupport {
 	private static final long serialVersionUID = 8122397649342253232L;

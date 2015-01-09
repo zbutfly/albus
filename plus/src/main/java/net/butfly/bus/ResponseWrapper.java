@@ -1,4 +1,4 @@
-package net.butfly.bus.argument;
+package net.butfly.bus;
 
 import java.lang.reflect.Type;
 

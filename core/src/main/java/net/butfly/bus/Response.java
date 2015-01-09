@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.bus.argument.Error;
 
 public class Response implements Serializable {
 	private static final long serialVersionUID = 5897857767191140750L;

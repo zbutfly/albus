@@ -4,7 +4,7 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 
 public interface Invoker<C extends InvokerConfigBean> {
