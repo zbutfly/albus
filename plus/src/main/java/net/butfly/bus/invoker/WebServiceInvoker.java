@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.ExceptionUtils;
 import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Signal;
+import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.argument.ResponseWrapper;
@@ -22,7 +22,6 @@ import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
-import net.butfly.bus.utils.async.ContinuousOptions;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
@@ -67,47 +66,65 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
-	protected void invokeRemote(final Request request, final Callback<Response> callback, final Options options)
-			throws IOException, Signal {
+	protected void invokeRemote(final Request request, final Task.Callback<Response> callback, final Options options)
+			throws IOException {
 		if (null == callback) throw new IllegalArgumentException();
-
-		if (options instanceof ContinuousOptions) {
-			ContinuousOptions copts = (ContinuousOptions) options;
-			Map<String, String> headers = this.header(request, copts);
-			byte[] data = this.serializer.serialize(request.arguments());
-			for (int i = 0; i < copts.retries(); i++)
-				this.webservice(data, headers, callback, copts);
-		} else callback.callback(this.invokeRemote(request, options));
+		Map<String, String> headers = this.header(request, options);
+		byte[] data = this.serializer.serialize(request.arguments());
+		this.webservice(data, headers, callback, options);
 	}
 
 	@Override
-	protected Response invokeRemote(final Request request, final Options options) throws IOException, Signal {
+	protected Response invokeRemote(final Request request, final Options options) throws IOException {
 		Map<String, String> headers = this.header(request, options);
 		byte[] data = this.serializer.serialize(request.arguments());
 		return this.webservice(data, headers, null, options);
 	}
 
-	private Response webservice(byte[] data, Map<String, String> headers, Callback<Response> callback, Options options)
-			throws IOException, Signal {
-		InputStream http = null;
-		Response resp = null;
-		ContentType contentType = ((HTTPStreamingSupport) this.serializer).getOutputContentType();
+	private Response webservice(final byte[] data, final Map<String, String> headers, final Task.Callback<Response> callback,
+			Options options) throws IOException {
+		Task<Response> task = new Task<Response>(new Task.Callable<Response>() {
+			@Override
+			public Response call() throws Exception {
+				InputStream http = null;
+				Response resp = null;
+				ContentType contentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
+				try {
+					/**
+					 * <pre>
+					 * TODO: handle continuous, move to async proj.
+					 * 		if (options instanceof ContinuousOptions) {
+					 * 			ContinuousOptions copts = (ContinuousOptions) options;
+					 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
+					 * 			byte[] data = this.serializer.serialize(request.arguments());
+					 * 			for (int i = 0; i &lt; copts.retries(); i++)
+					 * 				this.webservice(data, headers, callback, copts);
+					 *  } else
+					 * </pre>
+					 */
+					http = handler.post(path, headers, data, contentType, false);
+					byte[] recv = IOUtils.toByteArray(http);
+					logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
+					Type c = serializer.supportClass() ? Response.class : ResponseWrapper.class;
+					Response r = serializer.deserialize(recv, c);
+					resp = convertResult(r);
+					if (null == callback) return resp;
+					else try {
+						callback.callback(resp);
+					} catch (Exception e) {
+						throw ExceptionUtils.wrap(e);
+					}
+				} finally {
+					if (null != http) http.close();
+				}
+				return null;
+			}
+		}, callback, options);
 		try {
-			http = this.handler.post(this.path, headers, data, contentType, null != options
-					&& options instanceof ContinuousOptions);
-			do {
-				byte[] recv = IOUtils.toByteArray(http);
-				logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
-				Type c = this.serializer.supportClass() ? Response.class : ResponseWrapper.class;
-				Response r = serializer.deserialize(recv, c);
-				resp = this.convertResult(r);
-				if (null == callback) return resp;
-				callback.callback(resp);
-			} while (resp != null);
-		} finally {
-			if (null != http) http.close();
+			return task.execute();
+		} catch (Exception e) {
+			throw ExceptionUtils.wrap(e);
 		}
-		return null;
 	}
 
 	private Response convertResult(Response resp) {

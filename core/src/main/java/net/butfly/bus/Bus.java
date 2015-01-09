@@ -12,9 +12,9 @@ import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.Facade;
+import net.butfly.albacore.utils.ExceptionUtils;
 import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
@@ -36,6 +36,8 @@ import net.butfly.bus.utils.TXUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import sun.misc.Signal;
 
 public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	private static final long serialVersionUID = -4835302344711170159L;
@@ -108,10 +110,11 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	 * 
 	 * @param options
 	 * @return
+	 * @throws Exception
 	 * @throws Signal
 	 */
 	@Override
-	public Response invoke(Request request, Options... options) throws Signal {
+	public Response invoke(Request request, Options... options) throws Exception {
 		if (request == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request null invalid.");
 		if (request.code() == null || "".equals(request.code().trim()))
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
@@ -131,13 +134,13 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	}
 
 	@Override
-	public <T> T invoke(String code, Object[] args, Options... options) throws Signal {
+	public <T> T invoke(String code, Object[] args, Options... options) throws Exception {
 		return this.invoke(TXUtils.TXImpl(code), args, options);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T invoke(TX tx, Object[] args, Options... options) throws Signal {
+	public <T> T invoke(TX tx, Object[] args, Options... options) throws Exception {
 		Response resp = this.invoke(new Request(tx, args), options);
 		return (T) resp.result();
 	}
@@ -149,7 +152,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 			this.options = options;
 		}
 
-		public Object invoke(Object obj, Method method, Object[] args) throws Signal {
+		public Object invoke(Object obj, Method method, Object[] args) throws Exception {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
 				Request request = new Request(tx.value(), tx.version(), args);
@@ -159,7 +162,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 					+ method.toString() + "].");
 		}
 
-		protected Response invoke(Request request) throws Signal {
+		protected Response invoke(Request request) throws Exception {
 			return Bus.this.invoke(request, options);
 		}
 	}
@@ -185,7 +188,7 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 
 	protected class InvokerFilter extends FilterBase implements Filter {
 		@Override
-		public Response execute(Request request) throws Signal {
+		public Response execute(Request request) {
 			Response response;
 			Options options = null;
 			if (request instanceof RequestAsyncWrapper) {
@@ -194,15 +197,24 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 				// unwrap request.
 				request = new Request(request.id(), request.code(), request.version(), request.context(), request.arguments());
 			}
+
 			switch (this.side) {
 			case CLIENT:
 				request.context(Context.serialize(Context.toMap()));
-				response = realInvoke(request, options);
+				try {
+					response = realInvoke(request, options);
+				} catch (Exception e) {
+					throw ExceptionUtils.wrap(e);
+				}
 				if (null != response) Context.merge(Context.deserialize(response.context()));
 				return response;
 			case SERVER:
 				Context.merge(Context.deserialize(request.context()));
-				response = realInvoke(request, options);
+				try {
+					response = realInvoke(request, options);
+				} catch (Exception e) {
+					throw ExceptionUtils.wrap(e);
+				}
 				if (null != response) response.context(Context.serialize(Context.toMap()));
 				return response;
 			}
@@ -214,8 +226,9 @@ public class Bus implements InternalFacade, Routeable, InvokeSupport {
 	 * Kernal invoking of this bus.
 	 * 
 	 * @param options
+	 * @throws Exception
 	 */
-	private Response realInvoke(Request request, Options options) throws Signal {
+	private Response realInvoke(Request request, Options options) throws Exception {
 		Invoker<?> ivk = this.findInvoker(request.code());
 		return ivk.invoke(request, options);
 	}

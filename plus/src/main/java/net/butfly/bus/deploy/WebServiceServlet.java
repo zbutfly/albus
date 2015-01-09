@@ -18,10 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.albacore.utils.async.Callable;
-import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
@@ -37,7 +34,6 @@ import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
-import net.butfly.bus.utils.async.AsyncUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -97,34 +93,30 @@ public class WebServiceServlet extends BusServlet {
 		if (null == pi) throw new SystemException("", "Server routing failure.");
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
 		final Request req = new Request(info.tx, info.context, arguments);
-		Callback<Response> callback = new Callback<Response>() {
+		Task.Callback<Response> callback = new Task.Callback<Response>() {
 			@Override
-			public void callback(Response r) {
+			public void callback(Response r) throws Exception {
 				response.setHeader(HttpHeaders.ETAG, r.id());
 				if (r.context() != null) for (Entry<String, String> ctx : r.context().entrySet())
 					response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-				try {
-					byte[] data = serializer.serialize(info.supportClass ? r : new ResponseWrapper(r));
-					logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
-					response.getOutputStream().write(data);
-					response.getOutputStream().flush();
-					response.flushBuffer();
-				} catch (IOException ex) {
-					throw new SystemException("", ex);
-				}
+				byte[] data = serializer.serialize(info.supportClass ? r : new ResponseWrapper(r));
+				logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
+				response.getOutputStream().write(data);
+				response.getOutputStream().flush();
+				response.flushBuffer();
 			}
 		};
-		Callable<Response> task = new Callable<Response>() {
+		Task.Callable<Response> task = new Task.Callable<Response>() {
 			@Override
-			public Response call() throws Signal {
+			public Response call() throws Exception {
 				return server.invoke(req, info.options);
 			}
 		};
 		Context.initialize(Context.deserialize(req.context()));
 		try {
-			AsyncUtils.execute(new Task<Response>(task, callback));
-		} catch (Signal e) {
-			// TODO
+			new Task<Response>(task, callback).execute();
+		} catch (Exception e) {
+			throw new ServletException(e);
 		}
 		logger.info("Servlet releasing.");
 	}

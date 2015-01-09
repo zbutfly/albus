@@ -6,23 +6,20 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import net.butfly.albacore.utils.async.Callable;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.argument.Constants;
 import net.butfly.bus.argument.Constants.Side;
-import net.butfly.bus.utils.async.AsyncUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author butfly
- * @deprecated insteaded by {@link net.butfly.bus.filter.AsyncFilter} to enable
- *             work-stealing mode (with callback pattern)
+ * @deprecated insteaded by {@link net.butfly.bus.filter.AsyncFilter} to enable work-stealing mode (with
+ *             callback pattern)
  */
 @Deprecated
 public class ThreadControlFilter extends FilterBase implements Filter {
@@ -48,12 +45,12 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(final Request request) throws Signal {
-		return AsyncUtils.execute(new Task<Response>(new Callable<Response>() {
+	public Response execute(final Request request) throws Exception {
+		return new Task<Response>(new Task.Callable<Response>() {
 			@Override
-			public Response call() throws Signal {
+			public Response call() throws Exception {
 				return ThreadControlFilter.super.execute(request);
 			}
-		}, new Options().timeout(timeout)), executor);
+		}, new Options().timeout(timeout)).execute(executor);
 	}
 }

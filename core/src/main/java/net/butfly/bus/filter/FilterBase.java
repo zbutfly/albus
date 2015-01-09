@@ -3,7 +3,6 @@ package net.butfly.bus.filter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.argument.Constants.Side;
@@ -23,7 +22,7 @@ public abstract class FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(Request request) throws Signal {
+	public Response execute(Request request) throws Exception {
 		return chain.executeNext(this, request);
 	}
 

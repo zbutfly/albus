@@ -1,6 +1,5 @@
 package net.butfly.bus.deploy.entry;
 
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.policy.Router;
@@ -16,7 +15,7 @@ public class EntryPointImpl implements EntryPoint {
 	}
 
 	@Override
-	public Response invoke(Request request) throws Signal {
+	public Response invoke(Request request) throws Exception {
 		return this.router.route(request.code(), servers.servers()).invoke(request);
 	}
 }
