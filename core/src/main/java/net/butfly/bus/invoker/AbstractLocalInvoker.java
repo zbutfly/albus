@@ -1,23 +1,18 @@
 package net.butfly.bus.invoker;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.async.Callable;
-import net.butfly.albacore.utils.async.Callback;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
+import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
-import net.butfly.bus.utils.async.AsyncUtils;
 
 public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
 	public Method getMethod(String code, String version) {
@@ -28,16 +23,12 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 		return METHOD_POOL.get(key);
 	}
 
-	public void invoke(final Request request, final Callback<Response> callback, final Options options) throws Signal {
-		AsyncUtils.execute(new Task<Response>(new InvokeTask(request), callback, options));
-	}
-
 	@Override
-	public Response invoke(final Request request, final Options options) throws Signal {
-		return AsyncUtils.execute(new Task<Response>(new InvokeTask(request), options));
+	protected Callable<Response> task(Request request, Options[] options) {
+		return new InvokeTask(request);
 	}
 
-	private class InvokeTask implements Callable<Response> {
+	private class InvokeTask implements Task.Callable<Response> {
 		private Request request;
 
 		public InvokeTask(Request request) {
@@ -45,12 +36,9 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 		}
 
 		@Override
-		public Response call() throws Signal {
-			if (auth != null) try {
-				auth.login(token());
-			} catch (BusinessException e) {
-				throw new RuntimeException(e);
-			}
+		public Response call() throws Exception {
+			Response resp = new Response(request);
+			if (auth != null) auth.login(AbstractLocalInvoker.this.token());
 			TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
 			if (null == key)
 				throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key
@@ -59,20 +47,7 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 			Method method = METHOD_POOL.get(key);
 			Object bean = INSTANCE_POOL.get(key);
 			Object[] args = request.arguments();
-			Class<?> clazz = null == bean ? method.getDeclaringClass() : bean.getClass();
-			try {
-				return new Response(request).result(method.invoke(bean, args));
-			} catch (IllegalArgumentException e) {
-				throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Invoking method [" + clazz.getName() + "."
-						+ method.getName() + "] failure: Arguments mismatch.", e);
-			} catch (IllegalAccessException e) {
-				throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Invoking method [" + clazz.getName() + "."
-						+ method.getName() + "] failure: Not public", e);
-			} catch (InvocationTargetException e) {
-				Throwable cause = e.getTargetException();
-				if (cause instanceof Signal) throw (Signal) cause;
-				else throw new Signal.Completed(cause);
-			}
+			return resp.result(method.invoke(bean, args));
 		}
 	}
 

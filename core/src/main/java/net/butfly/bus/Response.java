@@ -3,9 +3,8 @@ package net.butfly.bus;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-import net.butfly.bus.argument.Error;
+import net.butfly.albacore.utils.KeyUtils;
 
 public class Response implements Serializable {
 	private static final long serialVersionUID = 5897857767191140750L;
@@ -20,7 +19,7 @@ public class Response implements Serializable {
 	protected Response() {}
 
 	public Response(Request request) {
-		this.id = UUID.randomUUID().toString();
+		this.id = KeyUtils.objectId();
 		this.requestId = request.id;
 	}
 

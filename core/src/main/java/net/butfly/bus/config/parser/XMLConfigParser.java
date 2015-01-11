@@ -1,21 +1,15 @@
 package net.butfly.bus.config.parser;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Constants.Side;
-import net.butfly.bus.auth.Token;
+import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.XMLUtils;
+import net.butfly.bus.Token;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigParser;
 import net.butfly.bus.config.bean.FilterBean;
@@ -26,9 +20,8 @@ import net.butfly.bus.filter.Filter;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.invoker.InvokerFactory;
 import net.butfly.bus.policy.Router;
-import net.butfly.bus.utils.XMLUtils;
+import net.butfly.bus.utils.Constants;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -44,8 +37,6 @@ public class XMLConfigParser extends ConfigParser {
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
-		config.id(this.root.attributeValue("id", UUID.randomUUID().toString()));
-		config.side(Side.valueOf(this.root.attributeValue("side", "SERVER").toUpperCase()));
 		return config;
 	}
 
@@ -73,23 +64,19 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected InvokerBean parseInvoker(Element element) {
-		String id = element.attributeValue("id");
-		if (StringUtils.isEmpty(id))
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need id attribute.");
-		logger.trace("Invoker [" + id + "] parsing...");
-		if ("false".equals(element.attributeValue("enabled"))) {
-			logger.trace("Invoker [" + id + "] disabled.");
-			return null;
+		if (Boolean.parseBoolean(element.attributeValue("enabled", "false"))) return null;
+		else {
+			logAsXml(element);
+			String className = element.attributeValue("class");
+			if (null == className || "".equals(className))
+				throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
+			Class<? extends Invoker<?>> clazz = classForName(className);
+			InvokerConfigBean config = InvokerFactory.getConfig(clazz);
+			if (null != config) XMLUtils.setPropsByNode(config, element);
+			logger.debug("Node [" + className + "] enabled.");
+			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
+					this.parseInvokerAuth(element));
 		}
-		logAsXml(element);
-		String className = element.attributeValue("class");
-		if (StringUtils.isEmpty(className))
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
-		Class<? extends Invoker<?>> clazz = classForName(className);
-		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
-		processConfigObj(config, element);
-		logger.debug("Node [" + id + "] enabled.");
-		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
 	}
 
 	private Token parseInvokerAuth(Element element) {
@@ -97,18 +84,20 @@ public class XMLConfigParser extends ConfigParser {
 		if (node == null) return null;
 		String token = node.attributeValue("token");
 		if (token != null) return new Token(token);
-		token = node.attributeValue("file");
-		if (token != null) {
-			BufferedReader r = new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader()
-					.getResourceAsStream(token)));
-			String line;
-			StringBuilder sb = new StringBuilder();
-			try {
-				while ((line = r.readLine()) != null)
-					sb.append(line);
-			} catch (IOException e) {}
-			return new Token(sb.toString());
-		}
+		// TODO: suppurt key file (one key per line)
+		// token = node.attributeValue("file");
+		// if (token != null) {
+		// BufferedReader r = new BufferedReader(new
+		// InputStreamReader(Thread.currentThread().getContextClassLoader()
+		// .getResourceAsStream(token)));
+		// String line;
+		// StringBuilder sb = new StringBuilder();
+		// try {
+		// while ((line = r.readLine()) != null)
+		// sb.append(line).append("\n");
+		// } catch (IOException e) {}
+		// return new Token(sb.toString());
+		// }
 		String user = node.attributeValue("username");
 		String pass = node.attributeValue("password");
 		if (user != null && pass != null) return new Token(user, pass);
@@ -127,10 +116,7 @@ public class XMLConfigParser extends ConfigParser {
 	@SuppressWarnings("unchecked")
 	private FilterBean parseFilter(Element filter) {
 		String title = filter.attributeValue("title");
-		String attr = filter.attributeValue("enabled");
-		if (null == attr || Boolean.parseBoolean(attr.toLowerCase())) {
-			attr = filter.attributeValue("order");
-
+		if (Boolean.parseBoolean(filter.attributeValue("enabled", "true"))) {
 			Map<String, String> params = new HashMap<String, String>();
 			for (Element param : (List<Element>) filter.selectNodes("param"))
 				params.put(param.attributeValue("name"), param.attributeValue("value"));
@@ -171,30 +157,11 @@ public class XMLConfigParser extends ConfigParser {
 		Element element = this.element("router");
 		if (element == null) return null;
 		try {
-			Class<? extends Router> routeClass = (Class<? extends Router>) Class.forName(element.attributeValue("type"));
+			Class<? extends Router> routeClass = (Class<? extends Router>) Class.forName(element.attributeValue("class"));
 			return new RouterBean(routeClass);
 		} catch (Throwable th) {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR,
 					"Route setting error: can't parse route/policy class name.", th);
 		}
 	}
-
-	@SuppressWarnings("unchecked")
-	private void processConfigObj(InvokerConfigBean config, Element element) {
-		if (null == config) return;
-		for (Field f : ReflectionUtils.getAllFieldsDeeply(config.getClass())) {
-			if (List.class.isAssignableFrom(f.getType())) {
-				List<Object> values = new ArrayList<Object>();
-				for (Element ele : (List<Element>) element.selectNodes(f.getName())) {
-					Object to = XMLUtils.parseObject(ele);
-					if (to != null) values.add(to);
-				}
-				ReflectionUtils.safeFieldSet(f, config, values);
-			} else {
-				Object value = XMLUtils.parseObject((Element) element.selectSingleNode(f.getName()));
-				if (value != null) ReflectionUtils.safeFieldSet(f, config, value);
-			}
-		}
-	}
-
 }

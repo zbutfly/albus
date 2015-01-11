@@ -13,15 +13,15 @@ import com.caucho.hessian.io.Serializer;
 public class HessianConverterAdaptor extends ConverterAdaptor<AbstractSerializerFactory> {
 	@Override
 	public <SRC, DST> AbstractSerializerFactory create(Class<? extends Converter<SRC, DST>> converterClass) {
-		Converter<SRC, DST> converter = getConverter(converterClass);
-		Serializer serializer = new AbstractSerializer() {
+		final Converter<SRC, DST> converter = getConverter(converterClass);
+		final Serializer serializer = new AbstractSerializer() {
 			@SuppressWarnings("unchecked")
 			@Override
 			protected Object writeReplace(Object obj) {
 				return converter.serialize((SRC) obj);
 			}
 		};
-		Deserializer deserializer = new AbstractDeserializer() {
+		final Deserializer deserializer = new AbstractDeserializer() {
 			public Class<?> getType() {
 				return converter.getOriginalClass();
 			}

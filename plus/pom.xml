@@ -45,8 +45,8 @@
 			<artifactId>httpcore-nio</artifactId>
 			<version>4.3.2</version>
 		</dependency>
-		<!--<dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpasyncclient</artifactId> 
-			<version>4.1-beta1</version> </dependency> -->
+		<!--<dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpasyncclient</artifactId> <version>4.1-beta1</version> 
+			</dependency> -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
@@ -68,15 +68,17 @@
 			<artifactId>jetty-http-spi</artifactId>
 			<version>${deps.version.jetty}</version>
 		</dependency>
+		<!-- http dependencies -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${deps.version.httpclient}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.caucho</groupId>
 			<artifactId>hessian</artifactId>
 			<version>4.0.38</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.1</version>
 		</dependency>
 	</dependencies>
 </project>

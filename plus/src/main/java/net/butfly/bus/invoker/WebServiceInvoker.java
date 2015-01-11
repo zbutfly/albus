@@ -8,25 +8,24 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.async.Callback;
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Signal;
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.argument.ResponseWrapper;
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.context.BusHttpHeaders;
+import net.butfly.bus.context.ResponseWrapper;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
-import net.butfly.bus.utils.async.ContinuousOptions;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			} catch (Exception e) {
 				logger.error(
 						"Serializer factory instance construction failure for class: "
-								+ StringUtils.join(config.getTypeTranslators().toArray(new String[0])), e);
+								+ KeyUtils.join(config.getTypeTranslators().toArray(new String[0])), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 
@@ -67,72 +66,64 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
-	protected void invokeRemote(final Request request, final Callback<Response> callback, final Options options)
-			throws IOException, Signal {
-		if (null == callback) throw new IllegalArgumentException();
-
-		if (options instanceof ContinuousOptions) {
-			ContinuousOptions copts = (ContinuousOptions) options;
-			Map<String, String> headers = this.header(request, copts);
-			byte[] data = this.serializer.serialize(request.arguments());
-			for (int i = 0; i < copts.retries(); i++)
-				this.webservice(data, headers, callback, copts);
-		} else {
-			callback.callback(this.invokeRemote(request, options));
-		}
-	}
-
 	@Override
-	protected Response invokeRemote(final Request request, final Options options) throws IOException, Signal {
-		Map<String, String> headers = this.header(request, options);
-		byte[] data = this.serializer.serialize(request.arguments());
-		return this.webservice(data, headers, null, options);
+	protected Callable<Response> task(Request request, Options[] options) {
+		return new InvokeTask(request, this.remoteOptions(options));
 	}
 
-	private Response webservice(byte[] data, Map<String, String> headers, Callback<Response> callback, Options options)
-			throws IOException, Signal {
-		InputStream http = null;
-		Response resp = null;
-		ContentType contentType = ((HTTPStreamingSupport) this.serializer).getOutputContentType();
-		try {
-			http = this.handler.post(this.path, headers, data, contentType, null != options
-					&& options instanceof ContinuousOptions);
-			do {
-				byte[] recv = IOUtils.toByteArray(http);
-				logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
-				resp = this.convertResult(serializer.deserialize(recv, this.serializer.supportClass() ? Response.class
-						: ResponseWrapper.class));
-				if (null == callback) return resp;
-				callback.callback(resp);
-			} while (resp != null);
-		} finally {
-			if (null != http) http.close();
+	private class InvokeTask implements Task.Callable<Response> {
+		private Request request;
+		private Options[] remoteOptions;
+
+		InvokeTask(Request request, Options... remoteOptions) {
+			this.request = request;
+			this.remoteOptions = remoteOptions;
 		}
-		return null;
+
+		@Override
+		public Response call() throws Exception {
+			Map<String, String> headers = header(request, remoteOptions);
+			byte[] data = serializer.serialize(request.arguments());
+			InputStream http = null;
+			ContentType contentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
+			/**
+			 * <pre>
+			 * TODO: handle continuous, move to async proj.
+			 * 		if (remoteOptions instanceof ContinuousOptions) {
+			 * 			ContinuousOptions copts = (ContinuousOptions) remoteOptions;
+			 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
+			 * 			byte[] data = this.serializer.serialize(request.arguments());
+			 * 			for (int i = 0; i &lt; copts.retries(); i++)
+			 * 				this.webservice(data, headers, callback, copts);
+			 *  } else
+			 * </pre>
+			 */
+			http = handler.post(path, headers, data, contentType, false);
+			byte[] recv = IOUtils.toByteArray(http);
+			logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
+			return convertResult(recv);
+
+		}
+
 	}
 
-	private Response convertResult(Response resp) {
+	private Response convertResult(byte[] recv) {
+		Response resp = serializer.deserialize(recv, ResponseWrapper.wrapClass(serializer.supportClass()));
 		if (null == resp) return null;
-		// TODO: handle error in response
-		Object r = resp.result();
-		if (null != r && resp instanceof ResponseWrapper) {
-			Type expected = ((ResponseWrapper) resp).resultClass();
-			if (null != expected) {
-				r = this.serializer.deserialize(this.serializer.serialize(r), expected);
-				resp.result(r);
-			}
-		}
+		Object result = resp.result();
+		if (null == result) return resp;
+		Type expected = ResponseWrapper.unwrap(resp);
+		if (null != expected) resp.result(this.serializer.deserialize(this.serializer.serialize(result), expected));
 		return resp;
 	}
 
-	private Map<String, String> header(Request request, Options options) throws IOException {
+	private Map<String, String> header(Request request, Options... options) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHttpHeaders.HEADER_TX_CODE, request.code());
 		headers.put(BusHttpHeaders.HEADER_TX_VERSION, request.version());
 		headers.put(BusHttpHeaders.HEADER_SUPPORT_CLASS, Boolean.toString(this.serializer.supportClass()));
-		if (null != options) {
-			headers.put(BusHttpHeaders.HEADER_CONTINUOUS, options.getClass().getName());
-			headers.put(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS, this.serializer.asString(options));
+		if (null != options && options.length > 0) {
+			headers.put(BusHttpHeaders.HEADER_OPTIONS, this.serializer.asString(options));
 		}
 		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
 			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());

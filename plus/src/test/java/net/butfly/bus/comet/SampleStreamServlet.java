@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,6 +17,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import net.butfly.albacore.utils.KeyUtils;
 
 import com.google.gson.Gson;
 
@@ -77,7 +78,7 @@ public class SampleStreamServlet extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 
 		// Id
-		final String id = UUID.randomUUID().toString();
+		final String id = KeyUtils.objectId();
 		writer.print(id);
 		writer.print(';');
 

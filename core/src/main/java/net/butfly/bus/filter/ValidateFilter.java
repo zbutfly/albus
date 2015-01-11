@@ -9,21 +9,21 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.async.Signal;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.argument.Constants;
-import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.utils.Constants;
+import net.butfly.bus.utils.RequestWrapper;
 
 public class ValidateFilter extends FilterBase implements Filter {
 	private Validator validator;
 
 	@Override
-	public Response execute(Request request) throws Signal {
-		if (request.arguments() != null || request.arguments().length > 0) {
+	public Response execute(RequestWrapper<?> request) throws Exception {
+		Request req = request.request();
+		if (req.arguments() != null || req.arguments().length > 0) {
 			Set<ConstraintViolation<Object>> violations;
 			StringBuilder validateErrMsg = null;
-			for (Object dto : request.arguments()) {
+			for (Object dto : req.arguments()) {
 				violations = validator.validate(dto);
 				Iterator<ConstraintViolation<Object>> it = violations.iterator();
 				while (it.hasNext()) {
@@ -40,8 +40,8 @@ public class ValidateFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public void initialize(Map<String, String> params, Side side) {
-		super.initialize(params, side);
+	public void initialize(Map<String, String> params) {
+		super.initialize(params);
 		this.validator = Validation.buildDefaultValidatorFactory().getValidator();
 	}
 }

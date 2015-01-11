@@ -3,9 +3,8 @@ package net.butfly.bus;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-import net.butfly.bus.auth.Token;
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.bus.context.Context.Key;
 
 public class Request implements Serializable {
@@ -15,6 +14,8 @@ public class Request implements Serializable {
 	private String version;
 	private Object[] arguments;
 	private Map<String, String> context;
+
+	protected Request() {}
 
 	public Request(String code) {
 		this(code, TX.ALL_VERSION, new HashMap<String, String>(), new Object[0]);
@@ -69,7 +70,7 @@ public class Request implements Serializable {
 	}
 
 	public Request(String code, String version, Map<String, String> context, Object... arguments) {
-		this.id = UUID.randomUUID().toString();
+		this.id = KeyUtils.objectId();
 		this.code = code;
 		this.version = version;
 		this.arguments = null == arguments ? new Object[0] : arguments;

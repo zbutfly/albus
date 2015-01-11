@@ -6,14 +6,15 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.bus.TX;
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.utils.TXUtils;
 
 public abstract class Context implements Map<String, Object> {
 	private static Context CURRENT = null;
 
 	public enum Key {
-		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID;
+		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
+		private static final String TEMP_PREFIX = "_Inner";
 	}
 
 	public static String string() {
@@ -21,20 +22,8 @@ public abstract class Context implements Map<String, Object> {
 	}
 
 	public static void initialize(Map<String, Object> original) {
-		initialize(original, RequestContext.class);
-	}
-
-	public static void initialize(Map<String, Object> original, Class<? extends Context> clazz) {
-		try {
-			CURRENT = clazz.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		if (CURRENT == null) CURRENT = new RequestContext();
 		CURRENT.load(original);
-	}
-
-	public static void cleanup() {
-		CURRENT.clear();
 	}
 
 	// ***********************************************************************/
@@ -64,6 +53,11 @@ public abstract class Context implements Map<String, Object> {
 		return null;
 	}
 
+	public static boolean debug() {
+		String debug = (String) CURRENT.get(Key.Debug);
+		return (null != debug && Boolean.parseBoolean(debug));
+	}
+
 	public static FlowNo flowNo() {
 		return (FlowNo) CURRENT.get(Key.FlowNo);
 	}
@@ -80,6 +74,10 @@ public abstract class Context implements Map<String, Object> {
 		return (TX) CURRENT.get(Key.TXInfo);
 	}
 
+	public static void debug(boolean debug) {
+		CURRENT.put(Key.Debug.name(), Boolean.toString(debug));
+	}
+
 	public static void flowNo(FlowNo flowNo) {
 		CURRENT.put(Key.FlowNo.name(), flowNo);
 	}
@@ -94,6 +92,15 @@ public abstract class Context implements Map<String, Object> {
 
 	public static void txInfo(TX tx) {
 		CURRENT.put(Key.TXInfo.name(), (TXUtils.TXImpl) TXUtils.TXImpl(tx));
+	}
+
+	public static void temp(String key, Object value) {
+		CURRENT.put(Key.TEMP_PREFIX + key, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T temp(String key) {
+		return (T) CURRENT.get(Key.TEMP_PREFIX + key);
 	}
 
 	/****************************************************/
@@ -122,7 +129,7 @@ public abstract class Context implements Map<String, Object> {
 			return;
 		case MergingOnlyAbsent:
 			for (Entry<String, Object> e : src.entrySet())
-				CURRENT.putIfAbsent(e.getKey(), e.getValue());
+				if (!CURRENT.containsKey(e.getKey())) CURRENT.put(e.getKey(), e.getValue());
 			return;
 		}
 	}

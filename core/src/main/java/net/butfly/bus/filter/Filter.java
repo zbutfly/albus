@@ -2,17 +2,15 @@ package net.butfly.bus.filter;
 
 import java.util.Map;
 
-import net.butfly.albacore.utils.async.Signal;
-import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.argument.Constants.Side;
+import net.butfly.bus.utils.RequestWrapper;
 
 public interface Filter {
-	public void initialize(Map<String, String> params, Side side);
+	public void initialize(Map<String, String> params);
 
-	public Response execute(Request request) throws Signal;
+	public Response execute(RequestWrapper<?> request) throws Exception;
 
-	public void before(Request request);
+	public void before(RequestWrapper<?> request);
 
-	public void after(Request request, Response response);
+	public void after(RequestWrapper<?> request, Response response);
 }

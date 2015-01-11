@@ -5,9 +5,10 @@ import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.GenericUtils;
-import net.butfly.bus.argument.Constants;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
+import net.butfly.bus.impl.BusMode;
+import net.butfly.bus.utils.Constants;
 
 public class InvokerFactory {
 	@SuppressWarnings("unchecked")
@@ -24,10 +25,10 @@ public class InvokerFactory {
 	private static Map<String, Invoker<?>> INVOKER_POOL = new HashMap<String, Invoker<?>>();
 
 	@SuppressWarnings("unchecked")
-	public static <C extends InvokerConfigBean> Invoker<C> getInvoker(InvokerBean bean) {
+	public static <C extends InvokerConfigBean> Invoker<C> getInvoker(InvokerBean bean, BusMode mode) {
 		Class<? extends Invoker<C>> clazz = (Class<? extends Invoker<C>>) bean.type();
 		C config = (C) bean.config();
-		String key = clazz.getName();
+		String key = bean.id();
 		if (null != config) key = key + ":" + config.toString();
 		if (INVOKER_POOL.containsKey(key)) return (Invoker<C>) INVOKER_POOL.get(key);
 		try {

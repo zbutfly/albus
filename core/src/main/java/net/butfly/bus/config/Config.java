@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.butfly.bus.argument.Constants.Side;
 import net.butfly.bus.config.bean.FilterBean;
 import net.butfly.bus.config.bean.RouterBean;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
@@ -14,11 +13,9 @@ import org.slf4j.LoggerFactory;
 
 public class Config {
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private String id;
 	private Map<String, InvokerBean> invokers = new HashMap<String, InvokerBean>();
 	private RouterBean router;
 	private List<FilterBean> filterBeanList;
-	private Side side;
 
 	public InvokerBean[] getInvokers() {
 		return invokers.values().toArray(new InvokerBean[0]);
@@ -49,23 +46,7 @@ public class Config {
 		this.router = router;
 	}
 
-	public void id(String id) {
-		this.id = id;
-	}
-
-	public String id() {
-		return id;
-	}
-
 	public String[] getAllNodeIDs() {
 		return this.invokers.keySet().toArray(new String[this.invokers.keySet().size()]);
-	}
-
-	public Side side() {
-		return this.side;
-	}
-
-	public void side(Side side) {
-		this.side = side;
 	}
 }
