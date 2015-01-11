@@ -45,15 +45,15 @@ import org.slf4j.LoggerFactory;
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
-	private Cluster servers;
+	private Cluster cluster;
 	private Router router;
 	private Map<String, Serializer> serializerMap;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		logger.trace("BusImpl starting...");
-		servers = new Cluster(this.getInitParameter("config-file"));
+		logger.trace("Servlet starting...");
+		cluster = new Cluster(this.getInitParameter("config-file"), BusMode.SERVER);
 		try {
 			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
 		} catch (Throwable th) {
@@ -67,7 +67,7 @@ public class WebServiceServlet extends BusServlet {
 				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
 					this.serializerMap.put(ct.getMimeType(), inst);
 			} catch (Exception e) {}
-		logger.info("BusImpl started.");
+		logger.info("Bus started.");
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -87,7 +87,7 @@ public class WebServiceServlet extends BusServlet {
 		// XXX: goof off
 		this.doOptions(request, response);
 		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-		final Bus bus = this.router.route(info.tx.value(), (BusImpl[]) servers.servers());
+		final Bus bus = this.router.route(info.tx.value(), (BusImpl[]) cluster.servers());
 		if (null == bus) throw new SystemException("", "Server routing failure.");
 		ParameterInfo pi = ((BusImpl) bus).getParameterInfo(info.tx.value(), info.tx.version());
 		if (null == pi) throw new SystemException("", "Server routing failure.");

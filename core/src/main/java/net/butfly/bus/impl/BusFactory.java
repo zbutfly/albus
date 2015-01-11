@@ -6,10 +6,18 @@ public final class BusFactory {
 	private BusFactory() {}
 
 	public static Bus bus() {
-		return bus(null);
+		return bus(BusMode.CLIENT);
 	}
 
 	public static Bus bus(String conf) {
-		return new BusImpl(conf);
+		return bus(conf, BusMode.CLIENT);
+	}
+
+	public static Bus bus(BusMode mode) {
+		return bus(null, mode);
+	}
+
+	public static Bus bus(String conf, BusMode mode) {
+		return new BusImpl(conf, mode);
 	}
 }

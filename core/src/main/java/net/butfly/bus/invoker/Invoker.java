@@ -8,9 +8,6 @@ import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 
 public interface Invoker<C extends InvokerConfigBean> {
-	public enum Mode {
-		SERVER, CLIENT;
-	};
 
 	void initialize(C config, Token token);
 
@@ -21,7 +18,4 @@ public interface Invoker<C extends InvokerConfigBean> {
 	Object[] getBeanList();
 
 	String[] getTXCodes();
-
-	Mode mode();
-
 }

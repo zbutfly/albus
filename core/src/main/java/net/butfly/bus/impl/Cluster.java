@@ -10,8 +10,14 @@ import net.butfly.bus.policy.Routeable;
 
 public final class Cluster implements Routeable {
 	private final Map<String, BusImpl> nodes = new HashMap<String, BusImpl>();
+	private BusMode mode;
 
 	public Cluster(String configLocations) {
+		this(configLocations, BusMode.CLIENT);
+	}
+
+	public Cluster(String configLocations, BusMode mode) {
+		this.mode = mode;
 		if (configLocations == null) this.registerSingle(null);
 		else for (String conf : configLocations.split(","))
 			if (!"".equals(conf.trim())) this.registerSingle(conf);
@@ -35,7 +41,7 @@ public final class Cluster implements Routeable {
 	}
 
 	private void registerSingle(String conf) {
-		BusImpl impl = (BusImpl) BusFactory.bus(conf);
+		BusImpl impl = (BusImpl) BusFactory.bus(conf, mode);
 		nodes.put(impl.id(), impl);
 	}
 }

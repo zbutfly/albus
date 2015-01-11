@@ -10,11 +10,6 @@ import net.butfly.bus.Response;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 
 public abstract class AbstractRemoteInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
-	@Override
-	public Mode mode() {
-		return Mode.CLIENT;
-	}
-
 	protected Options[] remoteOptions(Options... options) {
 		if (options == null || options.length == 0) return null;
 		if (options.length == 1) return options;

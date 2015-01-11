@@ -18,11 +18,6 @@ import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
 
 public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
-	@Override
-	public Mode mode() {
-		return Mode.SERVER;
-	}
-
 	public Method getMethod(String code, String version) {
 		TXImpl key = this.scanTXInPools(TXUtils.TXImpl(code, version));
 		if (null == key)

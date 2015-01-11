@@ -12,7 +12,7 @@ import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.utils.Constants;
 
 final class BusUtils extends UtilsBase {
-	static Config createConfiguration(String configLocation) {
+	static Config createConfiguration(String configLocation, BusMode mode) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
 		Context.initialize(null);
 		return config;

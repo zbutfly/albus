@@ -29,7 +29,6 @@ import net.butfly.bus.filter.FilterBase;
 import net.butfly.bus.filter.FilterChain;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
-import net.butfly.bus.invoker.Invoker.Mode;
 import net.butfly.bus.invoker.InvokerFactory;
 import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Routeable;
@@ -54,15 +53,17 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 	protected FilterChain chain;
 
 	private String[] supportedTXs;
+	private BusMode mode;
 
 	/* Routine for both client and server */
 
-	public BusImpl() {
-		this(null);
+	public BusImpl(BusMode mode) {
+		this(null, mode);
 	}
 
-	public BusImpl(String configLocation) {
-		this.config = BusUtils.createConfiguration(configLocation);
+	public BusImpl(String configLocation, BusMode mode) {
+		this.mode = mode;
+		this.config = BusUtils.createConfiguration(configLocation, mode);
 		this.router = BusUtils.createRouter(this.config);
 		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter());
 		this.id = KeyUtils.objectId();
@@ -249,6 +250,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 	}
 
 	protected class InvokerFilter extends FilterBase implements Filter {
+
 		/**
 		 * Kernal invoking of this bus.
 		 * 
@@ -262,20 +264,20 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 			Request req = request.request();
 			Invoker<?> ivk = findInvoker(req.code());
 
-			before(ivk.mode(), req);
+			before(req);
 
 			if (null == request.callback()) {
 				Response resp = ivk.invoke(req, options);
-				after(ivk.mode(), resp);
+				after(resp);
 				return resp;
 			} else {
-				ivk.invoke(req, new ResponseCallback(ivk.mode(), request.callback()), options);
+				ivk.invoke(req, new ResponseCallback(request.callback()), options);
 				return null;
 			}
 
 		}
 
-		private void before(Mode mode, Request request) {
+		private void before(Request request) {
 			switch (mode) {
 			case CLIENT:
 				request.context(Context.serialize(Context.toMap()));
@@ -286,7 +288,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 			}
 		}
 
-		private void after(Mode mode, Response response) {
+		private void after(Response response) {
 			switch (mode) {
 			case CLIENT:
 				Context.merge(Context.deserialize(response.context()));
@@ -299,18 +301,16 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 
 		private class ResponseCallback<R> implements Task.Callback<Response> {
 			private Task.Callback<R> callback;
-			private Mode mode;
 
-			public ResponseCallback(Mode mode, Task.Callback<R> callback) {
+			public ResponseCallback(Task.Callback<R> callback) {
 				super();
-				this.mode = mode;
 				this.callback = callback;
 			}
 
 			@SuppressWarnings("unchecked")
 			@Override
 			public void callback(Response response) throws Exception {
-				after(mode, response);
+				after(response);
 				if (response != null && this.callback != null) this.callback.callback((R) response.result());
 			}
 		}

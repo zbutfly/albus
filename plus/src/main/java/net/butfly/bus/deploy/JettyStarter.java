@@ -77,7 +77,7 @@ public class JettyStarter implements Runnable {
 		if (fork) {
 			Thread th = new Thread(this);
 			th.setDaemon(true);
-			th.setName("BusImpl-Server-Jetty-Starter-Thread");
+			th.setName("Bus-Server-Jetty-Starter-Thread");
 			th.start();
 		} else this.run();
 	}
