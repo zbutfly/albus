@@ -13,7 +13,7 @@ public abstract class Context implements Map<String, Object> {
 	private static Context CURRENT = null;
 
 	public enum Key {
-		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID;
+		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
 		private static final String TEMP_PREFIX = "_Inner";
 	}
 
@@ -22,20 +22,8 @@ public abstract class Context implements Map<String, Object> {
 	}
 
 	public static void initialize(Map<String, Object> original) {
-		initialize(original, RequestContext.class);
-	}
-
-	public static void initialize(Map<String, Object> original, Class<? extends Context> clazz) {
-		try {
-			CURRENT = clazz.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		if (CURRENT == null) CURRENT = new RequestContext();
 		CURRENT.load(original);
-	}
-
-	public static void cleanup() {
-		CURRENT.clear();
 	}
 
 	// ***********************************************************************/
@@ -65,6 +53,11 @@ public abstract class Context implements Map<String, Object> {
 		return null;
 	}
 
+	public static boolean debug() {
+		String debug = (String) CURRENT.get(Key.Debug);
+		return (null != debug && Boolean.parseBoolean(debug));
+	}
+
 	public static FlowNo flowNo() {
 		return (FlowNo) CURRENT.get(Key.FlowNo);
 	}
@@ -79,6 +72,10 @@ public abstract class Context implements Map<String, Object> {
 
 	public static TX txInfo() {
 		return (TX) CURRENT.get(Key.TXInfo);
+	}
+
+	public static void debug(boolean debug) {
+		CURRENT.put(Key.Debug.name(), Boolean.toString(debug));
 	}
 
 	public static void flowNo(FlowNo flowNo) {

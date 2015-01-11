@@ -8,14 +8,10 @@ import java.util.concurrent.TimeUnit;
 
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.Constants.Side;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.bus.utils.RequestWrapper;
 
 /**
  * @author butfly
@@ -24,15 +20,12 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 public class ThreadControlFilter extends FilterBase implements Filter {
-	private static Logger logger = LoggerFactory.getLogger(ThreadControlFilter.class);
 	private ExecutorService executor;
 	private long timeout;
 
 	@Override
-	public void initialize(Map<String, String> params, Side side) {
-		super.initialize(params, side);
-		if (this.side == Side.CLIENT)
-			logger.warn("Use AsyncBus for client async instead of ThreadControlFilter to abtain more performance and control.");
+	public void initialize(Map<String, String> params) {
+		super.initialize(params);
 		String val = params.get("corePoolSize");
 		int corePoolSize = null == val ? Constants.Async.DEFAULT_CORE_POOL_SIZE : Integer.parseInt(val);
 		val = params.get("maxPoolSize");
@@ -46,7 +39,7 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(final Request request) throws Exception {
+	public Response execute(final RequestWrapper<?> request) throws Exception {
 		return new BusTask<Response>(new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {

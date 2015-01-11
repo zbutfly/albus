@@ -8,6 +8,8 @@ import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.bus.Bus;
 import net.butfly.bus.deploy.JettyStarter;
+import net.butfly.bus.impl.BusFactory;
+import net.butfly.bus.impl.WebServiceServlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +23,7 @@ public abstract class BusTest {
 	protected BusTest(boolean remote) throws Exception {
 		this.remote = remote;
 		if (remote) {
-			System.setProperty("bus.server.class", getBusClass().getName());
-			System.setProperty("bus.servlet.class", "net.butfly.bus.deploy.WebServiceServlet");
+			System.setProperty("bus.servlet.class", WebServiceServlet.class.getName());
 			System.setProperty("bus.server.base", "src/test/webapp");
 			System.setProperty("bus.threadpool.size", "3");
 			logger.info("Remote test: bus server starting.");
@@ -31,7 +32,7 @@ public abstract class BusTest {
 		} else {
 			logger.info("Local test: bus instance starting.");
 		}
-		client = getBusInstance(getBusClass(), this.getClientConfigurationForType(remote));
+		client = BusFactory.bus(this.getClientConfigurationForType(remote));
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
@@ -46,10 +47,6 @@ public abstract class BusTest {
 	};
 
 	protected void doAllTest() throws BusinessException {}
-
-	protected Class<? extends Bus> getBusClass() {
-		return Bus.class;
-	}
 
 	protected String[] getClientConfiguration() {
 		return null;
@@ -76,10 +73,6 @@ public abstract class BusTest {
 			throw new SystemException("", e);
 		}
 		return ReflectionUtils.safeConstruct(constructor, remote);
-	}
-
-	private static Bus getBusInstance(Class<? extends Bus> clazz, String conf) throws Exception {
-		return clazz.getConstructor(String.class).newInstance(conf);
 	}
 
 	private void doTestWrapper() throws BusinessException {

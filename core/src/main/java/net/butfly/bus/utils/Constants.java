@@ -4,10 +4,6 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public interface Constants {
-	public enum Side {
-		SERVER, CLIENT;
-	};
-
 	public final static String _PREFIX = "BUS_";
 
 	public interface SystemError {// 000-099

@@ -1,6 +1,7 @@
-package net.butfly.bus.utils;
+package net.butfly.bus.impl;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.UtilsBase;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;
@@ -8,15 +9,16 @@ import net.butfly.bus.config.parser.XMLConfigParser;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
+import net.butfly.bus.utils.Constants;
 
-public final class BusFactory {
-	public static Config createConfiguration(String configLocation) {
+final class BusUtils extends UtilsBase {
+	static Config createConfiguration(String configLocation) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
 		Context.initialize(null);
 		return config;
 	}
 
-	public static Router createRouter(Config config) {
+	static Router createRouter(Config config) {
 		try {
 			return config.getRouter().getRouterClass().newInstance();
 		} catch (Throwable e) {

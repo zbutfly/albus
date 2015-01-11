@@ -16,56 +16,60 @@ public class BusTask<T> extends Task<T> {
 	}
 
 	public BusTask(Callable<T> task, Callback<T> callback, Options options) {
-		super(task, callback, options);
 		context.putAll(Context.toMap());
+		this.callable = new BusCallable(task);
+		this.callback = null == callback ? null : new BusCallback(callback);
+		this.options = options;
 	}
 
 	public BusTask(Callable<T> task, Callback<T> callback) {
-		super(task, callback);
-		context.putAll(Context.toMap());
+		this(task, callback, null);
 	}
 
 	public BusTask(Callable<T> task, Options options) {
-		super(task, options);
-		context.putAll(Context.toMap());
+		this(task, null, options);
 	}
 
 	public BusTask(Callable<T> task) {
-		super(task);
-		context.putAll(Context.toMap());
+		this(task, null, null);
 	}
 
-	public BusTask(final Task<T> original) {
-		context.putAll(Context.toMap());
-		this.callable = this.wrap(original.task());
-		this.callback = this.wrap(original.callback());
-		this.options = original.options();
+	// public static <T> BusTask<T> wrap(final Task<T> original) {
+	// return new BusTask<T>(original.task(), original.callback(), original.options());
+	// }
+
+	private class BusCallback implements Task.Callback<T> {
+		Task.Callback<T> callback;
+
+		public BusCallback(Task.Callback<T> callback) {
+			super();
+			this.callback = callback;
+		}
+
+		@Override
+		public void callback(T result) throws Exception {
+			// TODO: optimizing...
+			Context.initialize(context);
+			if (null != callback) callback.callback(result);
+			context.putAll(Context.toMap());
+		}
 	}
 
-	private Callback<T> wrap(final Callback<T> callback) {
-		return new Callback<T>() {
-			@Override
-			public void callback(T result) throws Exception {
-				try {
-					Context.initialize(context);
-					if (null != callback) callback.callback(result);
-					context.putAll(Context.toMap());
-				} finally {
-					Context.cleanup();
-				}
-			}
-		};
-	}
+	private class BusCallable implements Task.Callable<T> {
+		Task.Callable<T> callable;
 
-	private Callable<T> wrap(final Callable<T> original) {
-		return new Callable<T>() {
-			@Override
-			public T call() throws Exception {
-				Context.initialize(context);
-				T r = original.call();
-				context.putAll(Context.toMap());
-				return r;
-			}
-		};
+		public BusCallable(Task.Callable<T> callable) {
+			super();
+			this.callable = callable;
+		}
+
+		@Override
+		public T call() throws Exception {
+			// TODO: optimizing...
+			Context.initialize(context);
+			T r = callable.call();
+			context.putAll(Context.toMap());
+			return r;
+		}
 	}
 }

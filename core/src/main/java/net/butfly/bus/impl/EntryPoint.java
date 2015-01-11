@@ -1,4 +1,4 @@
-package net.butfly.bus.deploy.entry;
+package net.butfly.bus.impl;
 
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;

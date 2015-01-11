@@ -8,13 +8,20 @@ import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 
 public interface Invoker<C extends InvokerConfigBean> {
+	public enum Mode {
+		SERVER, CLIENT;
+	};
+
 	void initialize(C config, Token token);
 
-	Response invoke(final Request request, final Options options) throws Exception;
+	Response invoke(final Request req, final Options... options) throws Exception;
 
-	void invoke(final Request request, final Task.Callback<Response> callback, final Options options) throws Exception;
+	void invoke(final Request request, final Task.Callback<Response> callback, final Options... options) throws Exception;
 
 	Object[] getBeanList();
 
 	String[] getTXCodes();
+
+	Mode mode();
+
 }

@@ -14,10 +14,10 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.ResponseWrapper;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.context.BusHttpHeaders;
+import net.butfly.bus.context.ResponseWrapper;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
@@ -67,19 +67,19 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
-	protected void invokeRemote(final Request request, final Task.Callback<Response> callback, final Options options)
-			throws IOException {
-		if (null == callback) throw new IllegalArgumentException();
-		Map<String, String> headers = this.header(request, options);
+	@Override
+	protected Response invokeRemote(final Request request, final Options... options) throws IOException {
+		Map<String, String> headers = this.header(request, this.remoteOptions(options));
 		byte[] data = this.serializer.serialize(request.arguments());
-		this.webservice(data, headers, callback, options);
+		return this.webservice(data, headers, null, this.localOptions(options));
 	}
 
 	@Override
-	protected Response invokeRemote(final Request request, final Options options) throws IOException {
-		Map<String, String> headers = this.header(request, options);
+	protected void invokeRemote(final Request request, final Task.Callback<Response> callback, final Options... options)
+			throws IOException {
+		Map<String, String> headers = this.header(request, this.remoteOptions(options));
 		byte[] data = this.serializer.serialize(request.arguments());
-		return this.webservice(data, headers, null, options);
+		this.webservice(data, headers, callback, this.localOptions(options));
 	}
 
 	private Response webservice(final byte[] data, final Map<String, String> headers, final Task.Callback<Response> callback,
@@ -88,37 +88,23 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			@Override
 			public Response call() throws Exception {
 				InputStream http = null;
-				Response resp = null;
 				ContentType contentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-				try {
-					/**
-					 * <pre>
-					 * TODO: handle continuous, move to async proj.
-					 * 		if (options instanceof ContinuousOptions) {
-					 * 			ContinuousOptions copts = (ContinuousOptions) options;
-					 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
-					 * 			byte[] data = this.serializer.serialize(request.arguments());
-					 * 			for (int i = 0; i &lt; copts.retries(); i++)
-					 * 				this.webservice(data, headers, callback, copts);
-					 *  } else
-					 * </pre>
-					 */
-					http = handler.post(path, headers, data, contentType, false);
-					byte[] recv = IOUtils.toByteArray(http);
-					logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
-					Type c = serializer.supportClass() ? Response.class : ResponseWrapper.class;
-					Response r = serializer.deserialize(recv, c);
-					resp = convertResult(r);
-					if (null == callback) return resp;
-					else try {
-						callback.callback(resp);
-					} catch (Exception e) {
-						throw ExceptionUtils.wrap(e);
-					}
-				} finally {
-					if (null != http) http.close();
-				}
-				return null;
+				/**
+				 * <pre>
+				 * TODO: handle continuous, move to async proj.
+				 * 		if (options instanceof ContinuousOptions) {
+				 * 			ContinuousOptions copts = (ContinuousOptions) options;
+				 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
+				 * 			byte[] data = this.serializer.serialize(request.arguments());
+				 * 			for (int i = 0; i &lt; copts.retries(); i++)
+				 * 				this.webservice(data, headers, callback, copts);
+				 *  } else
+				 * </pre>
+				 */
+				http = handler.post(path, headers, data, contentType, false);
+				byte[] recv = IOUtils.toByteArray(http);
+				logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
+				return convertResult(recv);
 			}
 		}, callback, options);
 		try {
@@ -128,28 +114,23 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		}
 	}
 
-	private Response convertResult(Response resp) {
+	private Response convertResult(byte[] recv) {
+		Response resp = serializer.deserialize(recv, ResponseWrapper.wrapClass(serializer.supportClass()));
 		if (null == resp) return null;
-		// TODO: handle error in response
-		Object r = resp.result();
-		if (null != r && resp instanceof ResponseWrapper) {
-			Type expected = ((ResponseWrapper) resp).resultClass();
-			if (null != expected) {
-				r = this.serializer.deserialize(this.serializer.serialize(r), expected);
-				resp.result(r);
-			}
-		}
+		Object result = resp.result();
+		if (null == result) return resp;
+		Type expected = ResponseWrapper.unwrap(resp);
+		if (null != expected) resp.result(this.serializer.deserialize(this.serializer.serialize(result), expected));
 		return resp;
 	}
 
-	private Map<String, String> header(Request request, Options options) throws IOException {
+	private Map<String, String> header(Request request, Options... options) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHttpHeaders.HEADER_TX_CODE, request.code());
 		headers.put(BusHttpHeaders.HEADER_TX_VERSION, request.version());
 		headers.put(BusHttpHeaders.HEADER_SUPPORT_CLASS, Boolean.toString(this.serializer.supportClass()));
-		if (null != options) {
-			headers.put(BusHttpHeaders.HEADER_CONTINUOUS, options.getClass().getName());
-			headers.put(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS, this.serializer.asString(options));
+		if (null != options && options.length > 0) {
+			headers.put(BusHttpHeaders.HEADER_OPTIONS, this.serializer.asString(options));
 		}
 		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
 			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());

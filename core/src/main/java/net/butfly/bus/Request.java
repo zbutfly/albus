@@ -15,6 +15,8 @@ public class Request implements Serializable {
 	private Object[] arguments;
 	private Map<String, String> context;
 
+	protected Request() {}
+
 	public Request(String code) {
 		this(code, TX.ALL_VERSION, new HashMap<String, String>(), new Object[0]);
 	}

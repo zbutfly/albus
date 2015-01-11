@@ -1,4 +1,4 @@
-package net.butfly.bus.deploy;
+package net.butfly.bus.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,17 +23,16 @@ import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.ResponseWrapper;
 import net.butfly.bus.TX;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.context.ResponseWrapper;
 import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.utils.BusTask;
-import net.butfly.bus.utils.ServerWrapper;
 import net.butfly.bus.utils.TXUtils;
 
 import org.apache.commons.io.IOUtils;
@@ -46,15 +45,15 @@ import org.slf4j.LoggerFactory;
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
-	private ServerWrapper servers;
+	private Cluster servers;
 	private Router router;
 	private Map<String, Serializer> serializerMap;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		logger.trace("Bus starting...");
-		servers = ServerWrapper.construct(this.getInitParameter("config-file"), this.getInitParameter("server-class"));
+		logger.trace("BusImpl starting...");
+		servers = new Cluster(this.getInitParameter("config-file"));
 		try {
 			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
 		} catch (Throwable th) {
@@ -68,7 +67,7 @@ public class WebServiceServlet extends BusServlet {
 				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
 					this.serializerMap.put(ct.getMimeType(), inst);
 			} catch (Exception e) {}
-		logger.info("Bus started.");
+		logger.info("BusImpl started.");
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -88,9 +87,9 @@ public class WebServiceServlet extends BusServlet {
 		// XXX: goof off
 		this.doOptions(request, response);
 		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-		final Bus server = this.router.route(info.tx.value(), servers.servers());
-		if (null == server) throw new SystemException("", "Server routing failure.");
-		ParameterInfo pi = server.getParameterInfo(info.tx.value(), info.tx.version());
+		final Bus bus = this.router.route(info.tx.value(), (BusImpl[]) servers.servers());
+		if (null == bus) throw new SystemException("", "Server routing failure.");
+		ParameterInfo pi = ((BusImpl) bus).getParameterInfo(info.tx.value(), info.tx.version());
 		if (null == pi) throw new SystemException("", "Server routing failure.");
 		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
 		final Request req = new Request(info.tx, info.context, arguments);
@@ -100,7 +99,7 @@ public class WebServiceServlet extends BusServlet {
 				response.setHeader(HttpHeaders.ETAG, r.id());
 				if (r.context() != null) for (Entry<String, String> ctx : r.context().entrySet())
 					response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-				byte[] data = serializer.serialize(info.supportClass ? r : new ResponseWrapper(r));
+				byte[] data = serializer.serialize(ResponseWrapper.wrap(r, info.supportClass));
 				logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
 				response.getOutputStream().write(data);
 				response.getOutputStream().flush();
@@ -110,12 +109,12 @@ public class WebServiceServlet extends BusServlet {
 		Task.Callable<Response> task = new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
-				return server.invoke(req, info.options);
+				return ((BusImpl) bus).invoke(req, info.options);
 			}
 		};
 		Context.initialize(Context.deserialize(req.context()));
 		try {
-			new BusTask<Response>(task, callback, new Options().fork()).execute();
+			new BusTask<Response>(task, callback).execute();
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
@@ -177,18 +176,8 @@ public class WebServiceServlet extends BusServlet {
 			if (name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
 				info.context.put(name.substring(BusHttpHeaders.HEADER_CONTEXT_PREFIX.length()), request.getHeader(name));
 		}
-		String optionsClass = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS);
-		try {
-			if (null == optionsClass) info.options = null;
-			else {
-				String h = request.getHeader(BusHttpHeaders.HEADER_CONTINUOUS_PARAMS);
-				Class<?> c = Class.forName(optionsClass);
-				info.options = serializer.fromString(h, c);
-			}
-		} catch (ClassNotFoundException e) {
-			logger.warn("Invalid options class parsing with [" + BusHttpHeaders.HEADER_CONTINUOUS_PARAMS + "]");
-			info.options = null;
-		}
+		String h = request.getHeader(BusHttpHeaders.HEADER_OPTIONS);
+		info.options = null == h ? null : (Options) serializer.fromString(h, Options.class);
 		String supportClass = request.getHeader(BusHttpHeaders.HEADER_SUPPORT_CLASS);
 		info.supportClass = null == supportClass || Boolean.parseBoolean(supportClass);
 		return info;

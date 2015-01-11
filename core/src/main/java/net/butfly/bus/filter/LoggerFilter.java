@@ -4,6 +4,7 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
+import net.butfly.bus.utils.RequestWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +13,13 @@ public class LoggerFilter extends FilterBase implements Filter {
 	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
 
 	@Override
-	public void before(Request request) {
+	public void before(RequestWrapper<?> request) {
+		Request req = request.request();
 		String prefix = null;
 		long now = System.currentTimeMillis();
 		if (logger.isInfoEnabled() || logger.isTraceEnabled()) {
-			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":")
-					.append(request.version()).append("]").append("[").append(side.name()).append("]");
+			StringBuilder sb = new StringBuilder("BUS").append("[").append(req.code()).append(":").append(req.version())
+					.append("]");
 			FlowNo fn = Context.flowNo();
 			if (null != fn) sb.append("[").append(fn.toString()).append("]");
 			sb.append(":");
@@ -27,19 +29,19 @@ public class LoggerFilter extends FilterBase implements Filter {
 
 		if (logger.isTraceEnabled()) {
 			logger.trace(prefix + " invoking begin...");
-			logger.trace(prefix + getDebugDetail(request));
+			logger.trace(prefix + getDebugDetail(req));
 		}
 	}
 
 	@Override
-	public void after(Request request, Response response) {
+	public void after(RequestWrapper<?> request, Response response) {
 		Object[] params = this.getParams(request);
 		String prefix = (String) params[1];
 		if (logger.isInfoEnabled()) {
 			long spent = System.currentTimeMillis() - (Long) params[0];
 			logger.info(prefix + " invoking ended in [" + spent + "ms].");
 		}
-		if (null != response && response.error() != null) logger.error("Bus error: " + response.error().toString());
+		if (null != response && response.error() != null) logger.error("BusImpl error: " + response.error().toString());
 		if (logger.isTraceEnabled()) logger.trace(prefix + getDebugDetail(response));
 	}
 

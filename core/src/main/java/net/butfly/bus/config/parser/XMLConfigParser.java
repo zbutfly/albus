@@ -21,7 +21,6 @@ import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.invoker.InvokerFactory;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.Constants.Side;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -38,18 +37,16 @@ public class XMLConfigParser extends ConfigParser {
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
-		config.id(this.root.attributeValue("id", KeyUtils.objectId()));
-		config.side(Side.valueOf(this.root.attributeValue("side", "SERVER").toUpperCase()));
 		return config;
 	}
 
 	public XMLConfigParser(InputStream source) {
 		super();
-		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.");
+		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "BusImpl configurations invalid.");
 		try {
 			this.document = new SAXReader().read(source);
 		} catch (DocumentException e) {
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.", e);
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "BusImpl configurations invalid.", e);
 		}
 		this.root = this.document.getRootElement();
 	}
@@ -67,23 +64,19 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected InvokerBean parseInvoker(Element element) {
-		String id = element.attributeValue("id");
-		if (null == id || "".equals(id))
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need id attribute.");
-		logger.trace("Invoker [" + id + "] parsing...");
-		if ("false".equals(element.attributeValue("enabled"))) {
-			logger.trace("Invoker [" + id + "] disabled.");
-			return null;
+		if (Boolean.parseBoolean(element.attributeValue("enabled", "false"))) return null;
+		else {
+			logAsXml(element);
+			String className = element.attributeValue("class");
+			if (null == className || "".equals(className))
+				throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
+			Class<? extends Invoker<?>> clazz = classForName(className);
+			InvokerConfigBean config = InvokerFactory.getConfig(clazz);
+			if (null != config) XMLUtils.setPropsByNode(config, element);
+			logger.debug("Node [" + className + "] enabled.");
+			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
+					this.parseInvokerAuth(element));
 		}
-		logAsXml(element);
-		String className = element.attributeValue("class");
-		if (null == className || "".equals(className))
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
-		Class<? extends Invoker<?>> clazz = classForName(className);
-		InvokerConfigBean config = InvokerFactory.getConfig(clazz);
-		if (null != config) XMLUtils.setPropsByNode(config, element);
-		logger.debug("Node [" + id + "] enabled.");
-		return new InvokerBean(id, clazz, element.attributeValue("tx"), config, this.parseInvokerAuth(element));
 	}
 
 	private Token parseInvokerAuth(Element element) {
@@ -123,10 +116,7 @@ public class XMLConfigParser extends ConfigParser {
 	@SuppressWarnings("unchecked")
 	private FilterBean parseFilter(Element filter) {
 		String title = filter.attributeValue("title");
-		String attr = filter.attributeValue("enabled");
-		if (null == attr || Boolean.parseBoolean(attr.toLowerCase())) {
-			attr = filter.attributeValue("order");
-
+		if (Boolean.parseBoolean(filter.attributeValue("enabled", "true"))) {
 			Map<String, String> params = new HashMap<String, String>();
 			for (Element param : (List<Element>) filter.selectNodes("param"))
 				params.put(param.attributeValue("name"), param.attributeValue("value"));

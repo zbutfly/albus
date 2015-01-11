@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bus id="bus-internal">
-	<filter title="thread-control-filter" enabled="false"
-		class="net.butfly.bus.filter.ThreadControlFilter">
-		<init>
-			<param name="throughput" value="200" />
-		</init>
-	</filter>
-	<filter title="exception-logger-filter" enabled="true"
-		class="net.butfly.bus.filter.LoggerFilter" />
-	<filter title="exception-handler" enabled="true"
-		class="net.butfly.bus.filter.ExceptionHandleFilter" />
+<bus>
 	<router type="net.butfly.bus.policy.SimpleRouter" />
-	<invoker class="net.butfly.bus.invoker.SpringInvoker" id="bus-default"
-		tx="*" enabled="true">
+	<filter title="exception-logger-filter" class="net.butfly.bus.filter.LoggerFilter" />
+	<invoker class="net.butfly.bus.invoker.SpringInvoker" tx="*">
 		<files>net/butfly/bus/internal/spring/beans.xml</files>
 	</invoker>
 </bus>

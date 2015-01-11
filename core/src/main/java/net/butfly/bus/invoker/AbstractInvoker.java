@@ -7,6 +7,11 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.ExceptionUtils;
+import net.butfly.albacore.utils.async.Options;
+import net.butfly.bus.Error;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
@@ -84,5 +89,13 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected Token token() {
 		Token t = Context.token();
 		return null == t ? this.token : t;
+	}
+
+	protected Options localOptions(Options... options) {
+		return options == null || options.length == 0 ? new Options() : options[0];
+	}
+
+	protected Response wrapException(Request req, Exception ex) {
+		return new Response(req).error(new Error(ExceptionUtils.unwrap(ex), Context.debug()));
 	}
 }
