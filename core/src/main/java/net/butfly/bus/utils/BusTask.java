@@ -12,8 +12,8 @@ public class BusTask<T> extends Task<T> {
 
 	public BusTask(Callable<T> task, Callback<T> callback, Options options) {
 		context.putAll(Context.toMap());
-		this.callable = new BusCallable(task);
-		this.callback = null == callback ? null : new BusCallback(callback);
+		this.call = new BusCallable(task);
+		this.back = null == callback ? null : new BusCallback(callback);
 		this.options = options;
 	}
 
@@ -33,7 +33,7 @@ public class BusTask<T> extends Task<T> {
 	// return new BusTask<T>(original.task(), original.callback(), original.options());
 	// }
 
-	private class BusCallback implements Task.Callback<T> {
+	private class BusCallback extends Task.Callback<T> {
 		Task.Callback<T> callback;
 
 		public BusCallback(Task.Callback<T> callback) {
@@ -50,7 +50,7 @@ public class BusTask<T> extends Task<T> {
 		}
 	}
 
-	private class BusCallable implements Task.Callable<T> {
+	private class BusCallable extends Task.Callable<T> {
 		Task.Callable<T> callable;
 
 		public BusCallable(Task.Callable<T> callable) {

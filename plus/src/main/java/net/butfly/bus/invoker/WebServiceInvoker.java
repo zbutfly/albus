@@ -11,7 +11,6 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
@@ -67,11 +66,11 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
 	@Override
-	protected Callable<Response> task(Request request, Options[] options) {
+	protected Task.Callable<Response> task(Request request, Options[] options) {
 		return new InvokeTask(request, this.remoteOptions(options));
 	}
 
-	private class InvokeTask implements Task.Callable<Response> {
+	private class InvokeTask extends Task.Callable<Response> {
 		private Request request;
 		private Options[] remoteOptions;
 
@@ -98,7 +97,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			 *  } else
 			 * </pre>
 			 */
-			http = handler.post(path, headers, data, contentType, false);
+			http = WebServiceInvoker.this.handler.post(path, headers, data, contentType, false);
 			byte[] recv = IOUtils.toByteArray(http);
 			logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
 			return convertResult(recv);

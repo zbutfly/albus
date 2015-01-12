@@ -9,7 +9,6 @@ import java.util.TreeSet;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -36,13 +35,13 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 
 	@Override
 	public final Response invoke(final Request request, final Task.Callback<Response> callback,
-			Task.Callback<Exception> exception, final Options... options) throws Exception {
+			final Task.ExceptionHandler<Response> exception, final Options... options) throws Exception {
 		request.token(this.token());
 		return new BusTask<Response>(this.task(request, options), callback, this.localOptions(options)).exception(exception)
 				.execute();
 	}
 
-	protected abstract Callable<Response> task(Request request, Options[] options);
+	protected abstract Task.Callable<Response> task(Request request, Options[] options);
 
 	@Override
 	public String[] getTXCodes() {

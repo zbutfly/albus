@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -24,11 +23,11 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	}
 
 	@Override
-	protected Callable<Response> task(Request request, Options[] options) {
+	protected Task.Callable<Response> task(Request request, Options[] options) {
 		return new InvokeTask(request);
 	}
 
-	private class InvokeTask implements Task.Callable<Response> {
+	private class InvokeTask extends Task.Callable<Response> {
 		private Request request;
 
 		public InvokeTask(Request request) {

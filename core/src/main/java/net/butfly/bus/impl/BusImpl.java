@@ -17,7 +17,6 @@ import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Error;
 import net.butfly.bus.Request;
@@ -196,7 +195,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 	}
 
 	/**
-	 * Kernal invoking of callback bus, overlay async bus. <br>
+	 * Kernal invoking of back bus, overlay async bus. <br>
 	 * Does not start async here, <br>
 	 * but transfer it into BusImpl.InvokerFilter for handling.
 	 */
@@ -273,11 +272,11 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		private Response execAsync(final Request req, Callback<?> callback, Options[] options) throws Exception {
-			return findInvoker(req.code()).invoke(req, new ResponseCallback(callback), new Callback<Exception>() {
+		private Response execAsync(final Request req, Task.Callback<?> callback, Options[] options) throws Exception {
+			return findInvoker(req.code()).invoke(req, new ResponseCallback(callback), new Task.ExceptionHandler<Response>() {
 				@Override
-				public void callback(Exception ex) throws Exception {
-					handleException(req, ex);
+				public Response handle(Exception ex) throws Exception {
+					return handleException(req, ex);
 				}
 			}, options);
 		}
@@ -324,7 +323,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 			}
 		}
 
-		private class ResponseCallback<R> implements Task.Callback<Response> {
+		private class ResponseCallback<R> extends Task.Callback<Response> {
 			private Task.Callback<R> callback;
 
 			public ResponseCallback(Task.Callback<R> callback) {

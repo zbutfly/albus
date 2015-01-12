@@ -16,7 +16,7 @@ import net.butfly.bus.utils.RequestWrapper;
 /**
  * @author butfly
  * @deprecated insteaded by {@link net.butfly.bus.filter.AsyncFilter} to enable work-stealing mode (with
- *             callback pattern)
+ *             back pattern)
  */
 @Deprecated
 public class ThreadControlFilter extends FilterBase implements Filter {

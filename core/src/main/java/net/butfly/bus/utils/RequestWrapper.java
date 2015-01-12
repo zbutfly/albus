@@ -2,13 +2,12 @@ package net.butfly.bus.utils;
 
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Request;
 
 public class RequestWrapper<R> {
 	private Request request;
 	private Options[] options;
-	private Callback<R> callback;
+	private Task.Callback<R> callback;
 
 	public RequestWrapper(Request request, Options... options) {
 		this(request, null, options);
