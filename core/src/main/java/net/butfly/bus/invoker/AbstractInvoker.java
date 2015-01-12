@@ -8,11 +8,16 @@ import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callable;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.service.AuthService;
+import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
@@ -28,6 +33,16 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
 	protected AuthService auth;
 	private Token token;
+
+	@Override
+	public final Response invoke(final Request request, final Task.Callback<Response> callback,
+			Task.Callback<Exception> exception, final Options... options) throws Exception {
+		request.token(this.token());
+		return new BusTask<Response>(this.task(request, options), callback, this.localOptions(options)).exception(exception)
+				.execute();
+	}
+
+	protected abstract Callable<Response> task(Request request, Options[] options);
 
 	@Override
 	public String[] getTXCodes() {

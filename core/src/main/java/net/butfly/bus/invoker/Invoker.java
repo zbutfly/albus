@@ -11,9 +11,8 @@ public interface Invoker<C extends InvokerConfigBean> {
 
 	void initialize(C config, Token token);
 
-	Response invoke(final Request req, final Options... options) throws Exception;
-
-	void invoke(final Request request, final Task.Callback<Response> callback, final Options... options) throws Exception;
+	Response invoke(final Request request, final Task.Callback<Response> callback, Task.Callback<Exception> exception,
+			final Options... options) throws Exception;
 
 	Object[] getBeanList();
 

@@ -10,11 +10,6 @@ import net.butfly.bus.context.Context;
 public class BusTask<T> extends Task<T> {
 	private final Map<String, Object> context = new ConcurrentHashMap<String, Object>();
 
-	public BusTask() {
-		super();
-		context.putAll(Context.toMap());
-	}
-
 	public BusTask(Callable<T> task, Callback<T> callback, Options options) {
 		context.putAll(Context.toMap());
 		this.callable = new BusCallable(task);

@@ -12,11 +12,14 @@ import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.facade.Facade;
+import net.butfly.albacore.utils.ExceptionUtils;
 import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
+import net.butfly.bus.Error;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -94,7 +97,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 	public ParameterInfo getParameterInfo(String code, String version) {
 		InvokerBean ivkb = BusImpl.this.router.route(code, BusImpl.this.config.getInvokers());
 		if (null == ivkb) return null;
-		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb);
+		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb, mode);
 		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
@@ -246,7 +249,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 
 	private Invoker<?> findInvoker(String txCode) {
 		InvokerBean ivkb = BusImpl.this.router.route(txCode, BusImpl.this.config.getInvokers());
-		return InvokerFactory.getInvoker(ivkb);
+		return InvokerFactory.getInvoker(ivkb, mode);
 	}
 
 	protected class InvokerFilter extends FilterBase implements Filter {
@@ -257,24 +260,46 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 		 * @param options
 		 * @throws Exception
 		 */
-		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
 		public Response execute(RequestWrapper<?> request) throws Exception {
-			Options[] options = request.options();
 			Request req = request.request();
-			Invoker<?> ivk = findInvoker(req.code());
 
-			before(req);
-
+			this.before(req);
 			if (null == request.callback()) {
-				Response resp = ivk.invoke(req, options);
-				after(resp);
-				return resp;
+				return this.execSync(req, request.options());
 			} else {
-				ivk.invoke(req, new ResponseCallback(request.callback()), options);
-				return null;
+				return this.execAsync(req, request.callback(), request.options());
 			}
+		}
 
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		private Response execAsync(final Request req, Callback<?> callback, Options[] options) throws Exception {
+			return findInvoker(req.code()).invoke(req, new ResponseCallback(callback), new Callback<Exception>() {
+				@Override
+				public void callback(Exception ex) throws Exception {
+					handleException(req, ex);
+				}
+			}, options);
+		}
+
+		private Response execSync(Request request, Options[] options) throws Exception {
+			Response resp = null;
+			try {
+				return findInvoker(request.code()).invoke(request, null, null, options);
+			} catch (Exception ex) {
+				return this.handleException(request, ex);
+			} finally {
+				this.after(resp);
+			}
+		}
+
+		private Response handleException(Request request, Exception ex) throws Exception {
+			switch (mode) {
+			case SERVER:
+				return new Response(request).error(new Error(ExceptionUtils.unwrap(ex), Context.debug()));
+			default:
+				throw ExceptionUtils.unwrap(ex);
+			}
 		}
 
 		private void before(Request request) {
@@ -289,7 +314,7 @@ class BusImpl implements InternalFacade, Routeable, Bus {
 		}
 
 		private void after(Response response) {
-			switch (mode) {
+			if (null != response) switch (mode) {
 			case CLIENT:
 				Context.merge(Context.deserialize(response.context()));
 				break;
