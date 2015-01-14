@@ -1,9 +1,10 @@
 package net.butfly.bus.comet;
 
-import net.butfly.albacore.utils.async.Callback;
+import net.butfly.albacore.exception.BusinessException;
+import net.butfly.albacore.utils.async.Task.Callback;
+import net.butfly.bus.Bus;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
-import net.butfly.bus.ext.Bus;
 
 public class CallbackTest extends StandardTest {
 	protected CallbackTest(boolean remote) throws Exception {
@@ -25,7 +26,7 @@ public class CallbackTest extends StandardTest {
 	}
 
 	@Override
-	protected void doAllTest() {
+	protected void doAllTest() throws BusinessException {
 		for (int i = 0; i < 5; i++)
 			this.composetest(i);
 	}

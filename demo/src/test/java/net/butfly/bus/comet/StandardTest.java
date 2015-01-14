@@ -1,8 +1,8 @@
 package net.butfly.bus.comet;
 
+import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.bus.Bus;
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
@@ -26,7 +26,7 @@ public class StandardTest extends BusTest {
 	}
 
 	@Override
-	protected void doAllTest() {
+	protected void doAllTest() throws BusinessException {
 		singletest();
 		for (int i = 0; i < 5; i++)
 			composetest(i);
@@ -40,11 +40,6 @@ public class StandardTest extends BusTest {
 	@Override
 	protected String[] getServerConfiguration() {
 		return new String[] { "bus-comet-server.xml" };
-	}
-
-	@Override
-	protected Class<? extends Bus> getBusClass() {
-		return net.butfly.bus.ext.Bus.class;
 	}
 
 	/*****************************************************/

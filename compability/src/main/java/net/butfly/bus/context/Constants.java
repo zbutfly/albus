@@ -1,7 +1,7 @@
 package net.butfly.bus.context;
 
 import net.butfly.albacore.utils.UtilsBase;
-import net.butfly.bus.facade.InternalFacade;
+import net.butfly.bus.service.InternalFacade;
 
 /**
  * For campability.

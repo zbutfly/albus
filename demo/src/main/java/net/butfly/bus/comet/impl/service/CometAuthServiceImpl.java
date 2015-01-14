@@ -1,11 +1,11 @@
 package net.butfly.bus.comet.impl.service;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.argument.Constants;
-import net.butfly.bus.auth.Token;
+import net.butfly.bus.Token;
 import net.butfly.bus.comet.service.CometAuthService;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.service.AuthServiceImpl;
+import net.butfly.bus.utils.Constants;
 
 public class CometAuthServiceImpl extends AuthServiceImpl implements CometAuthService {
 	private static final long serialVersionUID = -2966188033054529243L;
@@ -29,4 +29,5 @@ public class CometAuthServiceImpl extends AuthServiceImpl implements CometAuthSe
 		}
 		throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID, "Authorization failure for no token provided.");
 	}
+
 }
