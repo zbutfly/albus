@@ -13,9 +13,18 @@ import org.slf4j.LoggerFactory;
 
 public class Config {
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private boolean debug;
 	private Map<String, InvokerBean> invokers = new HashMap<String, InvokerBean>();
 	private RouterBean router;
 	private List<FilterBean> filterBeanList;
+
+	public Config(boolean debug) {
+		this.debug = debug;
+	}
+
+	public boolean debug() {
+		return debug;
+	}
 
 	public InvokerBean[] getInvokers() {
 		return invokers.values().toArray(new InvokerBean[0]);

@@ -118,28 +118,39 @@ abstract class BusBase implements Bus, InternalFacade {
 			if (null == request.callback()) {
 				return this.execSync(req, request.options());
 			} else {
-				return this.execAsync(req, request.callback(), request.options());
+				return this.execCallback(req, request.callback(), request.options());
 			}
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		private Response execAsync(final Request req, Task.Callback<?> callback, Options[] options) throws Exception {
-			return findInvoker(req.code()).invoke(req, new ResponseCallback(callback), new Task.ExceptionHandler<Response>() {
-				@Override
-				public Response handle(Exception ex) throws Exception {
-					return handleException(req, ex);
-				}
-			}, options);
+		private Response execCallback(final Request request, Task.Callback<?> callback, Options[] options) throws Exception {
+			return findInvoker(request.code()).invoke(request, new ResponseCallback(callback),
+					new Task.ExceptionHandler<Response>() {
+						@Override
+						public Response handle(Exception ex) throws Exception {
+							return handleException(request, ex);
+						}
+					}, options);
 		}
 
 		private Response execSync(Request request, Options[] options) throws Exception {
 			Response resp = null;
 			try {
-				return findInvoker(request.code()).invoke(request, null, null, options);
+				resp = findInvoker(request.code()).invoke(request, null, null, options);
 			} catch (Exception ex) {
 				return this.handleException(request, ex);
 			} finally {
 				this.after(resp);
+			}
+			return this.handleError(resp);
+		}
+
+		private Response handleError(Response response) throws Exception {
+			switch (mode) {
+			case CLIENT:
+				if (response.error() != null) throw response.error().toException();
+			default:
+				return response;
 			}
 		}
 
@@ -186,6 +197,7 @@ abstract class BusBase implements Bus, InternalFacade {
 			@Override
 			public void callback(Response response) throws Exception {
 				after(response);
+				if (mode == Mode.CLIENT) response = handleError(response);
 				if (response != null && this.callback != null) this.callback.callback((R) response.result());
 			}
 		}

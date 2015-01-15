@@ -26,7 +26,7 @@ public class CallbackBusImpl extends BusBase implements CallbackBus {
 	@Override
 	public <T, F extends Facade> F service(Class<F> facadeClass, Task.Callback<T> callback, Options... options) {
 		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass },
-				new AsyncServiceProxy<T>(callback, options));
+				new CallbackServiceProxy<T>(callback, options));
 	}
 
 	@Override
@@ -45,14 +45,14 @@ public class CallbackBusImpl extends BusBase implements CallbackBus {
 	 * but transfer it into InvokerFilter for handling.
 	 */
 	public <T> void invoke(final Request request, Task.Callback<T> callback, final Options... options) throws Exception {
-		super.check(request);
+		check(request);
 		chain.execute(new RequestWrapper<T>(request, callback, options));
 	}
 
-	private class AsyncServiceProxy<T> extends ServiceProxy<T> {
+	private class CallbackServiceProxy<T> extends ServiceProxy<T> {
 		protected Task.Callback<T> callback;
 
-		public AsyncServiceProxy(Task.Callback<T> callback, Options... options) {
+		public CallbackServiceProxy(Task.Callback<T> callback, Options... options) {
 			super(options);
 			this.callback = callback;
 		}

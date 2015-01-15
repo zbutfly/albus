@@ -16,6 +16,7 @@ final class Buses extends UtilsBase {
 	static Config createConfiguration(String configLocation, Bus.Mode mode) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
 		Context.initialize(null);
+		if (config.debug()) Context.debug(true);
 		return config;
 	}
 

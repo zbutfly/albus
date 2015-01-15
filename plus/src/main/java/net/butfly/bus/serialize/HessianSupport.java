@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
@@ -15,6 +16,10 @@ public abstract class HessianSupport extends SerializerBase implements Serialize
 	public static final String HESSIAN_CONTENT_TYPE = "x-application/hessian";
 	public static final String BURLAP_CONTENT_TYPE = "x-application/burlap";
 	protected SerializerFactory factory;
+
+	public HessianSupport(Charset charset) {
+		super(charset);
+	}
 
 	@Override
 	public byte[] serialize(Object obj) {
@@ -54,11 +59,11 @@ public abstract class HessianSupport extends SerializerBase implements Serialize
 
 	@Override
 	public String asString(Object obj) {
-		return new String(serialize(obj), this.getCharset());
+		return new String(serialize(obj), this.charset());
 	}
 
 	@Override
 	public <T> T fromString(String str, Type... types) {
-		return deserialize(str.getBytes(this.getCharset()), types);
+		return deserialize(str.getBytes(this.charset()), types);
 	}
 }

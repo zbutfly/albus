@@ -44,7 +44,7 @@ class StandardBusImpl extends BusBase implements StandardBus {
 	 * @throws Signal
 	 */
 	public <T> Response invoke(Request request, Options... options) throws Exception {
-		super.check(request);
+		check(request);
 		return chain.execute(new RequestWrapper<T>(request, options));
 	}
 

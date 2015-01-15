@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 import com.caucho.burlap.io.BurlapInput;
 import com.caucho.burlap.io.BurlapOutput;
 
 public class BurlapSerializer extends HessianSupport {
+	public BurlapSerializer(Charset charset) {
+		super(charset);
+	}
+
 	@Override
 	public void write(OutputStream os, Object obj) throws IOException {
 		BurlapOutput ho = new BurlapOutput(os);

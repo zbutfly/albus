@@ -33,10 +33,12 @@ public class XMLConfigParser extends ConfigParser {
 
 	@Override
 	public Config parse() {
-		Config config = new Config();
+		boolean debug = Boolean.parseBoolean(root.attributeValue("debug", Boolean.toString(false)));
+		Config config = new Config(debug);
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
+
 		return config;
 	}
 

@@ -16,9 +16,9 @@ import net.butfly.bus.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.ResponseWrapper;
-import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
+import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
@@ -38,14 +38,15 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	private Serializer serializer;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void initialize(WebServiceInvokerConfig config, Token token) {
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
 		try {
-			this.serializer = (Serializer) Class.forName(config.getSerializer()).newInstance();
+			this.serializer = Serializers.serializer((Class<? extends Serializer>) Class.forName(config.getSerializer()));
 		} catch (Exception e) {
-			this.serializer = new JSONSerializer();
+			this.serializer = Serializers.serializer();
 		}
 		if (this.serializer instanceof SerializerFactorySupport)
 			try {

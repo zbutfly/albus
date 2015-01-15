@@ -8,12 +8,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -29,7 +26,6 @@ import net.butfly.bus.context.ResponseWrapper;
 import net.butfly.bus.invoker.Invoking;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
-import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.TXUtils;
@@ -44,7 +40,6 @@ import org.slf4j.LoggerFactory;
 public class WebServiceServlet extends BusServlet implements Container<Servlet> {
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
-	private Map<String, Serializer> serializerMap;
 	private Cluster cluster;
 
 	@Override
@@ -54,7 +49,6 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		String paramConfig = this.getInitParameter("config");
 		this.cluster = new Cluster(null == paramConfig ? null : paramConfig.split(","), Bus.Mode.SERVER,
 				this.parseRouterClasses(this.getInitParameter("router")), false);
-		this.serializerMap = Serializers.buildDefaultSerializerMap(this.parseSerializerClasses());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -66,20 +60,6 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 			logger.warn("Router class invalid: " + className + ", default router used.", e);
 			return SimpleRouter.class;
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private Class<? extends Serializer>[] parseSerializerClasses() {
-		String classNames = this.getInitParameter("serializers");
-		if (null == classNames) return new Class[] { JSONSerializer.class };
-		Set<Class<? extends Serializer>> r = new HashSet<Class<? extends Serializer>>();
-		for (String className : classNames.split(","))
-			try {
-				r.add((Class<? extends Serializer>) Class.forName(className));
-			} catch (ClassNotFoundException e) {
-				logger.warn("Serializer class invalid: " + className + ", default serializer used.", e);
-			}
-		return (Class<? extends Serializer>[]) r.toArray();
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -98,7 +78,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		ContentType reqContentType = ContentType.parse(request.getContentType());
 
 		// TODO: use reqContentType.getCharset() to construct serializer.
-		final Serializer serializer = this.serializerMap.get(reqContentType.getMimeType());
+		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
 		if (serializer == null || Arrays.binarySearch(serializer.getSupportedMimeTypes(), reqContentType.getMimeType()) < 0)
 			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
 		final ContentType respContentType = ContentType.create(serializer.getDefaultMimeType(), reqContentType.getCharset());

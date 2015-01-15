@@ -23,11 +23,10 @@ public interface Serializer {
 
 	String asString(Object obj);
 
-	static final String DEFAULT_CONTENT_TYPE = "text/plain";
 
 	String[] getSupportedMimeTypes();
 
 	String getDefaultMimeType();
 
-	Charset getCharset();
+	Charset charset();
 }

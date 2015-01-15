@@ -54,24 +54,24 @@ public abstract class Context implements Map<String, Object> {
 	}
 
 	public static boolean debug() {
-		String debug = (String) CURRENT.get(Key.Debug);
+		String debug = (String) CURRENT.get(Key.Debug.name());
 		return (null != debug && Boolean.parseBoolean(debug));
 	}
 
 	public static FlowNo flowNo() {
-		return (FlowNo) CURRENT.get(Key.FlowNo);
+		return (FlowNo) CURRENT.get(Key.FlowNo.name());
 	}
 
 	public static String sourceAppID() {
-		return (String) CURRENT.get(Key.SourceAppID);
+		return (String) CURRENT.get(Key.SourceAppID.name());
 	}
 
 	public static String sourceHost() {
-		return (String) CURRENT.get(Key.SourceHost);
+		return (String) CURRENT.get(Key.SourceHost.name());
 	}
 
 	public static TX txInfo() {
-		return (TX) CURRENT.get(Key.TXInfo);
+		return (TX) CURRENT.get(Key.TXInfo.name());
 	}
 
 	public static void debug(boolean debug) {
