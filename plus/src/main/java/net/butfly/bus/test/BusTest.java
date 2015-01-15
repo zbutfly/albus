@@ -1,12 +1,9 @@
 package net.butfly.bus.test;
 
-import java.lang.reflect.Constructor;
-
 import net.butfly.albacore.exception.BusinessException;
-import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.Bus;
+import net.butfly.bus.StandardBus;
 import net.butfly.bus.deploy.JettyStarter;
 import net.butfly.bus.impl.BusFactory;
 import net.butfly.bus.impl.WebServiceServlet;
@@ -18,7 +15,7 @@ public abstract class BusTest {
 	protected static final Logger logger = LoggerFactory.getLogger(BusTest.class);
 
 	private boolean remote;
-	protected Bus client;
+	protected StandardBus client;
 
 	protected BusTest(boolean remote) throws Exception {
 		this.remote = remote;
@@ -32,7 +29,7 @@ public abstract class BusTest {
 		} else {
 			logger.info("Local test: bus instance starting.");
 		}
-		client = BusFactory.bus(this.getClientConfigurationForType(remote));
+		client = BusFactory.standard(this.getClientConfigurationForType(remote));
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
@@ -66,13 +63,8 @@ public abstract class BusTest {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
-		Constructor<T> constructor;
-		try {
-			constructor = ((Class<T>) ReflectionUtils.getMainClass()).getDeclaredConstructor(boolean.class);
-		} catch (Exception e) {
-			throw new SystemException("", e);
-		}
-		return ReflectionUtils.safeConstruct(constructor, remote);
+		return (T) ReflectionUtils.safeConstruct(ReflectionUtils.getMainClass(),
+				ReflectionUtils.parameters(boolean.class, remote));
 	}
 
 	private void doTestWrapper() throws BusinessException {

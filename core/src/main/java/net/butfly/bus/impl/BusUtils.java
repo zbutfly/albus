@@ -43,6 +43,6 @@ final class BusUtils extends UtilsBase {
 		if (l.load() != null) return l;
 		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_CLIENT_CONFIG);
 		if (l.load() != null) return l;
-		throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid: " + configLocation);
+		throw new SystemException(Constants.UserError.CONFIG_ERROR, "StandardBus configurations invalid: " + configLocation);
 	}
 }

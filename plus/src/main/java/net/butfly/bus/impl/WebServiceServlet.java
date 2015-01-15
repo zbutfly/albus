@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
@@ -27,7 +28,6 @@ import net.butfly.bus.TX;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.ResponseWrapper;
-import net.butfly.bus.invoker.ParameterInfo;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
@@ -53,7 +53,11 @@ public class WebServiceServlet extends BusServlet {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		logger.trace("Servlet starting...");
-		cluster = new Cluster(this.getInitParameter("config-file"), BusMode.SERVER);
+		String paramCallback = this.getInitParameter("callback");
+		if (null == paramCallback) paramCallback = System.getProperty("bus.callback", Boolean.toString(false));
+		String paramConfig = this.getInitParameter("config-file");
+		String[] configs = null == paramConfig ? null : paramConfig.split(",");
+		cluster = new Cluster(BusMode.SERVER, Boolean.parseBoolean(paramCallback), configs);
 		try {
 			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
 		} catch (Throwable th) {
@@ -67,7 +71,7 @@ public class WebServiceServlet extends BusServlet {
 				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
 					this.serializerMap.put(ct.getMimeType(), inst);
 			} catch (Exception e) {}
-		logger.info("Bus started.");
+		logger.info("StandardBus started.");
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -87,11 +91,11 @@ public class WebServiceServlet extends BusServlet {
 		// XXX: goof off
 		this.doOptions(request, response);
 		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-		final Bus bus = this.router.route(info.tx.value(), (BusImpl[]) cluster.servers());
+		final Bus bus = this.router.route(info.tx.value(), (Bus[]) cluster.servers());
 		if (null == bus) throw new SystemException("", "Server routing failure.");
-		ParameterInfo pi = ((BusImpl) bus).getParameterInfo(info.tx.value(), info.tx.version());
+		MethodInfo pi = ((Bus) bus).invokeInfo(info.tx.value(), info.tx.version());
 		if (null == pi) throw new SystemException("", "Server routing failure.");
-		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersTypes());
+		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersClasses());
 		final Request req = new Request(info.tx, info.context, arguments);
 		Task.Callback<Response> callback = new Task.Callback<Response>() {
 			@Override
@@ -109,7 +113,7 @@ public class WebServiceServlet extends BusServlet {
 		Task.Callable<Response> task = new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
-				return ((BusImpl) bus).invoke(req, info.options);
+				return ((Bus) bus).invoke(req, info.options);
 			}
 		};
 		Context.initialize(Context.deserialize(req.context()));

@@ -16,7 +16,7 @@ public class StandardTest extends BusTest {
 		super(remote);
 		Context.token(new Token("user", "pass"));
 		Context.sourceAppID("CometTestClient");
-		this.facade = this.client.getService(CometFacade.class, new Options().fork());
+		this.facade = this.client.service(CometFacade.class, new Options().fork());
 	}
 
 	public static void main(String args[]) throws Exception {

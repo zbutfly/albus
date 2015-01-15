@@ -2,7 +2,7 @@ package net.butfly.bus.comet;
 
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.async.Task.Callback;
-import net.butfly.bus.Bus;
+import net.butfly.bus.CallbackBus;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 
@@ -16,7 +16,7 @@ public class CallbackTest extends StandardTest {
 				if (echo != null) System.out.println("Callback echo: " + echo.toString());
 			}
 		};
-		this.facade = ((Bus) this.client).getService(CometFacade.class, echoCallback);
+		this.facade = ((CallbackBus) this.client).service(CometFacade.class, echoCallback);
 	}
 
 	public static void main(String args[]) throws Exception {

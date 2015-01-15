@@ -42,11 +42,11 @@ public class XMLConfigParser extends ConfigParser {
 
 	public XMLConfigParser(InputStream source) {
 		super();
-		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.");
+		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "StandardBus configurations invalid.");
 		try {
 			this.document = new SAXReader().read(source);
 		} catch (DocumentException e) {
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.", e);
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "StandardBus configurations invalid.", e);
 		}
 		this.root = this.document.getRootElement();
 	}

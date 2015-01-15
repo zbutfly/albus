@@ -6,25 +6,27 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.butfly.bus.Bus;
 import net.butfly.bus.policy.Routeable;
 
 public final class Cluster implements Routeable {
-	private final Map<String, BusImpl> nodes = new HashMap<String, BusImpl>();
+	private final Map<String, Bus> nodes = new HashMap<String, Bus>();
 	private BusMode mode;
 
-	public Cluster(String configLocations) {
-		this(configLocations, BusMode.CLIENT);
+	public Cluster(boolean supportCallback, String... config) {
+		this(BusMode.CLIENT, supportCallback, config);
 	}
 
-	public Cluster(String configLocations, BusMode mode) {
+	public Cluster(BusMode mode, boolean supportCallback, String... config) {
 		this.mode = mode;
-		if (configLocations == null) this.registerSingle(null);
-		else for (String conf : configLocations.split(","))
-			if (!"".equals(conf.trim())) this.registerSingle(conf);
+		Class<? extends Bus> busClass = supportCallback ? CallbackBusImpl.class : StandardBusImpl.class;
+		if (config == null || config.length == 0) this.registerSingle(null, busClass);
+		else for (String conf : config)
+			if (!"".equals(conf.trim())) this.registerSingle(conf, busClass);
 	}
 
-	public BusImpl[] servers() {
-		return nodes.values().toArray(new BusImpl[nodes.values().size()]);
+	public Bus[] servers() {
+		return nodes.values().toArray(new Bus[nodes.values().size()]);
 	}
 
 	@Override
@@ -35,13 +37,13 @@ public final class Cluster implements Routeable {
 	@Override
 	public String[] supportedTXs() {
 		Set<String> all = new HashSet<String>();
-		for (BusImpl impl : nodes.values())
+		for (Bus impl : nodes.values())
 			all.addAll(Arrays.asList(impl.supportedTXs()));
 		return all.toArray(new String[all.size()]);
 	}
 
-	private void registerSingle(String conf) {
-		BusImpl impl = (BusImpl) BusFactory.bus(conf, mode);
+	private void registerSingle(String conf, Class<? extends Bus> busClass) {
+		Bus impl = (Bus) BusFactory.bus(busClass, conf, mode);
 		nodes.put(impl.id(), impl);
 	}
 }
