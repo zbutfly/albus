@@ -37,7 +37,7 @@ import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
 
-abstract class BusBase implements Bus, InternalFacade {
+abstract class BasicBusImpl implements Bus, InternalFacade {
 	private static final long serialVersionUID = 3149085159221930900L;
 	private final String id;
 	private Config config;
@@ -47,14 +47,14 @@ abstract class BusBase implements Bus, InternalFacade {
 	private String[] supportedTXs;
 	private Mode mode;
 
-	public BusBase(Mode mode) {
+	public BasicBusImpl(Mode mode) {
 		this(null, mode);
 	}
 
-	public BusBase(String configLocation, Mode mode) {
+	public BasicBusImpl(String configLocation, Mode mode) {
 		this.mode = mode;
-		this.config = Buses.createConfiguration(configLocation, mode);
-		this.router = Buses.createRouter(this.config);
+		this.config = BusFactory.createConfiguration(configLocation, mode);
+		this.router = BusFactory.createRouter(this.config);
 		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter());
 		this.id = KeyUtils.objectId();
 
@@ -81,7 +81,7 @@ abstract class BusBase implements Bus, InternalFacade {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public MethodInfo invokeInfo(String code, String version) {
+	MethodInfo invokeInfo(String code, String version) {
 		InvokerBean ivkb = this.router.route(code, this.config.getInvokers());
 		if (null == ivkb) return null;
 		Invoker<?> ivk = InvokerFactory.getInvoker(ivkb, mode);

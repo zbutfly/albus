@@ -26,22 +26,21 @@ final class Cluster implements Routeable {
 	final private Mode mode;
 	final private Router router;
 
-	public Cluster(String[] configs, Class<? extends Router> clusterRouterClass, boolean supportCallback) {
-		this(configs, Mode.CLIENT, clusterRouterClass, supportCallback);
+	public Cluster(String[] configs, Class<? extends Router> clusterRouterClass) {
+		this(configs, Mode.CLIENT, clusterRouterClass);
 	}
 
-	public Cluster(String[] config, Mode mode, Class<? extends Router> clusterRouterClass, boolean supportCallback) {
+	public Cluster(String[] config, Mode mode, Class<? extends Router> clusterRouterClass) {
 		this.mode = mode;
-		Class<? extends Bus> busClass = supportCallback ? CallbackBusImpl.class : StandardBusImpl.class;
 		try {
 			this.router = clusterRouterClass.newInstance();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		if (config == null || config.length == 0) this.registerSingle(null, busClass);
+		if (config == null || config.length == 0) this.registerSingle(null);
 		else for (String conf : config)
-			if (!"".equals(conf.trim())) this.registerSingle(conf, busClass);
+			if (!"".equals(conf.trim())) this.registerSingle(conf);
 	}
 
 	public Bus[] servers() {
@@ -61,15 +60,15 @@ final class Cluster implements Routeable {
 		return all.toArray(new String[all.size()]);
 	}
 
-	private void registerSingle(String conf, Class<? extends Bus> busClass) {
-		Bus impl = (Bus) BusFactory.bus(busClass, conf, mode);
+	private void registerSingle(String conf) {
+		Bus impl = (Bus) BusFactory.create(conf, mode);
 		nodes.put(impl.id(), impl);
 	}
 
 	public void invoking(Invoking invoking) {
 		invoking.bus = router.route(invoking.tx.value(), servers());
 		if (null == invoking.bus) throw new RuntimeException("Server routing failure.");
-		MethodInfo pi = ((BusBase) invoking.bus).invokeInfo(invoking.tx.value(), invoking.tx.version());
+		MethodInfo pi = ((BasicBusImpl) invoking.bus).invokeInfo(invoking.tx.value(), invoking.tx.version());
 		if (null == pi) throw new RuntimeException("Server routing failure.");
 		invoking.parameterClasses = pi.parametersClasses();
 	}

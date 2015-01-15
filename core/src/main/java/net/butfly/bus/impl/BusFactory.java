@@ -1,60 +1,69 @@
 package net.butfly.bus.impl;
 
-import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.bus.Bus;
+import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.Bus.Mode;
+import net.butfly.bus.config.Config;
+import net.butfly.bus.config.ConfigLoader;
+import net.butfly.bus.config.loader.ClasspathConfigLoad;
+import net.butfly.bus.config.parser.XMLConfigParser;
+import net.butfly.bus.context.Context;
+import net.butfly.bus.policy.Router;
+import net.butfly.bus.policy.SimpleRouter;
+import net.butfly.bus.utils.Constants;
+import net.butfly.bus.Bus;
 import net.butfly.bus.CallbackBus;
-import net.butfly.bus.StandardBus;
 
 public final class BusFactory {
 	private BusFactory() {}
 
-	public static <T extends Bus> T bus(Class<T> type) {
-		return bus(type, Mode.CLIENT);
+	public static CallbackBus create() {
+		return create(null, Mode.CLIENT);
 	}
 
-	public static <T extends Bus> T bus(Class<T> type, String conf) {
-		return bus(type, conf, Mode.CLIENT);
+	public static CallbackBus create(String conf) {
+		return create(conf, Mode.CLIENT);
 	}
 
-	public static <T extends Bus> T bus(Class<T> type, Mode mode) {
-		return bus(type, null, mode);
+	public static CallbackBus create(Mode mode) {
+		return create(null, mode);
 	}
 
-	public static <T extends Bus> T bus(Class<T> type, String conf, Mode mode) {
-		return ReflectionUtils.safeConstruct(type, ReflectionUtils.parameters(String.class, conf),
-				ReflectionUtils.parameters(Mode.class, mode));
-	}
-
-	public static StandardBus standard() {
-		return standard(Mode.CLIENT);
-	}
-
-	public static StandardBus standard(String conf) {
-		return standard(conf, Mode.CLIENT);
-	}
-
-	public static StandardBus standard(Mode mode) {
-		return standard(null, mode);
-	}
-
-	public static StandardBus standard(String conf, Mode mode) {
-		return new StandardBusImpl(conf, mode);
-	}
-
-	public static CallbackBus callback() {
-		return callback(Mode.CLIENT);
-	}
-
-	public static CallbackBus callback(String conf) {
-		return callback(conf, Mode.CLIENT);
-	}
-
-	public static CallbackBus callback(Mode mode) {
-		return callback(null, mode);
-	}
-
-	public static CallbackBus callback(String conf, Mode mode) {
+	public static CallbackBus create(String conf, Mode mode) {
 		return new CallbackBusImpl(conf, mode);
+	}
+
+	static Config createConfiguration(String configLocation, Bus.Mode mode) {
+		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
+		Context.initialize(null);
+		if (config.debug()) Context.debug(true);
+		return config;
+	}
+
+	static Router createRouter(Config config) {
+		try {
+			return config.getRouter().getRouterClass().newInstance();
+		} catch (Throwable e) {
+			return new SimpleRouter();
+		}
+	}
+
+	private static ConfigLoader scanLoader(String configLocation) {
+		ConfigLoader l = new ClasspathConfigLoad(configLocation);
+		if (l.load() != null) return l;
+		// load default
+		l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_COMMON_CONFIG);
+		if (l.load() != null) return l;
+		l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_SERVER_CONFIG);
+		if (l.load() != null) return l;
+		l = new ClasspathConfigLoad(Constants.Configuration.DEFAULT_CLIENT_CONFIG);
+		if (l.load() != null) return l;
+		// internal config
+		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_COMMON_CONFIG);
+		if (l.load() != null) return l;
+		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_SERVER_CONFIG);
+		if (l.load() != null) return l;
+		l = new ClasspathConfigLoad(Constants.Configuration.INTERNAL_CLIENT_CONFIG);
+		if (l.load() != null) return l;
+		throw new SystemException(Constants.UserError.CONFIG_ERROR, "StandardBus configurations invalid: " + configLocation);
 	}
 }

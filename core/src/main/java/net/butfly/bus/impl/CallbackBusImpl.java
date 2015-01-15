@@ -11,7 +11,7 @@ import net.butfly.bus.TX;
 import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
 
-public class CallbackBusImpl extends BusBase implements CallbackBus {
+public class CallbackBusImpl extends StandardBusImpl implements CallbackBus {
 	private static final long serialVersionUID = -4952475921832979927L;
 
 	public CallbackBusImpl(Mode mode) {
@@ -44,7 +44,7 @@ public class CallbackBusImpl extends BusBase implements CallbackBus {
 	 * Does not start async here, <br>
 	 * but transfer it into InvokerFilter for handling.
 	 */
-	public <T> void invoke(final Request request, Task.Callback<T> callback, final Options... options) throws Exception {
+	<T> void invoke(final Request request, Task.Callback<T> callback, final Options... options) throws Exception {
 		check(request);
 		chain.execute(new RequestWrapper<T>(request, callback, options));
 	}

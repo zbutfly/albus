@@ -4,9 +4,9 @@ import java.lang.reflect.Proxy;
 
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.StandardBus;
 import net.butfly.bus.TX;
 import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import sun.misc.Signal;
 
-class StandardBusImpl extends BusBase implements StandardBus {
+class StandardBusImpl extends BasicBusImpl {
 	private static final long serialVersionUID = -4835302344711170159L;
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -43,7 +43,7 @@ class StandardBusImpl extends BusBase implements StandardBus {
 	 * @throws Exception
 	 * @throws Signal
 	 */
-	public <T> Response invoke(Request request, Options... options) throws Exception {
+	<T> Response invoke(Request request, Options... options) throws Exception {
 		check(request);
 		return chain.execute(new RequestWrapper<T>(request, options));
 	}
@@ -70,5 +70,21 @@ class StandardBusImpl extends BusBase implements StandardBus {
 		protected T invoke(Request request) throws Exception {
 			return (T) StandardBusImpl.this.invoke(request, options).result();
 		}
+	}
+
+	@Override
+	public <T, F extends Facade> F service(Class<F> facadeClass, Callback<T> callback, Options... options) throws Exception {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T> void invoke(String code, Object[] arguments, Callback<T> callback, Options... options) throws Exception {
+		throw new UnsupportedOperationException();
+
+	}
+
+	@Override
+	public <T> void invoke(TX tx, Object[] arguments, Callback<T> callback, Options... options) throws Exception {
+		throw new UnsupportedOperationException();
 	}
 }

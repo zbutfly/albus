@@ -48,7 +48,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		logger.trace("Servlet starting...");
 		String paramConfig = this.getInitParameter("config");
 		this.cluster = new Cluster(null == paramConfig ? null : paramConfig.split(","), Bus.Mode.SERVER,
-				this.parseRouterClasses(this.getInitParameter("router")), false);
+				this.parseRouterClasses(this.getInitParameter("router")));
 	}
 
 	@SuppressWarnings("unchecked")
