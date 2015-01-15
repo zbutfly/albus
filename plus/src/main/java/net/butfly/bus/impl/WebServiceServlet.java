@@ -2,36 +2,36 @@ package net.butfly.bus.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.ExceptionUtils;
-import net.butfly.albacore.utils.ReflectionUtils;
-import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Bus;
-import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.TX;
 import net.butfly.bus.context.BusHttpHeaders;
-import net.butfly.bus.context.Context;
 import net.butfly.bus.context.ResponseWrapper;
+import net.butfly.bus.invoker.Invoking;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
-import net.butfly.bus.serialize.HTTPStreamingSupport;
+import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
+import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.TXUtils;
 
 import org.apache.commons.io.IOUtils;
@@ -41,34 +41,45 @@ import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebServiceServlet extends BusServlet {
+public class WebServiceServlet extends BusServlet implements Container<Servlet> {
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
-	private Cluster cluster;
-	private Router router;
 	private Map<String, Serializer> serializerMap;
+	private Cluster cluster;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		logger.trace("Servlet starting...");
-		String paramConfig = this.getInitParameter("config-file");
-		String[] configs = null == paramConfig ? null : paramConfig.split(",");
-		cluster = new Cluster(BusMode.SERVER, false, configs);
+		String paramConfig = this.getInitParameter("config");
+		this.cluster = new Cluster(null == paramConfig ? null : paramConfig.split(","), Bus.Mode.SERVER,
+				this.parseRouterClasses(this.getInitParameter("router")), false);
+		this.serializerMap = Serializers.buildDefaultSerializerMap(this.parseSerializerClasses());
+	}
+
+	@SuppressWarnings("unchecked")
+	private Class<? extends Router> parseRouterClasses(String className) {
+		if (null == className) return SimpleRouter.class;
 		try {
-			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
-		} catch (Throwable th) {
-			router = new SimpleRouter();
+			return (Class<? extends Router>) Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			logger.warn("Router class invalid: " + className + ", default router used.", e);
+			return SimpleRouter.class;
 		}
-		String serializerClassnameList = this.getInitParameter("serializers");
-		if (null == serializerClassnameList) this.createDefaultSerializerMap();
-		else for (String cn : serializerClassnameList.split(","))
+	}
+
+	@SuppressWarnings("unchecked")
+	private Class<? extends Serializer>[] parseSerializerClasses() {
+		String classNames = this.getInitParameter("serializers");
+		if (null == classNames) return new Class[] { JSONSerializer.class };
+		Set<Class<? extends Serializer>> r = new HashSet<Class<? extends Serializer>>();
+		for (String className : classNames.split(","))
 			try {
-				Serializer inst = (Serializer) Thread.currentThread().getContextClassLoader().loadClass(cn).newInstance();
-				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
-					this.serializerMap.put(ct.getMimeType(), inst);
-			} catch (Exception e) {}
-		logger.info("Bus servlet inited.");
+				r.add((Class<? extends Serializer>) Class.forName(className));
+			} catch (ClassNotFoundException e) {
+				logger.warn("Serializer class invalid: " + className + ", default serializer used.", e);
+			}
+		return (Class<? extends Serializer>[]) r.toArray();
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -80,36 +91,26 @@ public class WebServiceServlet extends BusServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
 			IOException {
-		final Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
-		final HeaderInfo info = this.header(request, serializer);
-		if (serializer == null) throw new ServletException("Unmapped content type: " + request.getContentType());
-		if (!((serializer instanceof HTTPStreamingSupport) && ((HTTPStreamingSupport) serializer).supportHTTPStream()))
-			throw new ServletException("Unsupported content type: " + request.getContentType());
-		response.setStatus(HttpStatus.SC_OK);
 		// XXX: goof off
 		this.doOptions(request, response);
+		response.setStatus(HttpStatus.SC_OK);
 
-		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-		final Bus bus = router.route(info.tx.value(), (Bus[]) cluster.servers());
-		if (null == bus) throw new SystemException("", "Server routing failure.");
-		MethodInfo pi = ((Bus) bus).invokeInfo(info.tx.value(), info.tx.version());
-		if (null == pi) throw new SystemException("", "Server routing failure.");
-		Object[] arguments = readFromBody(serializer, request.getInputStream(), pi.parametersClasses());
-		final Request req = new Request(info.tx, info.context, arguments);
-		Context.initialize(Context.deserialize(req.context()));
+		ContentType reqContentType = ContentType.parse(request.getContentType());
 
-		Response resp;
-		try {
-			resp = ((StandardBusImpl) bus).invoke(req, info.options);
-		} catch (Exception e) {
-			e = ExceptionUtils.unwrap(e);
-			logger.error(e.getMessage(), e);
-			throw new ServletException(e);
-		}
+		// TODO: use reqContentType.getCharset() to construct serializer.
+		final Serializer serializer = this.serializerMap.get(reqContentType.getMimeType());
+		if (serializer == null || Arrays.binarySearch(serializer.getSupportedMimeTypes(), reqContentType.getMimeType()) < 0)
+			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
+		final ContentType respContentType = ContentType.create(serializer.getDefaultMimeType(), reqContentType.getCharset());
+		final Invoking invoking = this.header(request, serializer);
+		cluster.invoking(invoking);
+		this.readFromBody(invoking, request.getInputStream(), serializer, reqContentType.getCharset());
+
+		Response resp = cluster.invoke(invoking);
 		response.setHeader(HttpHeaders.ETAG, resp.id());
 		if (resp.context() != null) for (Entry<String, String> ctx : resp.context().entrySet())
 			response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-		byte[] data = serializer.serialize(ResponseWrapper.wrap(resp, info.supportClass));
+		byte[] data = serializer.serialize(ResponseWrapper.wrap(resp, invoking.supportClass));
 		logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
 		response.getOutputStream().write(data);
 		response.getOutputStream().flush();
@@ -117,36 +118,32 @@ public class WebServiceServlet extends BusServlet {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object[] readFromBody(Serializer serializer, InputStream is, Class<?>[] parameterTypes) throws ServletException,
-			IOException {
+	protected void readFromBody(Invoking invoking, InputStream is, Serializer serializer, Charset httpCharset)
+			throws ServletException, IOException {
 		byte[] data = IOUtils.toByteArray(is);
-		logger.trace("HTTP Request RECV <== "
-				+ new String(data, ((HTTPStreamingSupport) serializer).getOutputContentType().getCharset()));
-		Object r = serializer.deserialize(data, parameterTypes);
-		if (r == null) return null;
-		if (r.getClass().isArray()) return (Object[]) r;
-		if (Collection.class.isAssignableFrom(r.getClass())) {
+		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== " + new String(data, httpCharset));
+		Object r = serializer.deserialize(data, invoking.parameterClasses);
+		if (r == null) invoking.parameters = new Object[0];
+		else if (r.getClass().isArray()) invoking.parameters = (Object[]) r;
+		else if (Collection.class.isAssignableFrom(r.getClass())) {
 			Collection c = Collection.class.cast(r);
-			return c.toArray(new Object[c.size()]);
-		}
-		if (Iterable.class.isAssignableFrom(r.getClass())) {
+			invoking.parameters = c.toArray(new Object[c.size()]);
+		} else if (Iterable.class.isAssignableFrom(r.getClass())) {
 			Iterable i = Iterable.class.cast(r);
 			List l = new ArrayList();
 			for (Iterator it = i.iterator(); it.hasNext();)
 				l.add(it.next());
-			return l.toArray(new Object[l.size()]);
-		}
-		if (Enumeration.class.isAssignableFrom(r.getClass())) {
+			invoking.parameters = l.toArray(new Object[l.size()]);
+		} else if (Enumeration.class.isAssignableFrom(r.getClass())) {
 			List l = new ArrayList();
 			for (Enumeration e = Enumeration.class.cast(r); e.hasMoreElements();)
 				l.add(e.nextElement());
-			return l.toArray(new Object[l.size()]);
-		}
-		return new Object[] { r };
+			invoking.parameters = l.toArray(new Object[l.size()]);
+		} else invoking.parameters = new Object[] { r };
 	}
 
-	protected HeaderInfo header(HttpServletRequest request, Serializer serializer) throws ServletException {
-		HeaderInfo info = new HeaderInfo();
+	protected Invoking header(HttpServletRequest request, Serializer serializer) throws ServletException {
+		Invoking info = new Invoking();
 		info.context = new HashMap<String, String>();
 		String path = request.getPathInfo();
 		String[] reses = null != path && path.length() > 0 ? path.substring(1).split("/") : new String[0];
@@ -178,21 +175,4 @@ public class WebServiceServlet extends BusServlet {
 		return info;
 	}
 
-	protected static class HeaderInfo {
-		TX tx;
-		boolean supportClass;
-		Options options;
-		Map<String, String> context;
-	}
-
-	private void createDefaultSerializerMap() {
-		this.serializerMap = new HashMap<String, Serializer>();
-		for (Class<? extends Serializer> clazz : ReflectionUtils.getSubClasses(Serializer.class, "")) {
-			try {
-				Serializer inst = clazz.newInstance();
-				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
-					this.serializerMap.put(ct.getMimeType(), inst);
-			} catch (Exception e) {}
-		}
-	}
 }

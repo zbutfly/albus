@@ -105,7 +105,7 @@ public abstract class Context implements Map<String, Object> {
 
 	/****************************************************/
 
-	public enum Mode {
+	private enum Mode {
 		ReplacingByCleaning, MergingWithNew, MergingOnlyAbsent;
 	}
 

@@ -11,14 +11,14 @@ import net.butfly.bus.TX;
 import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
 
-public class CallbackBusImpl extends AbstractBusImpl implements CallbackBus {
+public class CallbackBusImpl extends BusBase implements CallbackBus {
 	private static final long serialVersionUID = -4952475921832979927L;
 
-	public CallbackBusImpl(BusMode mode) {
+	public CallbackBusImpl(Mode mode) {
 		super(mode);
 	}
 
-	public CallbackBusImpl(String configLocation, BusMode mode) {
+	public CallbackBusImpl(String configLocation, Mode mode) {
 		super(configLocation, mode);
 	}
 

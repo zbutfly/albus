@@ -1,4 +1,4 @@
-package net.butfly.bus.deploy;
+package net.butfly.bus.start;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
@@ -11,6 +11,7 @@ import net.butfly.albacore.utils.JNDIUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.impl.BusServlet;
+import net.butfly.bus.impl.ServletInitParams;
 import net.butfly.bus.impl.WebServiceServlet;
 
 import org.apache.commons.cli.CommandLine;
@@ -111,7 +112,7 @@ public class JettyStarter implements Runnable {
 			ServletHolder servlet = new ServletHolder(conf.servletClass);
 			servlet.setDisplayName("BusServlet[" + null == cfg ? "DEFAULT" : cfg + "]");
 			servlet.setInitOrder(0);
-			if (null != cfg) servlet.setInitParameter("config-file", cfg);
+			if (null != cfg) servlet.setInitParameter("config", cfg);
 			for (Field f : conf.servletClass.getDeclaredFields()) {
 				Object a = f.getAnnotation(ServletInitParams.class);
 				if (null != a && Map.class.isAssignableFrom(f.getType()) && Modifier.isStatic(f.getModifiers())) {
@@ -265,7 +266,7 @@ public class JettyStarter implements Runnable {
 				this.printWrapped(f, pw, "bus.server.base",
 						"Static resource root for bus server, such as index.html (default none)");
 				this.printWrapped(f, pw, "bus.servlet.class",
-						"Class name for the servlet of container of bus deployment (default net.butfly.bus.deploy.WebServiceServlet)");
+						"Class name for the servlet of container of bus deployment (default net.butfly.bus.start.WebServiceServlet)");
 				pw.flush();
 				return null;
 			} else return cmd;

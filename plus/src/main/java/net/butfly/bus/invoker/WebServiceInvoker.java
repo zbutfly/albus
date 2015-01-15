@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
@@ -17,7 +16,6 @@ import net.butfly.bus.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.ResponseWrapper;
-import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.JSONSerializer;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
@@ -28,6 +26,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Charsets;
 
 public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerConfig> implements
 		Invoker<WebServiceInvokerConfig> {
@@ -43,13 +43,10 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		this.path = config.getPath();
 		this.timeout = config.getTimeout() > 0 ? config.getTimeout() : DEFAULT_TIMEOUT;
 		try {
-			this.serializer = (Serializer) Class.forName(config.getSerializer()).getConstructor(String[].class)
-					.newInstance(config.getTypeTranslators());
+			this.serializer = (Serializer) Class.forName(config.getSerializer()).newInstance();
 		} catch (Exception e) {
 			this.serializer = new JSONSerializer();
 		}
-		if (!(this.serializer instanceof HTTPStreamingSupport) || !((HTTPStreamingSupport) this.serializer).supportHTTPStream())
-			throw new SystemException("", "Serializer should support HTTP streaming mode.");
 		if (this.serializer instanceof SerializerFactorySupport)
 			try {
 				((SerializerFactorySupport) this.serializer).addFactoriesByClassName(config.getTypeTranslators());
@@ -84,7 +81,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			Map<String, String> headers = header(request, remoteOptions);
 			byte[] data = serializer.serialize(request.arguments());
 			InputStream http = null;
-			ContentType contentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
+			ContentType contentType = ContentType.create(serializer.getDefaultMimeType(), Charsets.UTF_8);
 			/**
 			 * <pre>
 			 * TODO: handle continuous, move to async proj.

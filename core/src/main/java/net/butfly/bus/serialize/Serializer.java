@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 public interface Serializer {
 	byte[] serialize(Object obj);
@@ -21,4 +22,12 @@ public interface Serializer {
 	<T> T fromString(String str, Type... types);
 
 	String asString(Object obj);
+
+	static final String DEFAULT_CONTENT_TYPE = "text/plain";
+
+	String[] getSupportedMimeTypes();
+
+	String getDefaultMimeType();
+
+	Charset getCharset();
 }

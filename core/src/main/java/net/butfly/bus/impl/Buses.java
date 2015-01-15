@@ -2,6 +2,7 @@ package net.butfly.bus.impl;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.UtilsBase;
+import net.butfly.bus.Bus;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;
@@ -11,8 +12,8 @@ import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.utils.Constants;
 
-final class BusUtils extends UtilsBase {
-	static Config createConfiguration(String configLocation, BusMode mode) {
+final class Buses extends UtilsBase {
+	static Config createConfiguration(String configLocation, Bus.Mode mode) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
 		Context.initialize(null);
 		return config;

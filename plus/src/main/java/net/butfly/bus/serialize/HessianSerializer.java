@@ -5,8 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import org.apache.http.entity.ContentType;
-
 import com.caucho.hessian.io.Hessian2StreamingInput;
 import com.caucho.hessian.io.Hessian2StreamingOutput;
 import com.caucho.hessian.io.SerializerFactory;
@@ -54,12 +52,7 @@ public class HessianSerializer extends HessianSupport {
 	}
 
 	@Override
-	public boolean supportHTTPStream() {
-		return true;
-	}
-
-	@Override
-	public ContentType[] getSupportedContentTypes() {
-		return new ContentType[] { HessianSupport.HESSIAN_CONTENT_TYPE };
+	public String[] getSupportedMimeTypes() {
+		return new String[] { HessianSupport.HESSIAN_CONTENT_TYPE };
 	}
 }

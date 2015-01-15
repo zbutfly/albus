@@ -1,4 +1,4 @@
-package net.butfly.bus.deploy;
+package net.butfly.bus.impl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

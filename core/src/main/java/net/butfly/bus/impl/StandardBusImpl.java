@@ -16,15 +16,15 @@ import org.slf4j.LoggerFactory;
 
 import sun.misc.Signal;
 
-class StandardBusImpl extends AbstractBusImpl implements StandardBus {
+class StandardBusImpl extends BusBase implements StandardBus {
 	private static final long serialVersionUID = -4835302344711170159L;
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	public StandardBusImpl(BusMode mode) {
+	public StandardBusImpl(Mode mode) {
 		super(mode);
 	}
 
-	public StandardBusImpl(String configLocation, BusMode mode) {
+	public StandardBusImpl(String configLocation, Mode mode) {
 		super(configLocation, mode);
 	}
 

@@ -37,7 +37,7 @@ import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
 
-public class AbstractBusImpl implements Bus, InternalFacade {
+abstract class BusBase implements Bus, InternalFacade {
 	private static final long serialVersionUID = 3149085159221930900L;
 	private final String id;
 	private Config config;
@@ -45,16 +45,16 @@ public class AbstractBusImpl implements Bus, InternalFacade {
 	protected FilterChain chain;
 
 	private String[] supportedTXs;
-	private BusMode mode;
+	private Mode mode;
 
-	public AbstractBusImpl(BusMode mode) {
+	public BusBase(Mode mode) {
 		this(null, mode);
 	}
 
-	public AbstractBusImpl(String configLocation, BusMode mode) {
+	public BusBase(String configLocation, Mode mode) {
 		this.mode = mode;
-		this.config = BusUtils.createConfiguration(configLocation, mode);
-		this.router = BusUtils.createRouter(this.config);
+		this.config = Buses.createConfiguration(configLocation, mode);
+		this.router = Buses.createRouter(this.config);
 		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter());
 		this.id = KeyUtils.objectId();
 
