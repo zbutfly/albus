@@ -17,10 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.ExceptionUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -32,7 +32,6 @@ import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.serialize.HTTPStreamingSupport;
 import net.butfly.bus.serialize.Serializer;
-import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.TXUtils;
 
 import org.apache.commons.io.IOUtils;
@@ -53,11 +52,9 @@ public class WebServiceServlet extends BusServlet {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		logger.trace("Servlet starting...");
-		String paramCallback = this.getInitParameter("callback");
-		if (null == paramCallback) paramCallback = System.getProperty("bus.callback", Boolean.toString(false));
 		String paramConfig = this.getInitParameter("config-file");
 		String[] configs = null == paramConfig ? null : paramConfig.split(",");
-		cluster = new Cluster(BusMode.SERVER, Boolean.parseBoolean(paramCallback), configs);
+		cluster = new Cluster(BusMode.SERVER, false, configs);
 		try {
 			router = (Router) Class.forName(this.getInitParameter("router-class")).newInstance();
 		} catch (Throwable th) {
@@ -71,7 +68,7 @@ public class WebServiceServlet extends BusServlet {
 				for (ContentType ct : ((HTTPStreamingSupport) inst).getSupportedContentTypes())
 					this.serializerMap.put(ct.getMimeType(), inst);
 			} catch (Exception e) {}
-		logger.info("StandardBus started.");
+		logger.info("Bus servlet inited.");
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -81,7 +78,8 @@ public class WebServiceServlet extends BusServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
+			IOException {
 		final Serializer serializer = this.serializerMap.get(ContentType.parse(request.getContentType()).getMimeType());
 		final HeaderInfo info = this.header(request, serializer);
 		if (serializer == null) throw new ServletException("Unmapped content type: " + request.getContentType());
@@ -90,39 +88,32 @@ public class WebServiceServlet extends BusServlet {
 		response.setStatus(HttpStatus.SC_OK);
 		// XXX: goof off
 		this.doOptions(request, response);
+
 		final ContentType respContentType = ((HTTPStreamingSupport) serializer).getOutputContentType();
-		final Bus bus = this.router.route(info.tx.value(), (Bus[]) cluster.servers());
+		final Bus bus = router.route(info.tx.value(), (Bus[]) cluster.servers());
 		if (null == bus) throw new SystemException("", "Server routing failure.");
 		MethodInfo pi = ((Bus) bus).invokeInfo(info.tx.value(), info.tx.version());
 		if (null == pi) throw new SystemException("", "Server routing failure.");
-		Object[] arguments = this.readFromBody(serializer, request.getInputStream(), pi.parametersClasses());
+		Object[] arguments = readFromBody(serializer, request.getInputStream(), pi.parametersClasses());
 		final Request req = new Request(info.tx, info.context, arguments);
-		Task.Callback<Response> callback = new Task.Callback<Response>() {
-			@Override
-			public void callback(Response r) throws Exception {
-				response.setHeader(HttpHeaders.ETAG, r.id());
-				if (r.context() != null) for (Entry<String, String> ctx : r.context().entrySet())
-					response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-				byte[] data = serializer.serialize(ResponseWrapper.wrap(r, info.supportClass));
-				logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
-				response.getOutputStream().write(data);
-				response.getOutputStream().flush();
-				response.flushBuffer();
-			}
-		};
-		Task.Callable<Response> task = new Task.Callable<Response>() {
-			@Override
-			public Response call() throws Exception {
-				return ((Bus) bus).invoke(req, info.options);
-			}
-		};
 		Context.initialize(Context.deserialize(req.context()));
+
+		Response resp;
 		try {
-			new BusTask<Response>(task, callback).execute();
+			resp = ((StandardBusImpl) bus).invoke(req, info.options);
 		} catch (Exception e) {
+			e = ExceptionUtils.unwrap(e);
+			logger.error(e.getMessage(), e);
 			throw new ServletException(e);
 		}
-		logger.info("Servlet releasing.");
+		response.setHeader(HttpHeaders.ETAG, resp.id());
+		if (resp.context() != null) for (Entry<String, String> ctx : resp.context().entrySet())
+			response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
+		byte[] data = serializer.serialize(ResponseWrapper.wrap(resp, info.supportClass));
+		logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
+		response.getOutputStream().write(data);
+		response.getOutputStream().flush();
+		response.flushBuffer();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

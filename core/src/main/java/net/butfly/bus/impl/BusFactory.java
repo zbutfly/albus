@@ -21,7 +21,8 @@ public final class BusFactory {
 	}
 
 	public static <T extends Bus> T bus(Class<T> type, String conf, BusMode mode) {
-		return ReflectionUtils.safeConstruct(type, ReflectionUtils.parameters(String.class, conf));
+		return ReflectionUtils.safeConstruct(type, ReflectionUtils.parameters(String.class, conf),
+				ReflectionUtils.parameters(BusMode.class, mode));
 	}
 
 	public static StandardBus standard() {
