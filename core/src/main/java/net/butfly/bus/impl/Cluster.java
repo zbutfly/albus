@@ -69,7 +69,7 @@ final class Cluster implements Routeable {
 	public void invoking(Invoking invoking) {
 		invoking.bus = router.route(invoking.tx.value(), servers());
 		if (null == invoking.bus) throw new RuntimeException("Server routing failure.");
-		MethodInfo pi = invoking.bus.invokeInfo(invoking.tx.value(), invoking.tx.version());
+		MethodInfo pi = ((BusBase) invoking.bus).invokeInfo(invoking.tx.value(), invoking.tx.version());
 		if (null == pi) throw new RuntimeException("Server routing failure.");
 		invoking.parameterClasses = pi.parametersClasses();
 	}

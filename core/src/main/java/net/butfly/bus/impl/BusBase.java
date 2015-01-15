@@ -81,7 +81,6 @@ abstract class BusBase implements Bus, InternalFacade {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@Override
 	public MethodInfo invokeInfo(String code, String version) {
 		InvokerBean ivkb = this.router.route(code, this.config.getInvokers());
 		if (null == ivkb) return null;
