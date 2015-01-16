@@ -12,6 +12,7 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -23,7 +24,7 @@ public class HttpUrlHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
+	public HandlerResponse post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
 			throws IOException {
 		this.logRequest(url, headers, new String(data, contentType.getCharset()), streaming);
 		URL u;
@@ -54,7 +55,7 @@ public class HttpUrlHandler extends HttpHandler {
 		statusCode = conn.getResponseCode();
 		if (statusCode != 200) throw new SystemException("", "Http resposne status code: " + statusCode);
 		InputStream resp = conn.getInputStream();
-		if (!"deflate".equals(conn.getContentEncoding())) return resp;
-		return new InflaterInputStream(resp, new Inflater(true));
+		if ("deflate".equals(conn.getContentEncoding())) resp = new InflaterInputStream(resp, new Inflater(true));
+		return new HandlerResponse(conn.getHeaderFields(), resp);
 	}
 }

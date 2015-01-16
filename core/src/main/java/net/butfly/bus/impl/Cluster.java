@@ -9,11 +9,10 @@ import java.util.Set;
 import net.butfly.albacore.utils.ExceptionUtils;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.bus.Bus;
-import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.invoker.Invoking;
+import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.policy.Router;
 
@@ -26,18 +25,9 @@ final class Cluster implements Routeable {
 	final private Mode mode;
 	final private Router router;
 
-	public Cluster(String[] configs, Class<? extends Router> clusterRouterClass) {
-		this(configs, Mode.CLIENT, clusterRouterClass);
-	}
-
-	public Cluster(String[] config, Mode mode, Class<? extends Router> clusterRouterClass) {
+	Cluster(String[] config, Mode mode, Router router) {
 		this.mode = mode;
-		try {
-			this.router = clusterRouterClass.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
+		this.router = router;
 		if (config == null || config.length == 0) this.registerSingle(null);
 		else for (String conf : config)
 			if (!"".equals(conf.trim())) this.registerSingle(conf);

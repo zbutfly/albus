@@ -1,38 +1,88 @@
 package net.butfly.bus.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Bus.Mode;
+import net.butfly.albacore.utils.ExceptionUtils;
+import net.butfly.bus.CallbackBus;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
+import net.butfly.bus.config.bean.invoker.InvokerBean;
+import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;
 import net.butfly.bus.config.parser.XMLConfigParser;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.Bus;
-import net.butfly.bus.CallbackBus;
 
 public final class BusFactory {
 	private BusFactory() {}
 
-	public static CallbackBus create() {
-		return create(null, Mode.CLIENT);
+	enum Mode {
+		SERVER, CLIENT;
 	}
 
-	public static CallbackBus create(String conf) {
-		return create(conf, Mode.CLIENT);
-	}
-
-	public static CallbackBus create(Mode mode) {
-		return create(null, mode);
-	}
-
-	public static CallbackBus create(String conf, Mode mode) {
+	static CallbackBus create(String conf, Mode mode) {
 		return new CallbackBusImpl(conf, mode);
 	}
 
-	static Config createConfiguration(String configLocation, Bus.Mode mode) {
+	public static CallbackBus client() {
+		return create(null, Mode.CLIENT);
+	}
+
+	public static CallbackBus client(String conf) {
+		return create(conf, Mode.CLIENT);
+	}
+
+	public static CallbackBus server() {
+		return create(null, Mode.SERVER);
+	}
+
+	public static CallbackBus server(String conf) {
+		return create(conf, Mode.SERVER);
+	}
+
+	static Cluster cluster(String[] config, Class<? extends Router> routerClass, Mode mode) {
+		try {
+			return new Cluster(config, Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance());
+		} catch (Exception e) {
+			throw ExceptionUtils.wrap(e);
+		}
+
+	}
+
+	public static Cluster serverCluster(String[] config) {
+		return cluster(config, null, Mode.SERVER);
+	}
+
+	public static Cluster serverCluster(String[] config, Class<? extends Router> routerClass) {
+		return cluster(config, routerClass, Mode.SERVER);
+	}
+
+	@SuppressWarnings("unchecked")
+	static Cluster serverCluster(String[] config, String routerClassName) throws ClassNotFoundException {
+		return cluster(config, null == routerClassName ? null : (Class<? extends Router>) Class.forName(routerClassName),
+				Mode.SERVER);
+	}
+
+	public static Cluster clientCluster(String[] config) {
+		return cluster(config, null, Mode.CLIENT);
+	}
+
+	public static Cluster clientCluster(String[] config, Class<? extends Router> routerClass) {
+		return cluster(config, routerClass, Mode.CLIENT);
+	}
+
+	@SuppressWarnings("unchecked")
+	static Cluster clientCluster(String[] config, String routerClassName) throws ClassNotFoundException {
+		return cluster(config, null == routerClassName ? null : (Class<? extends Router>) Class.forName(routerClassName),
+				Mode.SERVER);
+	}
+
+	static Config createConfiguration(String configLocation, Mode mode) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
 		Context.initialize(null);
 		if (config.debug()) Context.debug(true);
@@ -44,6 +94,26 @@ public final class BusFactory {
 			return config.getRouter().getRouterClass().newInstance();
 		} catch (Throwable e) {
 			return new SimpleRouter();
+		}
+	}
+
+	private static Map<String, Invoker<?>> INVOKER_POOL = new HashMap<String, Invoker<?>>();
+
+	@SuppressWarnings("unchecked")
+	static <C extends InvokerConfigBean> Invoker<C> getInvoker(InvokerBean bean, Mode mode) {
+		Class<? extends Invoker<C>> clazz = (Class<? extends Invoker<C>>) bean.type();
+		C config = (C) bean.config();
+		String key = bean.id();
+		if (null != config) key = key + ":" + config.toString();
+		if (INVOKER_POOL.containsKey(key)) return (Invoker<C>) INVOKER_POOL.get(key);
+		try {
+			Invoker<C> invoker = clazz.newInstance();
+			invoker.initialize(config, bean.getToken());
+			INVOKER_POOL.put(key, invoker);
+			return invoker;
+		} catch (Throwable e) {
+			throw new SystemException(Constants.UserError.NODE_CONFIG, "Invoker " + clazz.getName()
+					+ " initialization failed for invalid Invoker instance.", e);
 		}
 	}
 

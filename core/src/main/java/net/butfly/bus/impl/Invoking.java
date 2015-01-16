@@ -1,4 +1,4 @@
-package net.butfly.bus.invoker;
+package net.butfly.bus.impl;
 
 import java.util.Map;
 
@@ -6,7 +6,7 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Bus;
 import net.butfly.bus.TX;
 
-public final class Invoking {
+final class Invoking {
 	public TX tx;
 	public boolean supportClass;
 	public Options options;

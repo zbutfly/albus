@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.XMLUtils;
 import net.butfly.bus.Token;
@@ -18,7 +19,6 @@ import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.Filter;
 import net.butfly.bus.invoker.Invoker;
-import net.butfly.bus.invoker.InvokerFactory;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
 
@@ -73,7 +73,7 @@ public class XMLConfigParser extends ConfigParser {
 			if (null == className || "".equals(className))
 				throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
 			Class<? extends Invoker<?>> clazz = classForName(className);
-			InvokerConfigBean config = InvokerFactory.getConfig(clazz);
+			InvokerConfigBean config = getInvokerConfig(clazz);
 			if (null != config) XMLUtils.setPropsByNode(config, element);
 			logger.debug("Node [" + className + "] enabled.");
 			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
@@ -164,6 +164,17 @@ public class XMLConfigParser extends ConfigParser {
 		} catch (Throwable th) {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR,
 					"Route setting error: can't parse route/policy class name.", th);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static InvokerConfigBean getInvokerConfig(Class<? extends Invoker<?>> invokerClass) {
+		Class<? extends InvokerConfigBean> configClass = (Class<? extends InvokerConfigBean>) GenericUtils
+				.getGenericParamClass(invokerClass, Invoker.class, "C");
+		try {
+			return configClass.newInstance();
+		} catch (Throwable e) {
+			return null;
 		}
 	}
 }

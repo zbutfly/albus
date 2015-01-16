@@ -1,11 +1,11 @@
 package net.butfly.bus.utils.http;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -23,7 +23,7 @@ public class HttpClientHandler extends HttpHandler {
 	}
 
 	@Override
-	public InputStream post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
+	public HandlerResponse post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
 			throws IOException {
 		HttpPost postReq = new HttpPost(url);
 
@@ -40,7 +40,8 @@ public class HttpClientHandler extends HttpHandler {
 		try {
 			if (postResp.getStatusLine().getStatusCode() != 200)
 				throw new SystemException("", "HTTP failure: " + postResp.getStatusLine().getReasonPhrase());
-			return postResp.getEntity().getContent();
+			// postResp.getAllHeaders()
+			return new HandlerResponse(null, postResp.getEntity().getContent());
 		} finally {
 			postResp.close();
 		}

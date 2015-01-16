@@ -4,7 +4,7 @@
 //
 //import javax.servlet.Servlet;
 //
-//import net.butfly.bus.Bus.Mode;
+//import net.butfly.bus.Mode;
 //import net.butfly.bus.policy.Router;
 //import net.butfly.bus.serialize.Serializer;
 //

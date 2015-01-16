@@ -29,7 +29,7 @@ public abstract class BusTest {
 		} else {
 			logger.info("Local test: bus instance starting.");
 		}
-		client = BusFactory.create(this.getClientConfigurationForType(remote));
+		client = BusFactory.client(this.getClientConfigurationForType(remote));
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {

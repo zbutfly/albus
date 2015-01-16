@@ -8,13 +8,12 @@ import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sun.misc.Signal;
 
 class StandardBusImpl extends BasicBusImpl {
 	private static final long serialVersionUID = -4835302344711170159L;
@@ -41,7 +40,6 @@ class StandardBusImpl extends BasicBusImpl {
 	 * @param options
 	 * @return
 	 * @throws Exception
-	 * @throws Signal
 	 */
 	<T> Response invoke(Request request, Options... options) throws Exception {
 		check(request);

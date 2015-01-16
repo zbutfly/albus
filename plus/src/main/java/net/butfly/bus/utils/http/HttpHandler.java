@@ -1,8 +1,9 @@
 package net.butfly.bus.utils.http;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
+
+import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
 
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
@@ -13,12 +14,14 @@ public abstract class HttpHandler {
 	protected int connTimeout;
 	protected int readTimeout;
 
+	
+
 	public HttpHandler(int connTimeout, int readTimeout) {
 		this.connTimeout = connTimeout >= 0 ? connTimeout : 0;
 		this.readTimeout = readTimeout >= 0 ? readTimeout : 0;
 	}
 
-	public abstract InputStream post(String url, Map<String, String> headers, byte[] data, ContentType contentType,
+	public abstract HandlerResponse post(String url, Map<String, String> headers, byte[] data, ContentType contentType,
 			boolean streaming) throws IOException;
 
 	protected void logRequest(String url, Map<String, String> headers, String data, boolean streaming) {
