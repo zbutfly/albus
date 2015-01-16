@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.Inflater;
@@ -13,6 +15,7 @@ import java.util.zip.InflaterInputStream;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
+import net.butfly.bus.serialize.Serializers;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -24,9 +27,9 @@ public class HttpUrlHandler extends HttpHandler {
 	}
 
 	@Override
-	public HandlerResponse post(String url, Map<String, String> headers, byte[] data, ContentType contentType, boolean streaming)
-			throws IOException {
-		this.logRequest(url, headers, new String(data, contentType.getCharset()), streaming);
+	public HandlerResponse post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
+			boolean streaming) throws IOException {
+		logRequest(url, headers, data, charset, streaming);
 		URL u;
 		try {
 			u = new URL(url);
@@ -44,7 +47,7 @@ public class HttpUrlHandler extends HttpHandler {
 		if (conn.getRequestProperty(HttpHeaders.ACCEPT_ENCODING) == null)
 			conn.setRequestProperty(HttpHeaders.ACCEPT_ENCODING, "deflate");
 		if (conn.getRequestProperty(HttpHeaders.CONTENT_TYPE) == null)
-			conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, contentType.toString());
+			conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, ContentType.create(mimeType, charset).toString());
 
 		int statusCode = 500;
 		OutputStream req = conn.getOutputStream();
@@ -56,6 +59,18 @@ public class HttpUrlHandler extends HttpHandler {
 		if (statusCode != 200) throw new SystemException("", "Http resposne status code: " + statusCode);
 		InputStream resp = conn.getInputStream();
 		if ("deflate".equals(conn.getContentEncoding())) resp = new InflaterInputStream(resp, new Inflater(true));
-		return new HandlerResponse(conn.getHeaderFields(), resp);
+		byte[] recv = IOUtils.toByteArray(resp);
+		Map<String, List<String>> recvHeaders = conn.getHeaderFields();
+		if (logger.isTraceEnabled()) {
+			logger.trace("HTTP Response RECV <== HEADERS: " + recvHeaders);
+			logger.trace("HTTP Response RECV <== CONTENT[" + recv.length + "]: " + new String(recv, contentType(conn)));
+		}
+		return new HandlerResponse(recvHeaders, recv);
+	}
+
+	private Charset contentType(HttpURLConnection conn) {
+		String contentType = conn.getContentType();
+		if (null == contentType) contentType = conn.getRequestProperty(HttpHeaders.CONTENT_TYPE);
+		return null == contentType ? Serializers.DEFAULT_CHARSET : ContentType.parse(contentType).getCharset();
 	}
 }

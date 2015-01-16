@@ -11,7 +11,7 @@ import com.google.common.base.Charsets;
 
 public final class Serializers extends UtilsBase {
 	public static final String DEFAULT_MIME_TYPE = "text/plain";
-	public static final Charset DEFAULT_CHARSET = Charsets.ISO_8859_1;
+	public static final Charset DEFAULT_CHARSET = Charsets.UTF_8;
 
 	private static final Map<String, Class<? extends Serializer>> pool = new HashMap<String, Class<? extends Serializer>>();
 	static {
@@ -23,7 +23,7 @@ public final class Serializers extends UtilsBase {
 			try {
 				Serializer def = ReflectionUtils.safeConstruct(clazz,
 						ReflectionUtils.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
-				for (String mime : def.getSupportedMimeTypes())
+				for (String mime : def.supportedMimeTypes())
 					pool.put(mime, clazz);
 			} catch (Exception e) {}
 	}
@@ -49,6 +49,6 @@ public final class Serializers extends UtilsBase {
 	public static Serializer serializer(Class<? extends Serializer> clazz) {
 		Serializer def = ReflectionUtils.safeConstruct(clazz,
 				ReflectionUtils.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
-		return serializer(def.getDefaultMimeType());
+		return serializer(def.defaultMimeType());
 	}
 }

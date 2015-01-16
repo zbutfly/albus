@@ -23,10 +23,9 @@ public interface Serializer {
 
 	String asString(Object obj);
 
+	String[] supportedMimeTypes();
 
-	String[] getSupportedMimeTypes();
-
-	String getDefaultMimeType();
+	String defaultMimeType();
 
 	Charset charset();
 }

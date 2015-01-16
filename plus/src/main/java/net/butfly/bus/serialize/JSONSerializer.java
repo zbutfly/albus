@@ -48,7 +48,7 @@ public class JSONSerializer extends SerializerBase implements Serializer {
 	}
 
 	@Override
-	public String[] getSupportedMimeTypes() {
+	public String[] supportedMimeTypes() {
 		return new String[] { ContentType.APPLICATION_JSON.getMimeType() };
 	}
 

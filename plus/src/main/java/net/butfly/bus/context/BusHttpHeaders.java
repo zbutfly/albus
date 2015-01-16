@@ -11,5 +11,5 @@ public interface BusHttpHeaders {
 	// Request ID in Response Header
 	String HEADER_REQUEST_ID = HEADER_PREFIX + "Request-Id";
 	String HEADER_ERROR = HEADER_PREFIX + "Error";
-	String HEADER_ERROR_DETAIL = HEADER_PREFIX + "Error-Detail";
+//	String HEADER_ERROR_DETAIL = HEADER_PREFIX + "Error-Detail";
 }

@@ -1,11 +1,8 @@
 package net.butfly.bus.invoker;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
@@ -21,13 +18,9 @@ import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
 
 public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerConfig> implements
 		Invoker<WebServiceInvokerConfig> {
@@ -79,9 +72,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 		@Override
 		public Response call() throws Exception {
-			Map<String, String> headers = header(request, remoteOptions);
-			byte[] data = serializer.serialize(request.arguments());
-			ContentType contentType = ContentType.create(serializer.getDefaultMimeType(), Charsets.UTF_8);
+			Map<String, String> headers = HttpHandler.headers(serializer, request.code(), request.version(), request.context(),
+					remoteOptions);
 			/**
 			 * <pre>
 			 * TODO: handle continuous, move to async proj.
@@ -94,7 +86,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			 *  } else
 			 * </pre>
 			 */
-			HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers, data, contentType, false);
+			HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers,
+					serializer.serialize(request.arguments()), serializer.defaultMimeType(), serializer.charset(), false);
 
 			Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG),
 					resp.header(BusHttpHeaders.HEADER_REQUEST_ID));
@@ -103,42 +96,27 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 			boolean error = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR));
 			if (error) {
-				net.butfly.bus.Error detail = serializer.fromString(resp.header(BusHttpHeaders.HEADER_ERROR_DETAIL),
-						net.butfly.bus.Error.class);
+				net.butfly.bus.Error detail = serializer.deserialize(resp.data, net.butfly.bus.Error.class);
 				response.error(detail);
+			} else {
+				boolean supportClass = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT));
+				String className = resp.header(BusHttpHeaders.HEADER_CLASS);
+				Class<?> resultClass = supportClass && className != null ? Class.forName(className) : null;
+				Object result = serializer.deserialize(resp.data, resultClass);
+				response.result(result);
 			}
-			boolean supportClass = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT));
-			String className = resp.header(BusHttpHeaders.HEADER_CLASS);
-			Class<?> resultClass = supportClass && className != null ? Class.forName(className) : null;
-			byte[] recv = IOUtils.toByteArray(resp.input);
-			if (logger.isTraceEnabled()) logger.trace("HTTP Response RECV <== " + new String(recv, contentType.getCharset()));
-			Object result = serializer.deserialize(recv, resultClass);
-			response.result(result);
 			return ((ResponseWrapper) response).unwrap();
 		}
 	}
 
-	private Map<String, String> header(Request request, Options... options) throws IOException {
-		Map<String, String> headers = new HashMap<String, String>();
-		headers.put(BusHttpHeaders.HEADER_TX_CODE, request.code());
-		headers.put(BusHttpHeaders.HEADER_TX_VERSION, request.version());
-		headers.put(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(this.serializer.supportClass()));
-		if (null != options && options.length > 0) {
-			headers.put(BusHttpHeaders.HEADER_OPTIONS, this.serializer.asString(options));
-		}
-		if (request.context() != null) for (Entry<String, String> ctx : request.context().entrySet())
-			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-		return headers;
-	}
-
 	public static class HandlerResponse {
 		private Map<String, List<String>> headers;
-		private InputStream input;
+		private byte[] data;
 
-		public HandlerResponse(Map<String, List<String>> headers, InputStream input) {
+		public HandlerResponse(Map<String, List<String>> headers, byte[] data) {
 			super();
 			this.headers = headers;
-			this.input = input;
+			this.data = data;
 		}
 
 		public Map<String, String> parseContext() {
@@ -146,7 +124,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			Map<String, String> ctx = new HashMap<String, String>();
 			if (headers == null || headers.size() == 0) return ctx;
 			for (String name : headers.keySet())
-				if (name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX)) ctx.put(name.substring(prefixLen), header(name));
+				if (name != null && name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
+					ctx.put(name.substring(prefixLen), header(name));
 			return ctx;
 		}
 

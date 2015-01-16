@@ -57,7 +57,7 @@ public class HessianSerializer extends HessianSupport {
 	}
 
 	@Override
-	public String[] getSupportedMimeTypes() {
+	public String[] supportedMimeTypes() {
 		return new String[] { HessianSupport.HESSIAN_CONTENT_TYPE };
 	}
 }

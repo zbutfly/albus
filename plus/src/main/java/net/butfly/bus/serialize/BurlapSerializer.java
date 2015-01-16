@@ -44,7 +44,7 @@ public class BurlapSerializer extends HessianSupport {
 	}
 
 	@Override
-	public String[] getSupportedMimeTypes() {
+	public String[] supportedMimeTypes() {
 		return new String[] { HessianSupport.BURLAP_CONTENT_TYPE };
 	}
 }

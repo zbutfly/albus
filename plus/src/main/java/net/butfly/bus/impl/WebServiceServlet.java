@@ -1,16 +1,8 @@
 package net.butfly.bus.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -23,16 +15,13 @@ import net.butfly.bus.Response;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
-import net.butfly.bus.utils.TXUtils;
+import net.butfly.bus.utils.http.HttpHandler;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.reflect.TypeToken;
 
 public class WebServiceServlet extends BusServlet implements Container<Servlet> {
 	private static final long serialVersionUID = 4533571572446977813L;
@@ -67,92 +56,26 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 
 		ContentType reqContentType = ContentType.parse(request.getContentType());
 
-		// TODO: use reqContentType.getCharset() to construct serializer.
 		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
-		if (serializer == null || Arrays.binarySearch(serializer.getSupportedMimeTypes(), reqContentType.getMimeType()) < 0)
+		if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
 			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
-		final ContentType respContentType = ContentType.create(serializer.getDefaultMimeType(), reqContentType.getCharset());
-		final Invoking invoking = this.header(request, serializer);
+		final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
+
+		Invoking invoking = new Invoking();
+		Map<String, String> busHeaders = HttpHandler.headers(request);
+		invoking.context = HttpHandler.context(busHeaders);
+		invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
+		invoking.options = busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS) ? (Options) serializer.fromString(
+				busHeaders.get(BusHttpHeaders.HEADER_OPTIONS), Options.class) : null;
+		invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHttpHeaders.HEADER_CLASS_SUPPORT));
 		cluster.invoking(invoking);
-		this.readFromBody(invoking, request.getInputStream(), serializer, reqContentType.getCharset());
+		invoking.parameters = HttpHandler.parameters(IOUtils.toByteArray(request.getInputStream()), serializer,
+				invoking.parameterClasses, reqContentType.getCharset());
 
 		Response resp = cluster.invoke(invoking);
-		response.setHeader(HttpHeaders.ETAG, resp.id());
-		response.setHeader(BusHttpHeaders.HEADER_REQUEST_ID, resp.requestId());
-		if (resp.context() != null) for (Entry<String, String> ctx : resp.context().entrySet())
-			response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-
-		boolean error = resp.error() != null;
-		if (invoking.supportClass) response.setHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
-		if (error) {
-			response.setHeader(BusHttpHeaders.HEADER_ERROR, Boolean.toString(true));
-			response.setHeader(BusHttpHeaders.HEADER_ERROR_DETAIL, serializer.asString(resp.error()));
-		} else if (invoking.supportClass && resp.result() != null)
-			response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
-
-		byte[] data = serializer.serialize(resp.result());
-		if (logger.isTraceEnabled()) logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
-		response.getOutputStream().write(data);
+		response.getOutputStream().write(
+				HttpHandler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
 		response.getOutputStream().flush();
 		response.flushBuffer();
 	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void readFromBody(Invoking invoking, InputStream is, Serializer serializer, Charset httpCharset)
-			throws ServletException, IOException {
-		byte[] data = IOUtils.toByteArray(is);
-		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== " + new String(data, httpCharset));
-		Object r = serializer.deserialize(data, invoking.parameterClasses);
-		if (r == null) invoking.parameters = new Object[0];
-		else if (r.getClass().isArray()) invoking.parameters = (Object[]) r;
-		else if (Collection.class.isAssignableFrom(r.getClass())) {
-			Collection c = Collection.class.cast(r);
-			invoking.parameters = c.toArray(new Object[c.size()]);
-		} else if (Iterable.class.isAssignableFrom(r.getClass())) {
-			Iterable i = Iterable.class.cast(r);
-			List l = new ArrayList();
-			for (Iterator it = i.iterator(); it.hasNext();)
-				l.add(it.next());
-			invoking.parameters = l.toArray(new Object[l.size()]);
-		} else if (Enumeration.class.isAssignableFrom(r.getClass())) {
-			List l = new ArrayList();
-			for (Enumeration e = Enumeration.class.cast(r); e.hasMoreElements();)
-				l.add(e.nextElement());
-			invoking.parameters = l.toArray(new Object[l.size()]);
-		} else invoking.parameters = new Object[] { r };
-	}
-
-	protected Invoking header(HttpServletRequest request, Serializer serializer) throws ServletException {
-		Invoking info = new Invoking();
-		info.context = new HashMap<String, String>();
-		String path = request.getPathInfo();
-		String[] reses = null != path && path.length() > 0 ? path.substring(1).split("/") : new String[0];
-		String code, version = null;
-		switch (reses.length) {
-		case 0: // anything in header.
-			code = request.getHeader(BusHttpHeaders.HEADER_TX_CODE);
-			version = request.getHeader(BusHttpHeaders.HEADER_TX_VERSION);
-			break;
-		case 2:
-			version = reses[1];
-		case 1:
-			code = reses[0];
-			break;
-		default:
-			throw new ServletException("Invalid path: " + request.getPathInfo());
-		}
-		info.tx = TXUtils.TXImpl(code, version);
-
-		for (Enumeration<String> e = request.getHeaderNames(); e.hasMoreElements();) {
-			String name = e.nextElement();
-			if (name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
-				info.context.put(name.substring(BusHttpHeaders.HEADER_CONTEXT_PREFIX.length()), request.getHeader(name));
-		}
-		String h = request.getHeader(BusHttpHeaders.HEADER_OPTIONS);
-		info.options = null == h ? null : (Options) serializer.fromString(h, Options.class);
-		String supportClass = request.getHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT);
-		info.supportClass = null == supportClass || Boolean.parseBoolean(supportClass);
-		return info;
-	}
-
 }

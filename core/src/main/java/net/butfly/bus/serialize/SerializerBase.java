@@ -10,8 +10,8 @@ public abstract class SerializerBase implements Serializer {
 	}
 
 	@Override
-	public String getDefaultMimeType() {
-		return this.getSupportedMimeTypes()[0];
+	public String defaultMimeType() {
+		return this.supportedMimeTypes()[0];
 	};
 
 	@Override
