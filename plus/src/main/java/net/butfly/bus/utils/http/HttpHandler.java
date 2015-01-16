@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.context.BusHttpHeaders;
@@ -133,6 +134,8 @@ public abstract class HttpHandler {
 		if (supportClass) response.setHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
 		byte[] sent;
 		if (error) {
+			if (supportClass)
+				response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
 			response.setHeader(BusHttpHeaders.HEADER_ERROR, Boolean.toString(true));
 			sent = serializer.serialize(resp.error());
 		} else {

@@ -7,6 +7,7 @@ import java.util.Map;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.bus.Error;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
@@ -96,12 +97,13 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 			boolean error = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR));
 			if (error) {
-				net.butfly.bus.Error detail = serializer.deserialize(resp.data, net.butfly.bus.Error.class);
+				Error detail = serializer.deserialize(resp.data, Error.class);
 				response.error(detail);
 			} else {
-				boolean supportClass = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT));
 				String className = resp.header(BusHttpHeaders.HEADER_CLASS);
-				Class<?> resultClass = supportClass && className != null ? Class.forName(className) : null;
+				Class<?> resultClass = className != null
+						&& Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT)) ? Class.forName(className)
+						: null;
 				Object result = serializer.deserialize(resp.data, resultClass);
 				response.result(result);
 			}
