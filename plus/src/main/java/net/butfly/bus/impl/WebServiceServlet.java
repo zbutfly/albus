@@ -19,13 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.bus.Bus;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.BusHttpHeaders;
-import net.butfly.bus.context.ResponseWrapper;
-import net.butfly.bus.invoker.Invoking;
-import net.butfly.bus.policy.Router;
-import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.TXUtils;
@@ -37,6 +32,8 @@ import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.reflect.TypeToken;
+
 public class WebServiceServlet extends BusServlet implements Container<Servlet> {
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
@@ -47,18 +44,11 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		super.init(config);
 		logger.trace("Servlet starting...");
 		String paramConfig = this.getInitParameter("config");
-		this.cluster = new Cluster(null == paramConfig ? null : paramConfig.split(","), Bus.Mode.SERVER,
-				this.parseRouterClasses(this.getInitParameter("router")));
-	}
-
-	@SuppressWarnings("unchecked")
-	private Class<? extends Router> parseRouterClasses(String className) {
-		if (null == className) return SimpleRouter.class;
 		try {
-			return (Class<? extends Router>) Class.forName(className);
+			this.cluster = BusFactory.serverCluster(null == paramConfig ? null : paramConfig.split(","),
+					this.getInitParameter("router"));
 		} catch (ClassNotFoundException e) {
-			logger.warn("Router class invalid: " + className + ", default router used.", e);
-			return SimpleRouter.class;
+			throw new ServletException("Router definition not found.", e);
 		}
 	}
 
@@ -88,10 +78,20 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 
 		Response resp = cluster.invoke(invoking);
 		response.setHeader(HttpHeaders.ETAG, resp.id());
+		response.setHeader(BusHttpHeaders.HEADER_REQUEST_ID, resp.requestId());
 		if (resp.context() != null) for (Entry<String, String> ctx : resp.context().entrySet())
 			response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-		byte[] data = serializer.serialize(ResponseWrapper.wrap(resp, invoking.supportClass));
-		logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
+
+		boolean error = resp.error() != null;
+		if (invoking.supportClass) response.setHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
+		if (error) {
+			response.setHeader(BusHttpHeaders.HEADER_ERROR, Boolean.toString(true));
+			response.setHeader(BusHttpHeaders.HEADER_ERROR_DETAIL, serializer.asString(resp.error()));
+		} else if (invoking.supportClass && resp.result() != null)
+			response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
+
+		byte[] data = serializer.serialize(resp.result());
+		if (logger.isTraceEnabled()) logger.trace("HTTP Response SEND ==> " + new String(data, respContentType.getCharset()));
 		response.getOutputStream().write(data);
 		response.getOutputStream().flush();
 		response.flushBuffer();
@@ -150,7 +150,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		}
 		String h = request.getHeader(BusHttpHeaders.HEADER_OPTIONS);
 		info.options = null == h ? null : (Options) serializer.fromString(h, Options.class);
-		String supportClass = request.getHeader(BusHttpHeaders.HEADER_SUPPORT_CLASS);
+		String supportClass = request.getHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT);
 		info.supportClass = null == supportClass || Boolean.parseBoolean(supportClass);
 		return info;
 	}
