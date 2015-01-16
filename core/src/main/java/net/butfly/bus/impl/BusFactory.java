@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.ExceptionUtils;
+import net.butfly.albacore.utils.Exceptions;
 import net.butfly.bus.CallbackBus;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
@@ -49,7 +49,7 @@ public final class BusFactory {
 		try {
 			return new Cluster(config, Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance());
 		} catch (Exception e) {
-			throw ExceptionUtils.wrap(e);
+			throw Exceptions.wrap(e);
 		}
 
 	}

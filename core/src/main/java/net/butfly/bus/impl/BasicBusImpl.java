@@ -10,12 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.ExceptionUtils;
+import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Error;
 import net.butfly.bus.Request;
@@ -71,7 +72,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	}
 
 	public boolean isSupported(String requestTX) {
-		return TXUtils.isMatching(this.supportedTXs(), requestTX);
+		return TXUtils.isMatching(this.supportedTXs(), requestTX) >= 0;
 
 	}
 
@@ -156,9 +157,9 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		private Response handleException(Request request, Exception ex) throws Exception {
 			switch (mode) {
 			case SERVER:
-				return new Response(request).error(new Error(ExceptionUtils.unwrap(ex), Context.debug()));
+				return new Response(request).error(new Error(Exceptions.unwrap(ex), Context.debug()));
 			default:
-				throw ExceptionUtils.unwrap(ex);
+				throw Exceptions.unwrap(ex);
 			}
 		}
 
@@ -252,4 +253,8 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		new FlowNo(request);
 		Context.txInfo(TXUtils.TXImpl(request.code(), request.version()));
 	}
+
+	abstract <T> Response invoke(Request request, Options... options) throws Exception;
+
+	abstract <T> void invoke(Request request, Callback<T> callback, Options... options) throws Exception;
 }

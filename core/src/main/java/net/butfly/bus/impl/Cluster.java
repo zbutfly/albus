@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.butfly.albacore.utils.ExceptionUtils;
+import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
@@ -69,7 +69,7 @@ final class Cluster implements Routeable {
 		try {
 			return ((StandardBusImpl) invoking.bus).invoke(req, invoking.options);
 		} catch (Exception e) {
-			e = ExceptionUtils.unwrap(e);
+			e = Exceptions.unwrap(e);
 			logger.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		}

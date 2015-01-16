@@ -154,11 +154,10 @@ public abstract class HttpHandler {
 		headers.put(BusHttpHeaders.HEADER_TX_CODE, tx);
 		headers.put(BusHttpHeaders.HEADER_TX_VERSION, version);
 		headers.put(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(!serializer.supportClass()));
-		if (null != options && options.length > 0) {
-			headers.put(BusHttpHeaders.HEADER_OPTIONS, serializer.asString(options));
-		}
 		if (context != null) for (Entry<String, String> ctx : context.entrySet())
 			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
+		if (null != options && options.length > 0) headers.put(BusHttpHeaders.HEADER_OPTIONS, serializer.asString(options));
+
 		return headers;
 	}
 }

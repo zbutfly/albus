@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.ExceptionUtils;
+import net.butfly.albacore.utils.Exceptions;
 
 public class Error implements Serializable {
 	private static final long serialVersionUID = -8461232615545890309L;
@@ -16,7 +16,7 @@ public class Error implements Serializable {
 	private StackTraceElement[] stackTrace;
 
 	public Error(Throwable ex, boolean debugging) {
-		this(ExceptionUtils.unlink(ex), debugging);
+		this(Exceptions.unlink(ex), debugging);
 	}
 
 	private Error(Throwable[] list, boolean debugging) {

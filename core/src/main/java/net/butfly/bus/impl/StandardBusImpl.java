@@ -41,6 +41,7 @@ class StandardBusImpl extends BasicBusImpl {
 	 * @return
 	 * @throws Exception
 	 */
+	@Override
 	<T> Response invoke(Request request, Options... options) throws Exception {
 		check(request);
 		return chain.execute(new RequestWrapper<T>(request, options));
@@ -83,6 +84,11 @@ class StandardBusImpl extends BasicBusImpl {
 
 	@Override
 	public <T> void invoke(TX tx, Object[] arguments, Callback<T> callback, Options... options) throws Exception {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	<T> void invoke(Request request, Callback<T> callback, Options... options) throws Exception {
 		throw new UnsupportedOperationException();
 	}
 }

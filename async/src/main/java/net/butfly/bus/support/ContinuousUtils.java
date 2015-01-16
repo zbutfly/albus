@@ -21,7 +21,7 @@ public class ContinuousUtils {
 //		// TODO
 //		if (signal instanceof Signal.Error) {
 //			Throwable cause = ((Signal.Error) signal).getCause();
-//			if (cause != null) throw ExceptionUtils.wrap(cause);
+//			if (cause != null) throw Exceptions.wrap(cause);
 //		}
 //	}
 }

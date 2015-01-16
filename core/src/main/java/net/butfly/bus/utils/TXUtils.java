@@ -96,12 +96,13 @@ public class TXUtils extends UtilsBase {
 		return code + ":" + version;
 	}
 
-	public static final boolean isMatching(String[] patterns, String code) {
-		for (String pattern : patterns) {
-			if (pattern.equals("*")) return true;
-			if (pattern.equalsIgnoreCase(code)) return true;
-			if (pattern.endsWith("*") && code.startsWith(pattern.substring(0, pattern.indexOf("*")))) return true;
+	public static final int isMatching(String[] patterns, String code) {
+		for (int i = 0; i < patterns.length; i++) {
+			String pattern = patterns[i];
+			if (pattern.equals("*")) return i;
+			if (pattern.equalsIgnoreCase(code)) return i;
+			if (pattern.endsWith("*") && code.startsWith(pattern.substring(0, pattern.indexOf("*")))) return i;
 		}
-		return false;
+		return -1;
 	}
 }
