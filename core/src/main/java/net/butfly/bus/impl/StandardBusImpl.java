@@ -9,15 +9,10 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.impl.BusFactory.Mode;
-import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class StandardBusImpl extends BasicBusImpl {
 	private static final long serialVersionUID = -4835302344711170159L;
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public StandardBusImpl(Mode mode) {
 		super(mode);

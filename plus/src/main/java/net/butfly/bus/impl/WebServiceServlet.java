@@ -34,7 +34,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		logger.trace("Servlet starting...");
 		String paramConfig = this.getInitParameter("config");
 		try {
-			this.cluster = BusFactory.serverCluster(null == paramConfig ? null : paramConfig.split(","),
+			this.cluster = BusFactoryImpl.serverCluster(null == paramConfig ? null : paramConfig.split(","),
 					this.getInitParameter("router"));
 		} catch (ClassNotFoundException e) {
 			throw new ServletException("Router definition not found.", e);

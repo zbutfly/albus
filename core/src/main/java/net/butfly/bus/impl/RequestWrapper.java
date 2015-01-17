@@ -1,4 +1,4 @@
-package net.butfly.bus.utils;
+package net.butfly.bus.impl;
 
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;

@@ -7,8 +7,8 @@ import java.util.List;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.Response;
 import net.butfly.bus.config.bean.FilterBean;
+import net.butfly.bus.impl.RequestWrapper;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.RequestWrapper;
 
 public final class FilterChain {
 	private Filter[] filters;

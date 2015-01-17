@@ -3,7 +3,7 @@ package net.butfly.bus.filter;
 import java.util.Map;
 
 import net.butfly.bus.Response;
-import net.butfly.bus.utils.RequestWrapper;
+import net.butfly.bus.impl.RequestWrapper;
 
 public interface Filter {
 	public void initialize(Map<String, String> params);

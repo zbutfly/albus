@@ -35,7 +35,6 @@ import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.service.InternalFacade;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.RequestWrapper;
 import net.butfly.bus.utils.TXUtils;
 
 abstract class BasicBusImpl implements Bus, InternalFacade {
@@ -54,8 +53,8 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 
 	public BasicBusImpl(String configLocation, Mode mode) {
 		this.mode = mode;
-		this.config = BusFactory.createConfiguration(configLocation, mode);
-		this.router = BusFactory.createRouter(this.config);
+		this.config = BusFactoryImpl.createConfiguration(configLocation, mode);
+		this.router = BusFactoryImpl.createRouter(this.config);
 		this.chain = new FilterChain(config.getFilterList(), new InvokerFilter());
 		this.id = KeyUtils.objectId();
 
@@ -85,7 +84,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	MethodInfo invokeInfo(String code, String version) {
 		InvokerBean ivkb = this.router.route(code, this.config.getInvokers());
 		if (null == ivkb) return null;
-		Invoker<?> ivk = BusFactory.getInvoker(ivkb, mode);
+		Invoker<?> ivk = BusFactoryImpl.getInvoker(ivkb, mode);
 		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
@@ -205,7 +204,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 
 	private Invoker<?> findInvoker(String txCode) {
 		InvokerBean ivkb = this.router.route(txCode, this.config.getInvokers());
-		return BusFactory.getInvoker(ivkb, mode);
+		return BusFactoryImpl.getInvoker(ivkb, mode);
 	}
 
 	protected abstract class ServiceProxy<T> implements InvocationHandler {

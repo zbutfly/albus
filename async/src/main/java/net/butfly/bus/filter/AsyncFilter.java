@@ -5,9 +5,9 @@ import java.util.Map;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
+import net.butfly.bus.impl.RequestWrapper;
 import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.RequestWrapper;
 
 public class AsyncFilter extends FilterBase implements Filter {
 	private long timeout;

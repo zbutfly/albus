@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
+import net.butfly.bus.impl.RequestWrapper;
 import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.RequestWrapper;
 
 /**
  * @author butfly

@@ -11,8 +11,8 @@ import javax.validation.Validator;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
+import net.butfly.bus.impl.RequestWrapper;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.RequestWrapper;
 
 public class ValidateFilter extends FilterBase implements Filter {
 	private Validator validator;

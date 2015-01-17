@@ -4,7 +4,7 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
-import net.butfly.bus.utils.RequestWrapper;
+import net.butfly.bus.impl.RequestWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
