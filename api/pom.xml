@@ -14,23 +14,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
-			<artifactId>albacore-frame</artifactId>
-			<version>2.0.1-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>albacore-core</artifactId>
-					<groupId>net.butfly.albacore</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>aopalliance</artifactId>
-					<groupId>aopalliance</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>net.butfly.albacore</groupId>
 			<artifactId>albacore-core</artifactId>
-			<version>2.0.1-SNAPSHOT</version>
+			<version>${deps.version.albacore}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>guava</artifactId>
@@ -83,12 +68,4 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
-<!-- 	<dependencyManagement> -->
-<!-- 		<exclusions> -->
-<!-- 			<exclusion> -->
-<!-- 				<groupId>jdbc</groupId> -->
-<!-- 				<artifactId>jdbc</artifactId> -->
-<!-- 			</exclusion> -->
-<!-- 		</exclusions> -->
-<!-- 	</dependencyManagement> -->
 </project>
