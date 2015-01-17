@@ -17,6 +17,10 @@
 		<tag>MASTER</tag>
 		<url>https://github.com/zbutfly/albus</url>
 	</scm>
+	<properties>
+		<deps.version.albacore>2.0.1-SNAPSHOT</deps.version.albacore>
+		<deps.version.albus>2.0.1-SNAPSHOT</deps.version.albus>
+	</properties>	
 	<modules>
 		<module>core</module>
 		<module>async</module>
