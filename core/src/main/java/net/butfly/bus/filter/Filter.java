@@ -3,14 +3,14 @@ package net.butfly.bus.filter;
 import java.util.Map;
 
 import net.butfly.bus.Response;
-import net.butfly.bus.impl.RequestWrapper;
+import net.butfly.bus.filter.FilterBase.FilterRequest;
 
 public interface Filter {
-	public void initialize(Map<String, String> params);
+	void initialize(Map<String, String> params);
 
-	public Response execute(RequestWrapper<?> request) throws Exception;
+	<R> Response execute(FilterRequest<R> request) throws Exception;
 
-	public void before(RequestWrapper<?> request);
+	void before(FilterRequest<?> request);
 
-	public void after(RequestWrapper<?> request, Response response);
+	void after(FilterRequest<?> request, Response response) throws Exception;
 }

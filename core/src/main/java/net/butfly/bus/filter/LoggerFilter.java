@@ -4,7 +4,6 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
-import net.butfly.bus.impl.RequestWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
 
 	@Override
-	public void before(RequestWrapper<?> request) {
+	public void before(FilterRequest<?> request) {
 		Request req = request.request();
 		String prefix = null;
 		long now = System.currentTimeMillis();
@@ -34,7 +33,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public void after(RequestWrapper<?> request, Response response) {
+	public void after(FilterRequest<?> request, Response response) {
 		Object[] params = this.getParams(request);
 		String prefix = (String) params[1];
 		if (logger.isInfoEnabled()) {

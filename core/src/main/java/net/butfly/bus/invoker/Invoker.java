@@ -11,10 +11,15 @@ public interface Invoker<C extends InvokerConfigBean> {
 
 	void initialize(C config, Token token);
 
-	Response invoke(final Request request, final Task.Callback<Response> callback, final Task.ExceptionHandler<Response> exception,
-			final Options... options) throws Exception;
+	Task.Callable<Response> task(Request request, Options... remoteOptions);
 
 	Object[] getBeanList();
 
 	String[] getTXCodes();
+
+	Token token();
+
+	Options localOptions(Options... options);
+
+	Options[] remoteOptions(Options... options);
 }

@@ -26,7 +26,7 @@ public abstract class RouterBase implements Router {
 		else {
 			Set<Routeable> results = new HashSet<Routeable>();
 			if (possiable != null && possiable.length > 0) for (T et : possiable)
-				if (TXUtils.isMatching(et.supportedTXs(), requestTX) >= 0) results.add(et);
+				if (TXUtils.matching(et.supportedTXs(), requestTX) >= 0) results.add(et);
 
 			target = results.toArray(new Routeable[results.size()]);
 		}

@@ -96,7 +96,7 @@ public class TXUtils extends UtilsBase {
 		return code + ":" + version;
 	}
 
-	public static final int isMatching(String[] patterns, String code) {
+	public static final int matching(String[] patterns, String code) {
 		for (int i = 0; i < patterns.length; i++) {
 			String pattern = patterns[i];
 			if (pattern.equals("*")) return i;

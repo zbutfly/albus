@@ -12,7 +12,7 @@ public abstract class WrappedContext extends Context {
 			c = new SimpleContext();
 			this.current((SimpleContext) c);
 		}
-		super.load(original);;
+		super.load(original);
 	}
 
 	@Override

@@ -42,12 +42,12 @@ public class CallbackBusImpl extends StandardBusImpl implements CallbackBus {
 	/**
 	 * Kernal invoking of back bus, async bus. <br>
 	 * Does not start async here, <br>
-	 * but transfer it into InvokerFilter for handling.
+	 * but transfer it into LastFilter for handling.
 	 */
 	@Override
-	<T> void invoke(final Request request, Task.Callback<T> callback, final Options... options) throws Exception {
+	<R> void invoke(final Request request, Task.Callback<R> callback, final Options... options) throws Exception {
 		check(request);
-		chain.execute(new RequestWrapper<T>(request, callback, options));
+		chain.execute(request, callback, options);
 	}
 
 	private class CallbackServiceProxy<T> extends ServiceProxy<T> {

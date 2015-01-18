@@ -58,57 +58,47 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
 	@Override
-	protected Task.Callable<Response> task(Request request, Options[] options) {
-		return new InvokeTask(request, this.remoteOptions(options));
-	}
+	public Task.Callable<Response> task(final Request request, final Options... remoteOptions) {
+		return new Task.Callable<Response>() {
+			@Override
+			public Response call() throws Exception {
+				Map<String, String> headers = HttpHandler.headers(serializer, request.code(), request.version(),
+						request.context(), remoteOptions);
+				/**
+				 * <pre>
+				 * TODO: handle continuous, move to async proj.
+				 * 		if (remoteOptions instanceof ContinuousOptions) {
+				 * 			ContinuousOptions copts = (ContinuousOptions) remoteOptions;
+				 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
+				 * 			byte[] data = this.serializer.serialize(request.arguments());
+				 * 			for (int i = 0; i &lt; copts.retries(); i++)
+				 * 				this.webservice(data, headers, callback, copts);
+				 *  } else
+				 * </pre>
+				 */
+				HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers,
+						serializer.serialize(request.arguments()), serializer.defaultMimeType(), serializer.charset(), false);
 
-	private class InvokeTask extends Task.Callable<Response> {
-		private Request request;
-		private Options[] remoteOptions;
+				Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG),
+						resp.header(BusHttpHeaders.HEADER_REQUEST_ID));
 
-		InvokeTask(Request request, Options... remoteOptions) {
-			this.request = request;
-			this.remoteOptions = remoteOptions;
-		}
+				response.context(resp.parseContext());
 
-		@Override
-		public Response call() throws Exception {
-			Map<String, String> headers = HttpHandler.headers(serializer, request.code(), request.version(), request.context(),
-					remoteOptions);
-			/**
-			 * <pre>
-			 * TODO: handle continuous, move to async proj.
-			 * 		if (remoteOptions instanceof ContinuousOptions) {
-			 * 			ContinuousOptions copts = (ContinuousOptions) remoteOptions;
-			 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
-			 * 			byte[] data = this.serializer.serialize(request.arguments());
-			 * 			for (int i = 0; i &lt; copts.retries(); i++)
-			 * 				this.webservice(data, headers, callback, copts);
-			 *  } else
-			 * </pre>
-			 */
-			HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers,
-					serializer.serialize(request.arguments()), serializer.defaultMimeType(), serializer.charset(), false);
-
-			Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG),
-					resp.header(BusHttpHeaders.HEADER_REQUEST_ID));
-
-			response.context(resp.parseContext());
-
-			boolean error = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR));
-			if (error) {
-				Error detail = serializer.deserialize(resp.data, Error.class);
-				response.error(detail);
-			} else {
-				String className = resp.header(BusHttpHeaders.HEADER_CLASS);
-				Class<?> resultClass = className != null
-						&& Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT)) ? Class.forName(className)
-						: null;
-				Object result = serializer.deserialize(resp.data, resultClass);
-				response.result(result);
+				boolean error = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR));
+				if (error) {
+					Error detail = serializer.deserialize(resp.data, Error.class);
+					response.error(detail);
+				} else {
+					String className = resp.header(BusHttpHeaders.HEADER_CLASS);
+					Class<?> resultClass = className != null
+							&& Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT)) ? Class
+							.forName(className) : null;
+					Object result = serializer.deserialize(resp.data, resultClass);
+					response.result(result);
+				}
+				return ((ResponseWrapper) response).unwrap();
 			}
-			return ((ResponseWrapper) response).unwrap();
-		}
+		};
 	}
 
 	public static class HandlerResponse {

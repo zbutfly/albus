@@ -25,6 +25,10 @@ public abstract class Context implements Map<String, Object> {
 		if (CURRENT == null) CURRENT = new RequestContext();
 		CURRENT.load(original);
 	}
+	public static void clean(Map<String, Object> original) {
+		if (CURRENT == null) CURRENT = new RequestContext();
+		CURRENT.load(original);
+	}
 
 	// ***********************************************************************/
 	public static void untoken() {

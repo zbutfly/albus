@@ -3,68 +3,64 @@ package net.butfly.bus.utils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.context.Context;
 
 public class BusTask<T> extends Task<T> {
 	private final Map<String, Object> context = new ConcurrentHashMap<String, Object>();
 
-	public BusTask(Callable<T> task, Callback<T> callback, Options options) {
+	public BusTask(Task<T> task) {
 		context.putAll(Context.toMap());
-		this.call = new BusCallable(task);
-		this.back = null == callback ? null : new BusCallback(callback);
-		this.options = options;
+		this.call = new Task.Callable<T>() {
+			@Override
+			public T call() throws Exception {
+				// TODO: optimizing...
+				Context.initialize(context);
+				try {
+					return task.call().call();
+				} finally {
+					context.putAll(Context.toMap());
+				}
+			}
+		};
+		this.back = null == task.back() ? null : new Task.Callback<T>() {
+			@Override
+			public void callback(T result) throws Exception {
+				// TODO: optimizing...
+				Context.initialize(context);
+				try {
+					task.back().callback(result);
+				} finally {
+					context.putAll(Context.toMap());
+				}
+			}
+		};
+		this.options = task.options();
+		this.exception(new Task.ExceptionHandler<T>() {
+			@Override
+			public T handle(Exception exception) throws Exception {
+				return task.call().handle(exception);
+			}
+		}, HandlerTarget.CALLABLE);
+		if (back != null) this.exception(new Task.ExceptionHandler<T>() {
+			@Override
+			public T handle(Exception exception) throws Exception {
+				return task.back().handle(exception);
+			}
+		}, HandlerTarget.CALLBACK);
 	}
 
-	public BusTask(Callable<T> task, Callback<T> callback) {
-		this(task, callback, null);
-	}
-
-	public BusTask(Callable<T> task, Options options) {
-		this(task, null, options);
-	}
-
-	public BusTask(Callable<T> task) {
-		this(task, null, null);
-	}
-
-	// public static <T> BusTask<T> wrap(final Task<T> original) {
-	// return new BusTask<T>(original.task(), original.callback(), original.options());
-	// }
-
-	private class BusCallback extends Task.Callback<T> {
-		Task.Callback<T> callback;
-
-		public BusCallback(Task.Callback<T> callback) {
-			super();
-			this.callback = callback;
-		}
-
-		@Override
-		public void callback(T result) throws Exception {
-			// TODO: optimizing...
-			Context.initialize(context);
-			if (null != callback) callback.callback(result);
-			context.putAll(Context.toMap());
-		}
-	}
-
-	private class BusCallable extends Task.Callable<T> {
-		Task.Callable<T> callable;
-
-		public BusCallable(Task.Callable<T> callable) {
-			super();
-			this.callable = callable;
-		}
-
-		@Override
-		public T call() throws Exception {
-			// TODO: optimizing...
-			Context.initialize(context);
-			T r = callable.call();
-			context.putAll(Context.toMap());
-			return r;
-		}
+	public BusTask<T> exception(Task.ExceptionHandler<T> handler, HandlerTarget... targets) {
+		return (BusTask<T>) wrapHandler(this, new Task.ExceptionHandler<T>() {
+			@Override
+			public T handle(Exception exception) throws Exception {
+				Context.initialize(context);
+				try {
+					return handler.handle(exception);
+				} finally {
+					context.putAll(Context.toMap());
+				}
+			}
+		}, targets);
 	}
 }

@@ -11,14 +11,13 @@ import javax.validation.Validator;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
-import net.butfly.bus.impl.RequestWrapper;
 import net.butfly.bus.utils.Constants;
 
 public class ValidateFilter extends FilterBase implements Filter {
 	private Validator validator;
 
 	@Override
-	public Response execute(RequestWrapper<?> request) throws Exception {
+	public <R> Response execute(FilterRequest<R> request) throws Exception {
 		Request req = request.request();
 		if (req.arguments() != null || req.arguments().length > 0) {
 			Set<ConstraintViolation<Object>> violations;

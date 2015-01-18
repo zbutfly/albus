@@ -23,36 +23,33 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	}
 
 	@Override
-	protected Task.Callable<Response> task(Request request, Options[] options) {
-		return new InvokeTask(request);
-	}
+	public Task.Callable<Response> task(final Request request, final Options... remoteOptions) {
+		return new Task.Callable<Response>() {
+			@Override
+			public Response call() throws Exception {
+				Response resp = new Response(request);
+				if (auth != null) auth.login(AbstractLocalInvoker.this.token());
+				TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
+				if (null == key)
+					throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key
+							+ "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
 
-	private class InvokeTask extends Task.Callable<Response> {
-		private Request request;
-
-		public InvokeTask(Request request) {
-			this.request = request;
-		}
-
-		@Override
-		public Response call() throws Exception {
-			Response resp = new Response(request);
-			if (auth != null) auth.login(AbstractLocalInvoker.this.token());
-			TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
-			if (null == key)
-				throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key
-						+ "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
-
-			Method method = METHOD_POOL.get(key);
-			Object bean = INSTANCE_POOL.get(key);
-			Object[] args = request.arguments();
-			return resp.result(method.invoke(bean, args));
-		}
+				Method method = METHOD_POOL.get(key);
+				Object bean = INSTANCE_POOL.get(key);
+				Object[] args = request.arguments();
+				return resp.result(method.invoke(bean, args));
+			}
+		};
 	}
 
 	private TXImpl scanTXInPools(TXImpl requestTX) {
 		if (!TX_POOL.containsKey(requestTX.value())) return null;
 		if (TX.ALL_VERSION.equals(requestTX)) return TX_POOL.get(requestTX.value()).first();
 		return TX_POOL.get(requestTX.value()).ceiling(requestTX);
+	}
+
+	@Override
+	public final Options[] remoteOptions(Options... options) {
+		return new Options[0];
 	}
 }

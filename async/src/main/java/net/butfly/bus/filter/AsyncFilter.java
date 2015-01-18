@@ -5,7 +5,6 @@ import java.util.Map;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
-import net.butfly.bus.impl.RequestWrapper;
 import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
 
@@ -20,12 +19,12 @@ public class AsyncFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public Response execute(final RequestWrapper<?> request) throws Exception {
-		return new BusTask<Response>(new Task.Callable<Response>() {
+	public <R> Response execute(FilterRequest<R> request) throws Exception {
+		return new BusTask<Response>(new Task<Response>(new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
 				return AsyncFilter.super.execute(request);
 			}
-		}, new Options().timeout(timeout)).execute();
+		}, new Options().timeout(timeout))).execute();
 	}
 }
