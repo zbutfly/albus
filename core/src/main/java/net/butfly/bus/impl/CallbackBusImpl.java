@@ -7,6 +7,7 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.CallbackBus;
 import net.butfly.bus.Request;
+import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.utils.TXUtils;
@@ -45,9 +46,15 @@ public class CallbackBusImpl extends StandardBusImpl implements CallbackBus {
 	 * but transfer it into LastFilter for handling.
 	 */
 	@Override
-	<R> void invoke(final Request request, Task.Callback<R> callback, final Options... options) throws Exception {
+	<R> void invoke(final Request request, final Task.Callback<R> callback, final Options... options) throws Exception {
 		check(request);
-		chain.execute(request, callback, options);
+		chain.execute(request, new Task.Callback<Response>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void callback(Response response) {
+				if (response.error() == null && null != callback) callback.callback((R) response.result());
+			}
+		}, options);
 	}
 
 	private class CallbackServiceProxy<T> extends ServiceProxy<T> {

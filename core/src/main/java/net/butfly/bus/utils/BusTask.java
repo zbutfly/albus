@@ -25,7 +25,7 @@ public class BusTask<T> extends Task<T> {
 		};
 		this.back = null == task.back() ? null : new Task.Callback<T>() {
 			@Override
-			public void callback(T result) throws Exception {
+			public void callback(T result) {
 				// TODO: optimizing...
 				Context.initialize(context);
 				try {
@@ -36,31 +36,6 @@ public class BusTask<T> extends Task<T> {
 			}
 		};
 		this.options = task.options();
-		this.exception(new Task.ExceptionHandler<T>() {
-			@Override
-			public T handle(Exception exception) throws Exception {
-				return task.call().handle(exception);
-			}
-		}, HandlerTarget.CALLABLE);
-		if (back != null) this.exception(new Task.ExceptionHandler<T>() {
-			@Override
-			public T handle(Exception exception) throws Exception {
-				return task.back().handle(exception);
-			}
-		}, HandlerTarget.CALLBACK);
-	}
-
-	public BusTask<T> exception(final Task.ExceptionHandler<T> handler, HandlerTarget... targets) {
-		return (BusTask<T>) wrapHandler(this, new Task.ExceptionHandler<T>() {
-			@Override
-			public T handle(Exception exception) throws Exception {
-				Context.initialize(context);
-				try {
-					return handler.handle(exception);
-				} finally {
-					context.putAll(Context.toMap());
-				}
-			}
-		}, targets);
+		this.handler = task.handler();
 	}
 }

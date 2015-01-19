@@ -14,7 +14,7 @@ public class TaskTest {
 		};
 		Task.Callback<String> back = new Task.Callback<String>() {
 			@Override
-			public void callback(String result) throws Exception {
+			public void callback(String result) {
 				System.out.println("backed ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId()
 						+ "}");
 				Thread.yield();

@@ -53,29 +53,37 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		// XXX: goof off
 		this.doOptions(request, response);
 		response.setStatus(HttpStatus.SC_OK);
+		try {
+			ContentType reqContentType = ContentType.parse(request.getContentType());
 
-		ContentType reqContentType = ContentType.parse(request.getContentType());
+			final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
+			if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
+				throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
+			final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
 
-		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
-		if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
-			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
-		final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
+			Invoking invoking = new Invoking();
+			Map<String, String> busHeaders = HttpHandler.headers(request);
+			invoking.context = HttpHandler.context(busHeaders);
+			invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
+			invoking.options = busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS) ? (Options) serializer.fromString(
+					busHeaders.get(BusHttpHeaders.HEADER_OPTIONS), Options.class) : null;
+			invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHttpHeaders.HEADER_CLASS_SUPPORT));
+			cluster.invoking(invoking);
+			invoking.parameters = HttpHandler.parameters(IOUtils.toByteArray(request.getInputStream()), serializer,
+					invoking.parameterClasses, reqContentType.getCharset());
 
-		Invoking invoking = new Invoking();
-		Map<String, String> busHeaders = HttpHandler.headers(request);
-		invoking.context = HttpHandler.context(busHeaders);
-		invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
-		invoking.options = busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS) ? (Options) serializer.fromString(
-				busHeaders.get(BusHttpHeaders.HEADER_OPTIONS), Options.class) : null;
-		invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHttpHeaders.HEADER_CLASS_SUPPORT));
-		cluster.invoking(invoking);
-		invoking.parameters = HttpHandler.parameters(IOUtils.toByteArray(request.getInputStream()), serializer,
-				invoking.parameterClasses, reqContentType.getCharset());
-
-		Response resp = cluster.invoke(invoking);
-		response.getOutputStream().write(
-				HttpHandler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
-		response.getOutputStream().flush();
-		response.flushBuffer();
+			Response resp = cluster.invoke(invoking);
+			response.getOutputStream().write(
+					HttpHandler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
+			response.getOutputStream().flush();
+			response.flushBuffer();
+		} catch (ServletException ex) {
+			throw ex;
+		} catch (IOException ex) {
+			throw ex;
+		} catch (Throwable th) {
+			logger.error("Unknown thrown: ", th);
+			throw new ServletException(th);
+		}
 	}
 }

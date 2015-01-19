@@ -89,6 +89,11 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	}
 
 	@Override
+	public final AuthService authBean() {
+		return this.auth;
+	}
+
+	@Override
 	public Options localOptions(Options... options) {
 		return options == null || options.length == 0 ? new Options() : options[0];
 	}

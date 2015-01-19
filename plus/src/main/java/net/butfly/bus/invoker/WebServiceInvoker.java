@@ -84,8 +84,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 				response.context(resp.parseContext());
 
-				boolean error = Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR));
-				if (error) {
+				if (Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR))) {
 					Error detail = serializer.deserialize(resp.data, Error.class);
 					response.error(detail);
 				} else {
