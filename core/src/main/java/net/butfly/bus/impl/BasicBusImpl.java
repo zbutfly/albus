@@ -146,8 +146,8 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		 * @throws Exception
 		 */
 		@Override
-		public <R> Response execute(FilterRequest<R> request) throws Exception {
-			Request req = request.request();
+		public <R> Response execute(final FilterRequest<R> request) throws Exception {
+			final Request req = request.request();
 			Options lo = request.invoker().localOptions(request.options());
 			Options[] ro = request.invoker().remoteOptions(request.options());
 			Callable<Response> invokeTask = request.invoker().task(req, ro);

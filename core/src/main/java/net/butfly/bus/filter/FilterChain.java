@@ -55,7 +55,7 @@ public final class FilterChain {
 		}
 	}
 
-	private Response executeOne(Filter filter, FilterRequest<?> request) throws Exception {
+	private Response executeOne(final Filter filter, final FilterRequest<?> request) throws Exception {
 		if (null == request.callback()) {
 			filter.before(request);
 			Response response = null;

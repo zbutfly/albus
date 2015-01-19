@@ -19,7 +19,7 @@ public class AsyncFilter extends FilterBase implements Filter {
 	}
 
 	@Override
-	public <R> Response execute(FilterRequest<R> request) throws Exception {
+	public <R> Response execute(final FilterRequest<R> request) throws Exception {
 		return new BusTask<Response>(new Task<Response>(new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {

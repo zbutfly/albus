@@ -9,7 +9,7 @@ import net.butfly.bus.context.Context;
 public class BusTask<T> extends Task<T> {
 	private final Map<String, Object> context = new ConcurrentHashMap<String, Object>();
 
-	public BusTask(Task<T> task) {
+	public BusTask(final Task<T> task) {
 		context.putAll(Context.toMap());
 		this.call = new Task.Callable<T>() {
 			@Override
@@ -50,7 +50,7 @@ public class BusTask<T> extends Task<T> {
 		}, HandlerTarget.CALLBACK);
 	}
 
-	public BusTask<T> exception(Task.ExceptionHandler<T> handler, HandlerTarget... targets) {
+	public BusTask<T> exception(final Task.ExceptionHandler<T> handler, HandlerTarget... targets) {
 		return (BusTask<T>) wrapHandler(this, new Task.ExceptionHandler<T>() {
 			@Override
 			public T handle(Exception exception) throws Exception {
