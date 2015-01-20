@@ -43,24 +43,27 @@ public class FilterContext {
 		return this.invoker;
 	}
 
-	public void invoker(Invoker<?> invoker) {
-		this.invoker = invoker;
-	}
-
 	public Response response() {
 		return response;
-	}
-
-	public void response(Response response) {
-		this.response = response;
-	}
-
-	public void param(String name, Object value) {
-		this.params.put(name, value);
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T param(String name) {
 		return (T) this.params.get(name);
+	}
+
+	public FilterContext invoker(Invoker<?> invoker) {
+		this.invoker = invoker;
+		return this;
+	}
+
+	public FilterContext response(Response response) {
+		this.response = response;
+		return this;
+	}
+
+	public FilterContext param(String name, Object value) {
+		this.params.put(name, value);
+		return this;
 	}
 }

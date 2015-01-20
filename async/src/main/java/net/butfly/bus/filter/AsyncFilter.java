@@ -25,6 +25,6 @@ public class AsyncFilter extends FilterBase implements Filter {
 				AsyncFilter.super.execute(context);
 				return null;
 			}
-		}, new Options().timeout(timeout))).execute();
+		}, new Options().fork(true).timeout(timeout))).execute();
 	}
 }

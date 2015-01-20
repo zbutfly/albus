@@ -12,7 +12,7 @@ public interface Invoker<C extends InvokerConfigBean> {
 
 	void initialize(C config, Token token);
 
-	Task.Callable<Response> task(Request request, Options... remoteOptions);
+	Task.Callable<Response> task(final Request request, final Options... remoteOptions);
 
 	Object[] getBeanList();
 

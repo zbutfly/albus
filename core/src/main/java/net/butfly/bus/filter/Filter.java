@@ -11,7 +11,7 @@ public interface Filter {
 
 	<R> void execute(FilterContext context) throws Exception;
 
-	void after(FilterContext context);
+	void after(FilterContext context) throws Exception;
 
 	Response exception(FilterContext context, Exception exception) throws Exception;
 }

@@ -44,6 +44,6 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 				ThreadControlFilter.super.execute(context);
 				return null;
 			}
-		}, new Options().timeout(timeout))).execute(executor);
+		}, new Options().fork(true).timeout(timeout))).execute(executor);
 	}
 }

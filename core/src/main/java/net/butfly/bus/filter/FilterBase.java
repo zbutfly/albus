@@ -3,7 +3,6 @@ package net.butfly.bus.filter;
 import java.util.Map;
 
 import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Response;
 
@@ -25,33 +24,12 @@ public abstract class FilterBase implements Filter {
 
 	@Override
 	public void execute(final FilterContext context) throws Exception {
-		if (null == context.callback()) {
-			try {
-				before(context);
-				chain.executeNext(this, context);
-				after(context);
-			} catch (Exception ex) {
-				exception(context, ex);
-			}
-		} else {
-			new Task<Response>(new Task.Callable<Response>() {
-				@Override
-				public Response call() throws Exception {
-					before(context);
-					chain.executeNext(FilterBase.this, context);
-					return context.response();
-				}
-			}, new Task.Callback<Response>() {
-				@Override
-				public void callback(Response response) {
-					after(context);
-				}
-			}).handler(new Task.ExceptionHandler<Response>() {
-				@Override
-				public Response handle(Exception ex) throws Exception {
-					return exception(context, ex);
-				}
-			}).execute();
+		try {
+			before(context);
+			chain.executeNext(this, context);
+			after(context);
+		} catch (Exception ex) {
+			exception(context, ex);
 		}
 	}
 
@@ -59,7 +37,7 @@ public abstract class FilterBase implements Filter {
 	public void before(FilterContext context) throws Exception {}
 
 	@Override
-	public void after(FilterContext context) {}
+	public void after(FilterContext context) throws Exception {}
 
 	@Override
 	public Response exception(FilterContext context, Exception exception) throws Exception {

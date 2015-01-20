@@ -17,15 +17,14 @@ public class LoggerFilter extends FilterBase implements Filter {
 		String prefix = null;
 		long now = System.currentTimeMillis();
 		if (logger.isInfoEnabled() || logger.isTraceEnabled()) {
-			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":").append(request.version())
-					.append("]");
+			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":")
+					.append(request.version()).append("]");
 			FlowNo fn = Context.flowNo();
 			if (null != fn) sb.append("[").append(fn.toString()).append("]");
 			sb.append(":");
 			prefix = sb.toString();
 		}
-		context.param("now", now);
-		context.param("prefix", prefix);
+		context.param("now", now).param("prefix", prefix);
 
 		if (logger.isTraceEnabled()) {
 			logger.trace(prefix + " invoking begin...");
