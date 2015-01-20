@@ -1,23 +1,31 @@
 package net.butfly.bus.impl;
 
-import net.butfly.bus.Bus;
+import net.butfly.bus.CallbackBus;
 
 public final class BusFactory {
 	private BusFactory() {}
 
-	public static Bus bus() {
-		return bus(BusMode.CLIENT);
+	enum Mode {
+		SERVER, CLIENT;
 	}
 
-	public static Bus bus(String conf) {
-		return bus(conf, BusMode.CLIENT);
+	public static CallbackBus client() {
+		return create(null, Mode.CLIENT);
 	}
 
-	public static Bus bus(BusMode mode) {
-		return bus(null, mode);
+	public static CallbackBus client(String conf) {
+		return create(conf, Mode.CLIENT);
 	}
 
-	public static Bus bus(String conf, BusMode mode) {
-		return new BusImpl(conf, mode);
+	public static CallbackBus server() {
+		return create(null, Mode.SERVER);
+	}
+
+	public static CallbackBus server(String conf) {
+		return create(conf, Mode.SERVER);
+	}
+
+	static CallbackBus create(String conf, Mode mode) {
+		return new CallbackBusImpl(conf, mode);
 	}
 }

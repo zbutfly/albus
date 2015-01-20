@@ -4,7 +4,6 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
-import net.butfly.bus.utils.RequestWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,36 +12,48 @@ public class LoggerFilter extends FilterBase implements Filter {
 	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
 
 	@Override
-	public void before(RequestWrapper<?> request) {
-		Request req = request.request();
+	public void before(FilterContext context) {
+		Request request = context.request();
 		String prefix = null;
 		long now = System.currentTimeMillis();
 		if (logger.isInfoEnabled() || logger.isTraceEnabled()) {
-			StringBuilder sb = new StringBuilder("BUS").append("[").append(req.code()).append(":").append(req.version())
-					.append("]");
+			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":")
+					.append(request.version()).append("]");
 			FlowNo fn = Context.flowNo();
 			if (null != fn) sb.append("[").append(fn.toString()).append("]");
 			sb.append(":");
 			prefix = sb.toString();
 		}
-		this.putParams(request, now, prefix);
+		context.param("now", now).param("prefix", prefix);
 
 		if (logger.isTraceEnabled()) {
 			logger.trace(prefix + " invoking begin...");
-			logger.trace(prefix + getDebugDetail(req));
+			logger.trace(prefix + getDebugDetail(request));
 		}
 	}
 
 	@Override
-	public void after(RequestWrapper<?> request, Response response) {
-		Object[] params = this.getParams(request);
-		String prefix = (String) params[1];
+	public void after(FilterContext context) {
+		String prefix = this.print(context);
+		Response response = context.response();
+		if (response.error() != null) logger.error("Bus error: " + response.error().toString());
+		if (logger.isTraceEnabled()) logger.trace(prefix + getDebugDetail(response));
+	}
+
+	@Override
+	public Response exception(FilterContext context, Exception exception) throws Exception {
+		this.print(context);
+		if (null != exception) logger.error("Bus exception: ", exception);
+		return super.exception(context, exception);
+	}
+
+	private String print(FilterContext context) {
+		String prefix = context.param("prefix");
 		if (logger.isInfoEnabled()) {
-			long spent = System.currentTimeMillis() - (Long) params[0];
+			long spent = System.currentTimeMillis() - (Long) context.param("now");
 			logger.info(prefix + " invoking ended in [" + spent + "ms].");
 		}
-		if (null != response && response.error() != null) logger.error("Bus error: " + response.error().toString());
-		if (logger.isTraceEnabled()) logger.trace(prefix + getDebugDetail(response));
+		return prefix;
 	}
 
 	private String getDebugDetail(Response response) {

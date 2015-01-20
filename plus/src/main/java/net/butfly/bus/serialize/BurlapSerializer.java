@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
-
-import org.apache.http.entity.ContentType;
+import java.nio.charset.Charset;
 
 import com.caucho.burlap.io.BurlapInput;
 import com.caucho.burlap.io.BurlapOutput;
 
 public class BurlapSerializer extends HessianSupport {
+	public BurlapSerializer(Charset charset) {
+		super(charset);
+	}
+
 	@Override
 	public void write(OutputStream os, Object obj) throws IOException {
 		BurlapOutput ho = new BurlapOutput(os);
@@ -41,12 +44,7 @@ public class BurlapSerializer extends HessianSupport {
 	}
 
 	@Override
-	public boolean supportHTTPStream() {
-		return true;
-	}
-
-	@Override
-	public ContentType[] getSupportedContentTypes() {
-		return new ContentType[] { HessianSupport.BURLAP_CONTENT_TYPE };
+	public String[] supportedMimeTypes() {
+		return new String[] { HessianSupport.BURLAP_CONTENT_TYPE };
 	}
 }
