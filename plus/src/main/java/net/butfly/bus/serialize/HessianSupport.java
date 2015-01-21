@@ -44,7 +44,7 @@ public abstract class HessianSupport extends SerializerBase implements Serialize
 	@Override
 	public void addFactoriesByClassName(List<String> classes) {
 		if (this.factory == null) this.factory = new SerializerFactory();
-		for (String f : classes)
+		if (null != classes) for (String f : classes)
 			try {
 				this.factory.addFactory((AbstractSerializerFactory) Class.forName(f).newInstance());
 			} catch (Exception e) {

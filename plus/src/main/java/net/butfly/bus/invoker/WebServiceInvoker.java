@@ -48,7 +48,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			} catch (Exception e) {
 				logger.error(
 						"Serializer factory instance construction failure for class: "
-								+ KeyUtils.join(config.getTypeTranslators().toArray(new String[0])), e);
+								+ KeyUtils.join(',', config.getTypeTranslators().toArray(new String[0])), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 

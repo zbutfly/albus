@@ -33,7 +33,7 @@ public abstract class BusTest {
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
-		return KeyUtils.join(remote ? this.getClientConfiguration() : this.getServerConfiguration());
+		return KeyUtils.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
 	}
 
 	protected static void run(boolean... isRemote) throws Exception {
@@ -54,7 +54,7 @@ public abstract class BusTest {
 	}
 
 	protected String[] getServerMainArguments() {
-		return new String[] { "-k", KeyUtils.join(getServerConfiguration()) };
+		return new String[] { "-k", KeyUtils.join(',', getServerConfiguration()) };
 	}
 
 	protected boolean isRemote() {

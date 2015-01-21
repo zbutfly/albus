@@ -167,10 +167,8 @@ public class XMLConfigParser extends ConfigParser {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private static InvokerConfigBean getInvokerConfig(Class<? extends Invoker<?>> invokerClass) {
-		Class<? extends InvokerConfigBean> configClass = (Class<? extends InvokerConfigBean>) GenericUtils
-				.getGenericParamClass(invokerClass, Invoker.class, "C");
+		Class<? extends InvokerConfigBean> configClass = GenericUtils.getGenericParamClass(invokerClass, Invoker.class, "C");
 		try {
 			return configClass.newInstance();
 		} catch (Throwable e) {

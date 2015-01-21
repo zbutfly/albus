@@ -55,7 +55,10 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		response.setStatus(HttpStatus.SC_OK);
 		try {
 			ContentType reqContentType = ContentType.parse(request.getContentType());
-
+			if (reqContentType.getCharset() == null)
+				reqContentType = ContentType.create(reqContentType.getMimeType(), Serializers.DEFAULT_CHARSET);
+			if (reqContentType.getMimeType() == null)
+				reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, reqContentType.getCharset());
 			final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
 			if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
 				throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
