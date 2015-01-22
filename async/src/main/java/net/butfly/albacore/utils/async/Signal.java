@@ -36,20 +36,22 @@ public abstract class Signal extends Throwable {
 
 	public static final class Completed extends Signal {
 		private static final long serialVersionUID = 2749846589668981907L;
-		private boolean successfully;
 
 		public Completed() {
 			super();
-			this.successfully = true;
 		}
+	}
 
-		public Completed(Throwable cause) {
+	public static final class Error extends Signal {
+		private static final long serialVersionUID = 1L;
+
+		public Error(Exception cause) {
 			super(cause);
-			this.successfully = false;
+			if (null == cause) throw new NullPointerException("Error signal need a cause.");
 		}
 
-		public boolean successfully() {
-			return this.successfully;
+		public Exception getCause() {
+			return (Exception) super.getCause();
 		}
 	}
 }

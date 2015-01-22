@@ -1,5 +1,6 @@
+package net.butfly.albacore.utils.async;
+import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.support.ContinuousOptions;
 
 public class TaskTest {
 	public static void main(String[] args) throws Exception {
@@ -20,7 +21,7 @@ public class TaskTest {
 				Thread.yield();
 			}
 		};
-		Task<String> task = new Task<String>(call, back, new ContinuousOptions().fork());
+		Task<String> task = new Task<String>(call, back, new Options().fork());
 		task.execute();
 		Thread.sleep(10000);
 	}
