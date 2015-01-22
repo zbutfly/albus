@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.BusHttpHeaders;
+import net.butfly.bus.context.Context;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.HttpHandler;
@@ -69,6 +70,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 			Invoking invoking = new Invoking();
 			Map<String, String> busHeaders = HttpHandler.headers(request);
 			invoking.context = HttpHandler.context(busHeaders);
+			invoking.context.put(Context.Key.SourceAppID.name(), request.getRemoteAddr());
 			invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
 			invoking.options = busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS) ? (Options) serializer.fromString(
 					busHeaders.get(BusHttpHeaders.HEADER_OPTIONS), Options.class) : null;
@@ -76,7 +78,6 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 			cluster.invoking(invoking);
 			invoking.parameters = HttpHandler.parameters(IOUtils.toByteArray(request.getInputStream()), serializer,
 					invoking.parameterClasses, reqContentType.getCharset());
-
 			Response resp = cluster.invoke(invoking);
 			response.getOutputStream().write(
 					HttpHandler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
