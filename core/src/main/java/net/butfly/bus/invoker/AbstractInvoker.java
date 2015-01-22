@@ -22,12 +22,13 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractInvoker<C extends InvokerConfigBean> implements Invoker<C> {
 	protected static Logger logger = LoggerFactory.getLogger(Invoker.class);
+	protected C config;
+	private Token token;
 
 	protected Map<String, TreeSet<TXImpl>> TX_POOL = new HashMap<String, TreeSet<TXImpl>>();
 	protected Map<TXImpl, Object> INSTANCE_POOL = new HashMap<TXImpl, Object>();
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
 	protected AuthService auth;
-	private Token token;
 
 	@Override
 	public String[] getTXCodes() {
@@ -36,21 +37,30 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 
 	@Override
 	public void initialize(C config, Token token) {
+		this.config = config;
 		this.token = token;
+	}
+
+	@Override
+	public void initialize() {
 		if (this.METHOD_POOL.isEmpty()) try {
 			logger.trace("Invoker parsing...");
 			for (Object bean : getBeanList()) {
 				Class<?> implClass = bean.getClass();
-				// DO not scan tx on implementation of facade.
-				// scanMethodsForTX(implClass, bean);
-			for (Class<?> clazz : implClass.getInterfaces())
-				scanMethodsForTX(clazz, bean);
-			if (AuthService.class.isAssignableFrom(implClass)) this.auth = (AuthService) bean;
+				/* DO not scan tx on implementation of facade. scanMethodsForTX(implClass, bean); */
+				for (Class<?> clazz : implClass.getInterfaces())
+					scanMethodsForTX(clazz, bean);
+				if (AuthService.class.isAssignableFrom(implClass)) this.auth = (AuthService) bean;
+			}
+			logger.trace("Invoker parsed.");
+		} catch (Exception _ex) {
+			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, _ex);
 		}
-		logger.trace("Invoker parsed.");
-	} catch (Exception _ex) {
-		throw new SystemException(Constants.BusinessError.CONFIG_ERROR, _ex);
+		this.config = null;
 	}
+
+	public boolean initialized() {
+		return this.config == null;
 	}
 
 	private void scanMethodsForTX(Class<?> clazz, Object bean) throws SecurityException, NoSuchMethodException {

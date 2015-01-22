@@ -89,7 +89,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	MethodInfo invokeInfo(String code, String version) {
 		InvokerBean ivkb = this.router.route(code, this.config.getInvokers());
 		if (null == ivkb) return null;
-		Invoker<?> ivk = BusFactoryImpl.getInvoker(ivkb, mode);
+		Invoker<?> ivk = Invokers.getInvoker(ivkb, mode);
 		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
@@ -119,7 +119,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 				Context.merge(Context.deserialize(context.request().context()));
 				break;
 			}
-			Invoker<?> invoker = BusFactoryImpl.getInvoker(router.route(context.request().code(), config.getInvokers()), mode);
+			Invoker<?> invoker = Invokers.getInvoker(router.route(context.request().code(), config.getInvokers()), mode);
 			context.request().token(invoker.token());
 			context.invoker(invoker);
 		}

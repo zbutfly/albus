@@ -9,8 +9,9 @@ import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.service.AuthService;
 
 public interface Invoker<C extends InvokerConfigBean> {
-
 	void initialize(C config, Token token);
+
+	void initialize();
 
 	Task.Callable<Response> task(final Request request, final Options... remoteOptions);
 
@@ -25,4 +26,5 @@ public interface Invoker<C extends InvokerConfigBean> {
 	Options localOptions(Options... options);
 
 	Options[] remoteOptions(Options... options);
+
 }

@@ -18,6 +18,7 @@ import net.butfly.bus.config.bean.RouterBean;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.Filter;
+import net.butfly.bus.impl.Invokers;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
@@ -60,7 +61,10 @@ public class XMLConfigParser extends ConfigParser {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "No invoker found, bus could not work.");
 		for (Element element : elements) {
 			InvokerBean ivk = this.parseInvoker(element);
-			if (null != ivk) beans.add(ivk);
+			if (null != ivk) {
+				beans.add(ivk);
+				Invokers.register(ivk);
+			}
 		}
 		return beans.toArray(new InvokerBean[beans.size()]);
 	}

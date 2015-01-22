@@ -39,6 +39,8 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		} catch (ClassNotFoundException e) {
 			throw new ServletException("Router definition not found.", e);
 		}
+		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
+		logger.trace("Servlet started...");
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

@@ -15,7 +15,7 @@ import net.butfly.bus.utils.TXUtils.TXImpl;
 
 public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
 	public Method getMethod(String code, String version) {
-		TXImpl key = this.scanTXInPools(TXUtils.TXImpl(code, version));
+		TXImpl key = this.scanTXLazily(TXUtils.TXImpl(code, version));
 		if (null == key)
 			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
 					+ METHOD_POOL.keySet().toString() + "].");
@@ -29,7 +29,7 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 			public Response call() throws Exception {
 				Response resp = new Response(request);
 				if (auth != null) auth.login(AbstractLocalInvoker.this.token());
-				TXImpl key = scanTXInPools(TXUtils.TXImpl(request.code(), request.version()));
+				TXImpl key = scanTXLazily(TXUtils.TXImpl(request.code(), request.version()));
 				if (null == key)
 					throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key
 							+ "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
@@ -42,10 +42,19 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 		};
 	}
 
-	private TXImpl scanTXInPools(TXImpl requestTX) {
-		if (!TX_POOL.containsKey(requestTX.value())) return null;
-		if (TX.ALL_VERSION.equals(requestTX)) return TX_POOL.get(requestTX.value()).first();
-		return TX_POOL.get(requestTX.value()).ceiling(requestTX);
+	private TXImpl scanTXLazily(TXImpl requestTX) {
+		if (TX_POOL.containsKey(requestTX.value())) {
+			if (TX.ALL_VERSION.equals(requestTX)) return TX_POOL.get(requestTX.value()).first();
+			return TX_POOL.get(requestTX.value()).ceiling(requestTX);
+		}
+		if (config != null) {
+			this.initialize();
+			if (TX_POOL.containsKey(requestTX.value())) {
+				if (TX.ALL_VERSION.equals(requestTX)) return TX_POOL.get(requestTX.value()).first();
+				return TX_POOL.get(requestTX.value()).ceiling(requestTX);
+			}
+		}
+		return null;
 	}
 
 	@Override

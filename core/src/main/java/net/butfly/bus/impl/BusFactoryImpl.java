@@ -1,19 +1,13 @@
 package net.butfly.bus.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
-import net.butfly.bus.config.bean.invoker.InvokerBean;
-import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;
 import net.butfly.bus.config.parser.XMLConfigParser;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.impl.BusFactory.Mode;
-import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.policy.SimpleRouter;
 import net.butfly.bus.utils.Constants;
@@ -71,25 +65,7 @@ class BusFactoryImpl {
 		}
 	}
 
-	private static Map<String, Invoker<?>> INVOKER_POOL = new HashMap<String, Invoker<?>>();
 
-	@SuppressWarnings("unchecked")
-	static <C extends InvokerConfigBean> Invoker<C> getInvoker(InvokerBean bean, Mode mode) {
-		Class<? extends Invoker<C>> clazz = (Class<? extends Invoker<C>>) bean.type();
-		C config = (C) bean.config();
-		String key = bean.id();
-		if (null != config) key = key + ":" + config.toString();
-		if (INVOKER_POOL.containsKey(key)) return (Invoker<C>) INVOKER_POOL.get(key);
-		try {
-			Invoker<C> invoker = clazz.newInstance();
-			invoker.initialize(config, bean.getToken());
-			INVOKER_POOL.put(key, invoker);
-			return invoker;
-		} catch (Throwable e) {
-			throw new SystemException(Constants.UserError.NODE_CONFIG, "Invoker " + clazz.getName()
-					+ " initialization failed for invalid Invoker instance.", e);
-		}
-	}
 
 	private static ConfigLoader scanLoader(String configLocation) {
 		ConfigLoader l = new ClasspathConfigLoad(configLocation);

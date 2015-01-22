@@ -5,7 +5,7 @@ import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 public class SpringInvokerConfig extends InvokerConfigBean {
 	private static final long serialVersionUID = -7366819206702674572L;
 	private String files;
-	private String lazy = "true";
+	private String lazy = "false";
 
 	public String getFiles() {
 		return files;
@@ -15,12 +15,10 @@ public class SpringInvokerConfig extends InvokerConfigBean {
 		this.files = files;
 	}
 
+	@Override
 	public boolean isLazy() {
-		return Boolean.parseBoolean(lazy);
-	}
-
-	public void setLazy(boolean lazy) {
-		this.lazy = Boolean.toString(lazy);
+		String l = System.getProperty("bus.invoker.spring.lazy");
+		return Boolean.parseBoolean(l == null ? lazy : l);
 	}
 
 	@Override
