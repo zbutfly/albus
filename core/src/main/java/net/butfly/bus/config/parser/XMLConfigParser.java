@@ -79,7 +79,6 @@ public class XMLConfigParser extends ConfigParser {
 			Class<? extends Invoker<?>> clazz = classForName(className);
 			InvokerConfigBean config = getInvokerConfig(clazz);
 			if (null != config) XMLUtils.setPropsByNode(config, element);
-			logger.debug("Node [" + className + "] enabled.");
 			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
 					this.parseInvokerAuth(element));
 		}

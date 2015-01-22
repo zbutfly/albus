@@ -44,7 +44,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	@Override
 	public void initialize() {
 		if (this.METHOD_POOL.isEmpty()) try {
-			logger.trace("Invoker parsing...");
+			logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsing...");
 			for (Object bean : getBeanList()) {
 				Class<?> implClass = bean.getClass();
 				/* DO not scan tx on implementation of facade. scanMethodsForTX(implClass, bean); */
@@ -52,7 +52,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 					scanMethodsForTX(clazz, bean);
 				if (AuthService.class.isAssignableFrom(implClass)) this.auth = (AuthService) bean;
 			}
-			logger.trace("Invoker parsed.");
+			logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsed.");
 		} catch (Exception _ex) {
 			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, _ex);
 		}

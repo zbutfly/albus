@@ -39,10 +39,9 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("[").append(path).append(":").append(timeout);
+		sb.append(path).append(":").append(timeout);
 		if (typeTranslators != null) for (String clazz : typeTranslators)
 			sb.append(":").append(clazz);
-		sb.append("]");
 		return sb.toString();
 	}
 

@@ -20,10 +20,8 @@ public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> imp
 	public void initialize(SpringInvokerConfig config, Token token) {
 		String[] files = config.getFiles().split(";");
 		List<Resource> reses = new ArrayList<Resource>();
-		for (String file : files) {
+		for (String file : files)
 			reses.add(new ClassPathResource(file));
-			logger.trace("Invoker [SPRING:" + file + "] parsing...");
-		}
 		this.spring = new GenericXmlApplicationContext(reses.toArray(new Resource[reses.size()]));
 		super.initialize(config, token);
 	}
@@ -35,7 +33,6 @@ public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> imp
 			if (Unit.class.isAssignableFrom(spring.getType(name))
 					&& !((BeanDefinitionRegistry) spring).getBeanDefinition(name).isAbstract())
 				beans.add(spring.getBean(name));
-		logger.trace("Invoker [SPRING] context parsed.");
 		return beans.toArray(new Object[beans.size()]);
 	}
 }

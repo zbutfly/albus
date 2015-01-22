@@ -31,8 +31,8 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		logger.trace("Servlet starting...");
 		String paramConfig = this.getInitParameter("config");
+		logger.info("Servlet [" + paramConfig + "] starting...");
 		try {
 			this.cluster = BusFactoryImpl.serverCluster(null == paramConfig ? null : paramConfig.split(","),
 					this.getInitParameter("router"));
@@ -40,7 +40,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 			throw new ServletException("Router definition not found.", e);
 		}
 		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
-		logger.trace("Servlet started...");
+		logger.info("Servlet [" + paramConfig + "] started.");
 	}
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

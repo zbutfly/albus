@@ -23,8 +23,6 @@ public class SpringInvokerConfig extends InvokerConfigBean {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[").append(files).append("]");;
-		return sb.toString();
+		return files;
 	}
 }
