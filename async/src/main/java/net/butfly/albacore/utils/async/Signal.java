@@ -1,4 +1,4 @@
-package net.butfly.bus.support;
+package net.butfly.albacore.utils.async;
 
 public abstract class Signal extends Throwable {
 	protected Signal(Throwable cause) {

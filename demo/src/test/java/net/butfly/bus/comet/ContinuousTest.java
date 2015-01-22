@@ -1,9 +1,9 @@
 package net.butfly.bus.comet;
 
+import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.CallbackBus;
 import net.butfly.bus.comet.facade.CometFacade;
-import net.butfly.bus.support.ContinuousOptions;
 
 public class ContinuousTest extends CallbackTest {
 	protected ContinuousTest(boolean remote) throws Exception {
@@ -26,7 +26,7 @@ public class ContinuousTest extends CallbackTest {
 	private void echoString(int retries) {
 		String echo;
 		try {
-			echo = ((CallbackBus) this.client).service(CometFacade.class, echoCallback, new ContinuousOptions().retries(3))
+			echo = ((CallbackBus) this.client).service(CometFacade.class, echoCallback, new Options().retries(3))
 					.echoString("hello, World!");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
