@@ -5,57 +5,49 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.bus.Bus;
+import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.config.bean.FilterBean;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.RequestWrapper;
 
 public final class FilterChain {
 	private Filter[] filters;
 
-	public FilterChain(List<FilterBean> beans, Filter main) {
+	public FilterChain(Filter routeFilter, List<FilterBean> beans, Filter invokeFilter, Bus bus) {
 		List<Filter> filters = new ArrayList<Filter>();
+		this.addFilter(filters, routeFilter, bus);
+
 		if (beans == null) beans = new ArrayList<FilterBean>();
 		for (FilterBean bean : beans) {
 			bean.getFilter().initialize(bean.getParams());
-			this.addFilter(filters, bean.getFilter());
+			this.addFilter(filters, bean.getFilter(), bus);
 		}
-		main.initialize(new HashMap<String, String>());
-		this.addFilter(filters, main);
+		invokeFilter.initialize(new HashMap<String, String>());
+
+		this.addFilter(filters, invokeFilter, bus);
 		this.filters = filters.toArray(new Filter[filters.size()]);
 	}
 
-	private void addFilter(List<Filter> list, Filter filter) {
+	private void addFilter(List<Filter> filters, Filter filter, Bus bus) {
 		((FilterBase) filter).chain = this;
-		list.add(filter);
+		((FilterBase) filter).bus = bus;
+		filters.add(filter);
 	}
 
-	public Response execute(RequestWrapper<?> request) throws Exception {
-		try {
-			return this.executeOne(this.filters[0], request);
-		} finally {
-			for (Filter f : this.filters)
-				((FilterBase) f).removeParams(request);
-		}
+	public Response execute(final Request request, Task.Callback<Response> callback, final Options... options) throws Exception {
+		FilterContext context = new FilterContext(request, callback, options);
+		executeOne(filters[0], context);
+		return context.response();
 	}
 
-	public void executeAfter(RequestWrapper<?> request, Response response) {
-		for (Filter f : this.filters)
-			f.after(request, response);
+	private void executeOne(final Filter filter, final FilterContext context) throws Exception {
+		filter.execute(context);
 	}
 
-	private Response executeOne(Filter filter, RequestWrapper<?> request) throws Exception {
-		filter.before(request);
-		Response response = null;;
-		try {
-			response = filter.execute(request);
-		} finally {
-			filter.after(request, response);
-		}
-		return response;
-	}
-
-	protected Response executeNext(Filter current, RequestWrapper<?> request) throws Exception {
+	protected void executeNext(Filter current, FilterContext context) throws Exception {
 		// TODO:optimizing...
 		int pos = -1;
 		for (int i = 0; i < this.filters.length; i++)
@@ -66,7 +58,7 @@ public final class FilterChain {
 		if (pos == -1) // not found
 			throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Filter not found.");
 		if (pos == this.filters.length - 1) // last
-			return null;
-		return this.executeOne(this.filters[pos + 1], request);
+			throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "LastFilter should not run executeNext.");;
+		executeOne(filters[pos + 1], context);
 	}
 }

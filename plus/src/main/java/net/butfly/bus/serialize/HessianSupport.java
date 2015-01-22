@@ -4,21 +4,22 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
 
-//import org.apache.http.Consts;
-import org.apache.http.entity.ContentType;
-
 import com.caucho.hessian.io.AbstractSerializerFactory;
 import com.caucho.hessian.io.SerializerFactory;
 
-public abstract class HessianSupport extends HTTPStreamingSupport implements Serializer, SerializerFactorySupport {
-	// , Consts . ISO_8859_1
-	public static final ContentType HESSIAN_CONTENT_TYPE = ContentType.create("x-application/hessian");
-	public static final ContentType BURLAP_CONTENT_TYPE = ContentType.create("x-application/burlap");
+public abstract class HessianSupport extends SerializerBase implements Serializer, SerializerFactorySupport {
+	public static final String HESSIAN_CONTENT_TYPE = "x-application/hessian";
+	public static final String BURLAP_CONTENT_TYPE = "x-application/burlap";
 	protected SerializerFactory factory;
+
+	public HessianSupport(Charset charset) {
+		super(charset);
+	}
 
 	@Override
 	public byte[] serialize(Object obj) {
@@ -43,7 +44,7 @@ public abstract class HessianSupport extends HTTPStreamingSupport implements Ser
 	@Override
 	public void addFactoriesByClassName(List<String> classes) {
 		if (this.factory == null) this.factory = new SerializerFactory();
-		for (String f : classes)
+		if (null != classes) for (String f : classes)
 			try {
 				this.factory.addFactory((AbstractSerializerFactory) Class.forName(f).newInstance());
 			} catch (Exception e) {
@@ -58,11 +59,11 @@ public abstract class HessianSupport extends HTTPStreamingSupport implements Ser
 
 	@Override
 	public String asString(Object obj) {
-		return new String(serialize(obj), this.getOutputContentType().getCharset());
+		return new String(serialize(obj), this.charset());
 	}
 
 	@Override
 	public <T> T fromString(String str, Type... types) {
-		return deserialize(str.getBytes(this.getOutputContentType().getCharset()), types);
+		return deserialize(str.getBytes(this.charset()), types);
 	}
 }

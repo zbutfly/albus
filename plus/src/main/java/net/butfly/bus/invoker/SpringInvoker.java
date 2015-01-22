@@ -15,33 +15,24 @@ import org.springframework.core.io.Resource;
 
 public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> implements Invoker<SpringInvokerConfig> {
 	private ApplicationContext spring;
-	private String files;
 
 	@Override
 	public void initialize(SpringInvokerConfig config, Token token) {
-		this.files = config.getFiles();
+		String[] files = config.getFiles().split(";");
+		List<Resource> reses = new ArrayList<Resource>();
+		for (String file : files)
+			reses.add(new ClassPathResource(file));
+		this.spring = new GenericXmlApplicationContext(reses.toArray(new Resource[reses.size()]));
 		super.initialize(config, token);
-		if (!config.isLazy()) this.getBeanList();
 	}
 
 	@Override
 	public Object[] getBeanList() {
-		if (null == this.spring) {
-			String[] filelist = files.split(";");
-			List<Resource> reses = new ArrayList<Resource>();
-			for (String file : filelist) {
-				reses.add(new ClassPathResource(file));
-				logger.trace("Invoker [SPRING:" + file + "] parsing...");
-			}
-			this.spring = new GenericXmlApplicationContext(reses.toArray(new Resource[reses.size()]));
-		}
-
 		List<Object> beans = new ArrayList<Object>();
 		for (String name : spring.getBeanDefinitionNames())
 			if (Unit.class.isAssignableFrom(spring.getType(name))
 					&& !((BeanDefinitionRegistry) spring).getBeanDefinition(name).isAbstract())
 				beans.add(spring.getBean(name));
-		logger.trace("Invoker [SPRING] context parsed.");
 		return beans.toArray(new Object[beans.size()]);
 	}
 }

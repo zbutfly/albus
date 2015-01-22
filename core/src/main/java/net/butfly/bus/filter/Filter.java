@@ -3,14 +3,15 @@ package net.butfly.bus.filter;
 import java.util.Map;
 
 import net.butfly.bus.Response;
-import net.butfly.bus.utils.RequestWrapper;
 
 public interface Filter {
-	public void initialize(Map<String, String> params);
+	void initialize(Map<String, String> params);
 
-	public Response execute(RequestWrapper<?> request) throws Exception;
+	void before(FilterContext context) throws Exception;
 
-	public void before(RequestWrapper<?> request);
+	<R> void execute(FilterContext context) throws Exception;
 
-	public void after(RequestWrapper<?> request, Response response);
+	void after(FilterContext context) throws Exception;
+
+	Response exception(FilterContext context, Exception exception) throws Exception;
 }

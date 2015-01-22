@@ -3,7 +3,7 @@ package net.butfly.bus.console.facade;
 import java.lang.reflect.Type;
 
 import net.butfly.albacore.facade.Facade;
-import net.butfly.bus.argument.TX;
+import net.butfly.bus.TX;
 
 public interface StatusFacade extends Facade {
 	@TX("BUS-001")

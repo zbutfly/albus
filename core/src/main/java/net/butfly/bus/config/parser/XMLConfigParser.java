@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.XMLUtils;
 import net.butfly.bus.Token;
@@ -17,8 +18,8 @@ import net.butfly.bus.config.bean.RouterBean;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.Filter;
+import net.butfly.bus.impl.Invokers;
 import net.butfly.bus.invoker.Invoker;
-import net.butfly.bus.invoker.InvokerFactory;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
 
@@ -33,20 +34,22 @@ public class XMLConfigParser extends ConfigParser {
 
 	@Override
 	public Config parse() {
-		Config config = new Config();
+		boolean debug = Boolean.parseBoolean(root.attributeValue("debug", Boolean.toString(false)));
+		Config config = new Config(debug);
 		config.setFilterList(this.parseFilters(this.elements("filter")));
 		config.setInvokers(this.parseInvokers());
 		config.setRouter(this.parseRouter());
+
 		return config;
 	}
 
 	public XMLConfigParser(InputStream source) {
 		super();
-		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.");
+		if (null == source) throw new SystemException(Constants.UserError.CONFIG_ERROR, "StandardBus configurations invalid.");
 		try {
 			this.document = new SAXReader().read(source);
 		} catch (DocumentException e) {
-			throw new SystemException(Constants.UserError.CONFIG_ERROR, "Bus configurations invalid.", e);
+			throw new SystemException(Constants.UserError.CONFIG_ERROR, "StandardBus configurations invalid.", e);
 		}
 		this.root = this.document.getRootElement();
 	}
@@ -58,7 +61,10 @@ public class XMLConfigParser extends ConfigParser {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "No invoker found, bus could not work.");
 		for (Element element : elements) {
 			InvokerBean ivk = this.parseInvoker(element);
-			if (null != ivk) beans.add(ivk);
+			if (null != ivk) {
+				beans.add(ivk);
+				Invokers.register(ivk);
+			}
 		}
 		return beans.toArray(new InvokerBean[beans.size()]);
 	}
@@ -71,9 +77,8 @@ public class XMLConfigParser extends ConfigParser {
 			if (null == className || "".equals(className))
 				throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
 			Class<? extends Invoker<?>> clazz = classForName(className);
-			InvokerConfigBean config = InvokerFactory.getConfig(clazz);
+			InvokerConfigBean config = getInvokerConfig(clazz);
 			if (null != config) XMLUtils.setPropsByNode(config, element);
-			logger.debug("Node [" + className + "] enabled.");
 			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
 					this.parseInvokerAuth(element));
 		}
@@ -162,6 +167,15 @@ public class XMLConfigParser extends ConfigParser {
 		} catch (Throwable th) {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR,
 					"Route setting error: can't parse route/policy class name.", th);
+		}
+	}
+
+	private static InvokerConfigBean getInvokerConfig(Class<? extends Invoker<?>> invokerClass) {
+		Class<? extends InvokerConfigBean> configClass = GenericUtils.getGenericParamClass(invokerClass, Invoker.class, "C");
+		try {
+			return configClass.newInstance();
+		} catch (Throwable e) {
+			return null;
 		}
 	}
 }

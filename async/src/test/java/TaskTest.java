@@ -1,11 +1,9 @@
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callable;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.support.ContinuousOptions;
 
 public class TaskTest {
 	public static void main(String[] args) throws Exception {
-		Callable<String> call = new Task.Callable<String>() {
+		Task.Callable<String> call = new Task.Callable<String>() {
 			@Override
 			public String call() throws Exception {
 				System.out.println("called ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId()
@@ -14,9 +12,9 @@ public class TaskTest {
 				return "Hello, World: " + Math.random();
 			}
 		};
-		Callback<String> back = new Callback<String>() {
+		Task.Callback<String> back = new Task.Callback<String>() {
 			@Override
-			public void callback(String result) throws Exception {
+			public void callback(String result) {
 				System.out.println("backed ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId()
 						+ "}");
 				Thread.yield();

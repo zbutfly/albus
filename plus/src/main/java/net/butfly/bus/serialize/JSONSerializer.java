@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
@@ -13,17 +14,21 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
-public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
+public class JSONSerializer extends SerializerBase implements Serializer {
 	private Gson gson = new Gson();// add TypeAdapterFactory here.
+
+	public JSONSerializer(Charset charset) {
+		super(charset);
+	}
 
 	@Override
 	public byte[] serialize(Object obj) {
-		return asString(obj).getBytes(this.getOutputContentType().getCharset());
+		return asString(obj).getBytes(this.charset());
 	}
 
 	@Override
 	public <T> T deserialize(byte[] data, Type... types) {
-		return fromString(new String(data, this.getOutputContentType().getCharset()), types);
+		return fromString(new String(data, this.charset()), types);
 	}
 
 	@Override
@@ -43,13 +48,8 @@ public class JSONSerializer extends HTTPStreamingSupport implements Serializer {
 	}
 
 	@Override
-	public boolean supportHTTPStream() {
-		return true;
-	}
-
-	@Override
-	public ContentType[] getSupportedContentTypes() {
-		return new ContentType[] { ContentType.APPLICATION_JSON };
+	public String[] supportedMimeTypes() {
+		return new String[] { ContentType.APPLICATION_JSON.getMimeType() };
 	}
 
 	@Override
