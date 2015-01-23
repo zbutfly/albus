@@ -68,7 +68,7 @@ final class Cluster implements Routeable {
 		Request req = new Request(invoking.tx, invoking.context, invoking.parameters);
 		Context.initialize(Context.deserialize(req.context()));
 		try {
-			return ((StandardBusImpl) invoking.bus).invoke(req, invoking.options);
+			return ((BasicBusImpl) invoking.bus).invoke(req, invoking.options);
 		} catch (Exception e) {
 			e = Exceptions.unwrap(e);
 			logger.error(e.getMessage(), e);

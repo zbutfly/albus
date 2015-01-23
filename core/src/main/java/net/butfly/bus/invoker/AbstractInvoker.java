@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.TX;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
@@ -101,10 +100,5 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	@Override
 	public final AuthService authBean() {
 		return this.auth;
-	}
-
-	@Override
-	public Options localOptions(Options... options) {
-		return options == null || options.length == 0 ? new Options() : options[0];
 	}
 }

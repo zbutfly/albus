@@ -1,8 +1,5 @@
 package net.butfly.bus.filter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
@@ -15,13 +12,13 @@ public class FilterContext {
 	private Options[] options;
 	private Task.Callback<Response> callback;
 	private Invoker<?> invoker;
-	private Map<String, Object> params = new HashMap<String, Object>();
 
-	public FilterContext(Request request, Options... options) {
-		this(request, null, options);
+	public FilterContext(Invoker<?> invoker, Request request, Options... options) {
+		this(invoker, request, null, options);
 	}
 
-	public FilterContext(Request request, Task.Callback<Response> callback, Options... options) {
+	public FilterContext(Invoker<?> invoker, Request request, Task.Callback<Response> callback, Options... options) {
+		this.invoker = invoker;
 		this.request = request;
 		this.callback = callback;
 		this.options = options;
@@ -47,23 +44,8 @@ public class FilterContext {
 		return response;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> T param(String name) {
-		return (T) this.params.get(name);
-	}
-
-	public FilterContext invoker(Invoker<?> invoker) {
-		this.invoker = invoker;
-		return this;
-	}
-
 	public FilterContext response(Response response) {
 		this.response = response;
-		return this;
-	}
-
-	public FilterContext param(String name, Object value) {
-		this.params.put(name, value);
 		return this;
 	}
 }

@@ -8,6 +8,7 @@ import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.filter.FilterContext;
 import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.utils.TXUtils;
 
@@ -39,7 +40,8 @@ class StandardBusImpl extends BasicBusImpl {
 	@Override
 	<T> Response invoke(Request request, Options... options) throws Exception {
 		check(request);
-		return chain.execute(request, null, options);
+		return chain.execute(new FilterContext(Invokers.getInvoker(router.route(request.code(), config.getInvokers()), mode),
+				request, options));
 	}
 
 	@Override

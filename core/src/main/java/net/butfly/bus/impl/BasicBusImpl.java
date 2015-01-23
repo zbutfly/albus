@@ -16,6 +16,7 @@ import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Error;
@@ -42,12 +43,12 @@ import net.butfly.bus.utils.TXUtils;
 abstract class BasicBusImpl implements Bus, InternalFacade {
 	private static final long serialVersionUID = 3149085159221930900L;
 	private final String id;
-	private Config config;
-	private Router router;
+	protected Config config;
+	protected Router router;
 	protected FilterChain chain;
 
 	private String[] supportedTXs;
-	private Mode mode;
+	protected Mode mode;
 	private Filter firstFilter, lastFilter;
 
 	public BasicBusImpl(Mode mode) {
@@ -110,7 +111,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	// 1. Context <==> request/response
 	protected class FirstFilter extends FilterBase implements Filter {
 		@Override
-		public void before(FilterContext context) {
+		public void execute(final FilterContext context) throws Exception {
 			switch (mode) {
 			case CLIENT:
 				context.request().context(Context.serialize(Context.toMap()));
@@ -119,55 +120,50 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 				Context.merge(Context.deserialize(context.request().context()));
 				break;
 			}
-			Invoker<?> invoker = Invokers.getInvoker(router.route(context.request().code(), config.getInvokers()), mode);
-			context.request().token(invoker.token());
-			context.invoker(invoker);
+			try {
+				super.execute(context);
+			} finally {
+				switch (mode) {
+				case CLIENT:
+					Context.merge(Context.deserialize(context.response().context()));
+					break;
+				case SERVER:
+					context.response().context(Context.serialize(Context.toMap()));
+					break;
+				}
+				if (mode == Mode.CLIENT && null != context.response().error()) throw context.response().error().toException();
+				if (context.callback() != null) context.callback().callback(context.response());
+			}
 		}
 
-		@Override
-		public void after(FilterContext context) throws Exception {
-			switch (mode) {
-			case CLIENT:
-				Context.merge(Context.deserialize(context.response().context()));
-				break;
-			case SERVER:
-				context.response().context(Context.serialize(Context.toMap()));
-				break;
-			}
-			if (mode == Mode.CLIENT && null != context.response().error()) throw context.response().error().toException();
-			if (context.callback() != null) context.callback().callback(context.response());
-		}
 	}
 
 	protected class LastFilter extends FilterBase implements Filter {
 		// Kernal invoking of this bus.
 		@Override
 		public void execute(final FilterContext context) throws Exception {
-			try {
-				Task<Response> task = new Task<Response>(new Task.Callable<Response>() {
-					@Override
-					public Response call() throws Exception {
-						return context.invoker().task(context.request(), context.invoker().remoteOptions(context.options()))
-								.call();
-					}
-				}, new Task.Callback<Response>() {
-					@Override
-					public void callback(Response response) {
-						context.response(response);
-					}
-				}, context.invoker().localOptions(context.options())).handler(new Task.ExceptionHandler<Response>() {
-					@Override
-					public Response handle(Exception ex) throws Exception {
-						if (mode == Mode.SERVER) return new Response(context.request()).error(new Error(Exceptions.unwrap(ex),
-								Context.debug()));
-						else return exception(context, ex);
-					}
-				});
-				Response resp = new BusTask<Response>(task).execute();
-				if (context.response() == null) context.response(resp);
-			} catch (Exception ex) {
-				exception(context, ex);
-			}
+			final Callable<Response> invokeTask = context.invoker().task(context.request(),
+					context.invoker().remoteOptions(context.options()));
+			Task<Response> task = new Task<Response>(new Task.Callable<Response>() {
+				@Override
+				public Response call() throws Exception {
+					return invokeTask.call();
+				}
+			}, new Task.Callback<Response>() {
+				@Override
+				public void callback(Response response) {
+					context.response(response);
+				}
+			}/* , context.invoker().localOptions(context.options()) */).handler(new Task.ExceptionHandler<Response>() {
+				@Override
+				public Response handle(Exception ex) throws Exception {
+					if (mode != Mode.SERVER) throw ex;
+					return new Response(context.request()).error(new Error(Exceptions.unwrap(ex), Context.debug()));
+
+				}
+			});
+			Response resp = new BusTask<Response>(task).execute();
+			if (context.response() == null) context.response(resp);
 		}
 	}
 

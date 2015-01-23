@@ -61,4 +61,9 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	public final Options[] remoteOptions(Options... options) {
 		return new Options[0];
 	}
+
+	@Override
+	public Options localOptions(Options... options) {
+		return options == null || options.length == 0 ? new Options() : options[0];
+	}
 }

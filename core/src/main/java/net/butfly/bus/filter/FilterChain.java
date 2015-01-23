@@ -5,10 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
-import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.config.bean.FilterBean;
 import net.butfly.bus.utils.Constants;
@@ -37,8 +34,7 @@ public final class FilterChain {
 		filters.add(filter);
 	}
 
-	public Response execute(final Request request, Task.Callback<Response> callback, final Options... options) throws Exception {
-		FilterContext context = new FilterContext(request, callback, options);
+	public Response execute(final FilterContext context) throws Exception {
 		executeOne(filters[0], context);
 		return context.response();
 	}
