@@ -70,7 +70,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 			Invoking invoking = new Invoking();
 			Map<String, String> busHeaders = HttpHandler.headers(request);
 			invoking.context = HttpHandler.context(busHeaders);
-			invoking.context.put(Context.Key.SourceAppID.name(), request.getRemoteAddr());
+			invoking.context.put(Context.Key.SourceHost.name(), request.getRemoteAddr());
 			invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
 			invoking.options = busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS) ? (Options) serializer.fromString(
 					busHeaders.get(BusHttpHeaders.HEADER_OPTIONS), Options.class) : null;
