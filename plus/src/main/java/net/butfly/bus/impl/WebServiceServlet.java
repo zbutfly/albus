@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.Context;
@@ -44,58 +45,63 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		logger.info("Servlet [" + paramConfig + "] started.");
 	}
 
-	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.setHeader("Access-Control-Allow-Headers", req.getHeader("Access-Control-Request-Headers"));
 		resp.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
-			IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 		// XXX: goof off
 		this.doOptions(request, response);
 		response.setStatus(HttpStatus.SC_OK);
-		try {
-			ContentType reqContentType = ContentType.parse(request.getContentType());
-			if (reqContentType.getCharset() == null)
-				reqContentType = ContentType.create(reqContentType.getMimeType(), Serializers.DEFAULT_CHARSET);
-			if (reqContentType.getMimeType() == null)
-				reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, reqContentType.getCharset());
-			final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
-			if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
-				throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
-			final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
+		ContentType reqContentType = ContentType.parse(request.getContentType());
+		if (reqContentType.getCharset() == null)
+			reqContentType = ContentType.create(reqContentType.getMimeType(), Serializers.DEFAULT_CHARSET);
+		if (reqContentType.getMimeType() == null)
+			reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, reqContentType.getCharset());
+		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
+		if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
+			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
+		final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
 
-			Invoking invoking = new Invoking();
-			Map<String, String> busHeaders = HttpHandler.headers(request);
-			invoking.context = HttpHandler.context(busHeaders);
-			invoking.context.put(Context.Key.SourceHost.name(), request.getRemoteAddr());
-			invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
-			if (!busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS)) invoking.options = null;
-			else {
-				String[] opstrs = busHeaders.get(BusHttpHeaders.HEADER_OPTIONS).split("\\|");
-				invoking.options = new Options[opstrs.length];
-				for (int i = 0; i < opstrs.length; i++)
-					invoking.options[i] = new Options(opstrs[i]);
-			}
-
-			invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHttpHeaders.HEADER_CLASS_SUPPORT));
-			cluster.invoking(invoking);
-			invoking.parameters = HttpHandler.parameters(IOUtils.toByteArray(request.getInputStream()), serializer,
-					invoking.parameterClasses, reqContentType.getCharset());
-			Response resp = cluster.invoke(invoking);
-			response.getOutputStream().write(
-					HttpHandler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
-			response.getOutputStream().flush();
-			response.flushBuffer();
-		} catch (ServletException ex) {
-			throw ex;
-		} catch (IOException ex) {
-			throw ex;
-		} catch (Throwable th) {
-			logger.error("Unknown thrown: ", th);
-			throw new ServletException(th);
+		final Invoking invoking = new Invoking();
+		Map<String, String> busHeaders = HttpHandler.headers(request);
+		invoking.context = HttpHandler.context(busHeaders);
+		invoking.context.put(Context.Key.SourceHost.name(), request.getRemoteAddr());
+		invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
+		if (!busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS)) invoking.options = null;
+		else {
+			String[] opstrs = busHeaders.get(BusHttpHeaders.HEADER_OPTIONS).split("\\|");
+			invoking.options = new Options[opstrs.length];
+			for (int i = 0; i < opstrs.length; i++)
+				invoking.options[i] = new Options(opstrs[i]);
 		}
+
+		invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHttpHeaders.HEADER_CLASS_SUPPORT));
+		cluster.invoking(invoking);
+		byte[] paramsData;
+		try {
+			paramsData = IOUtils.toByteArray(request.getInputStream());
+		} catch (IOException ex) {
+			throw new ServletException("Arguments reading I/O failure", ex);
+		}
+		invoking.parameters = HttpHandler.parameters(paramsData, serializer, invoking.parameterClasses,
+				reqContentType.getCharset());
+		cluster.invoke(invoking, new Task.Callback<Response>() {
+			@Override
+			public void callback(Response resp) {
+				try {
+					response.getOutputStream().write(
+							HttpHandler.response(resp, response, serializer, invoking.supportClass,
+									respContentType.getCharset()));
+					response.getOutputStream().flush();
+					response.flushBuffer();
+				} catch (IOException ex) {
+					logger.error("Response writing I/O failure", ex);
+				}
+			}
+		});
 	}
 }

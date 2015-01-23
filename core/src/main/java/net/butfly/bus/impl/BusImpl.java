@@ -9,18 +9,28 @@ import net.butfly.bus.CallbackBus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.FilterContext;
 import net.butfly.bus.impl.BusFactory.Mode;
+import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
-public class CallbackBusImpl extends StandardBusImpl implements CallbackBus {
+public class BusImpl extends StandardBusImpl implements CallbackBus {
 	private static final long serialVersionUID = -4952475921832979927L;
 
-	public CallbackBusImpl(Mode mode) {
-		super(mode);
+	/**
+	 * Kernal invoking of back bus, async bus. <br>
+	 * Does not start async here, <br>
+	 * but transfer it into LastFilter for handling.
+	 */
+	@Override
+	void invoke(final Request request, final Task.Callback<Response> callback, final Options... options) throws Exception {
+		check(request);
+		Invoker<InvokerConfigBean> invoker = Invokers.getInvoker(router.route(request.code(), config.getInvokers()), mode);
+		chain.execute(new FilterContext(invoker, request, callback, options));
 	}
 
-	public CallbackBusImpl(String configLocation, Mode mode) {
+	public BusImpl(String configLocation, Mode mode) {
 		super(configLocation, mode);
 	}
 
@@ -37,26 +47,14 @@ public class CallbackBusImpl extends StandardBusImpl implements CallbackBus {
 	};
 
 	@Override
-	public <T> void invoke(TX tx, Object[] arguments, Task.Callback<T> callback, Options... options) throws Exception {
-		this.invoke(new Request(tx, arguments), callback, options);
-	}
-
-	/**
-	 * Kernal invoking of back bus, async bus. <br>
-	 * Does not start async here, <br>
-	 * but transfer it into LastFilter for handling.
-	 */
-	@Override
-	<R> void invoke(final Request request, final Task.Callback<R> callback, final Options... options) throws Exception {
-		check(request);
-		chain.execute(new FilterContext(Invokers.getInvoker(router.route(request.code(), config.getInvokers()), mode), request,
-				new Task.Callback<Response>() {
-					@SuppressWarnings("unchecked")
-					@Override
-					public void callback(Response response) {
-						if (response.error() == null && null != callback) callback.callback((R) response.result());
-					}
-				}, options));
+	public <T> void invoke(TX tx, Object[] arguments, final Task.Callback<T> callback, Options... options) throws Exception {
+		this.invoke(new Request(tx, arguments), new Task.Callback<Response>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void callback(Response result) {
+				callback.callback((T) result.result());
+			}
+		}, options);
 	}
 
 	private class CallbackServiceProxy<T> extends ServiceProxy<T> {
@@ -69,7 +67,13 @@ public class CallbackBusImpl extends StandardBusImpl implements CallbackBus {
 
 		@Override
 		protected T invoke(Request request) throws Exception {
-			CallbackBusImpl.this.invoke(request, this.callback, options);
+			BusImpl.this.invoke(request, new Task.Callback<Response>() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void callback(Response result) {
+					callback.callback((T) result.result());
+				}
+			}, options);
 			return null;
 		}
 	}

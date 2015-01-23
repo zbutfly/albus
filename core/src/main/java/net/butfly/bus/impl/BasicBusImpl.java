@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
@@ -51,11 +50,8 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	protected Mode mode;
 	private Filter firstFilter, lastFilter;
 
-	public BasicBusImpl(Mode mode) {
-		this(null, mode);
-	}
-
 	public BasicBusImpl(String configLocation, Mode mode) {
+		Context.initialize(null);
 		this.mode = mode;
 		this.config = BusFactoryImpl.createConfiguration(configLocation, mode);
 		this.router = BusFactoryImpl.createRouter(this.config);
@@ -87,14 +83,14 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	}
 
 	@SuppressWarnings("rawtypes")
-	MethodInfo invokeInfo(String code, String version) {
-		InvokerBean ivkb = this.router.route(code, this.config.getInvokers());
+	MethodInfo invokeInfo(TX tx) {
+		InvokerBean ivkb = this.router.route(tx.value(), this.config.getInvokers());
 		if (null == ivkb) return null;
 		Invoker<?> ivk = Invokers.getInvoker(ivkb, mode);
 		if (null == ivk) return null;
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
-		Method m = ((AbstractLocalInvoker) ivk).getMethod(code, version);
+		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
 		if (null == m) return null;
 		Class<?> r = m.getReturnType();
 		if (r != null) {
@@ -132,7 +128,6 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 					break;
 				}
 				if (mode == Mode.CLIENT && null != context.response().error()) throw context.response().error().toException();
-				if (context.callback() != null) context.callback().callback(context.response());
 			}
 		}
 
@@ -157,8 +152,12 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 			}/* , context.invoker().localOptions(context.options()) */).handler(new Task.ExceptionHandler<Response>() {
 				@Override
 				public Response handle(Exception ex) throws Exception {
-					if (mode != Mode.SERVER) throw ex;
-					return new Response(context.request()).error(new Error(Exceptions.unwrap(ex), Context.debug()));
+					Response resp = new Response(context.request()).error(new Error(ex, Context.debug()));
+					if (mode != Mode.SERVER) {
+						context.response(resp);
+						throw ex;
+					}
+					return resp;
 
 				}
 			});
@@ -213,7 +212,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		Context.txInfo(TXUtils.TXImpl(request.code(), request.version()));
 	}
 
-	abstract <T> Response invoke(Request request, Options... options) throws Exception;
+	abstract Response invoke(Request request, Options... options) throws Exception;
 
-	abstract <T> void invoke(Request request, Callback<T> callback, Options... options) throws Exception;
+	abstract void invoke(Request request, Callback<Response> callback, Options... options) throws Exception;
 }

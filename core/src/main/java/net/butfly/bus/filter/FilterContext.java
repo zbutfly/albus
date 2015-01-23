@@ -13,10 +13,6 @@ public class FilterContext {
 	private Task.Callback<Response> callback;
 	private Invoker<?> invoker;
 
-	public FilterContext(Invoker<?> invoker, Request request, Options... options) {
-		this(invoker, request, null, options);
-	}
-
 	public FilterContext(Invoker<?> invoker, Request request, Task.Callback<Response> callback, Options... options) {
 		this.invoker = invoker;
 		this.request = request;

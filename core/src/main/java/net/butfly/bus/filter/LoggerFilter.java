@@ -41,7 +41,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 		try {
 			super.execute(context);
 		} catch (Exception exception) {
-			if (null != exception) logger.error("Bus exception: ", exception);
+			logger.error("Bus exception: ", exception);
 			throw exception;
 		} finally {
 			if (logger.isInfoEnabled()) {

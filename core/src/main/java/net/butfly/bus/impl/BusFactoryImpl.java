@@ -52,7 +52,6 @@ class BusFactoryImpl {
 
 	static Config createConfiguration(String configLocation, Mode mode) {
 		Config config = new XMLConfigParser(scanLoader(configLocation).load()).parse();
-		Context.initialize(null);
 		if (config.debug()) Context.debug(true);
 		return config;
 	}

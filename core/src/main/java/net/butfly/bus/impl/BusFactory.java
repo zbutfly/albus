@@ -1,6 +1,6 @@
 package net.butfly.bus.impl;
 
-import net.butfly.bus.CallbackBus;
+import net.butfly.bus.Bus;
 
 public final class BusFactory {
 	private BusFactory() {}
@@ -9,23 +9,23 @@ public final class BusFactory {
 		SERVER, CLIENT;
 	}
 
-	public static CallbackBus client() {
+	public static Bus client() {
 		return create(null, Mode.CLIENT);
 	}
 
-	public static CallbackBus client(String conf) {
+	public static Bus client(String conf) {
 		return create(conf, Mode.CLIENT);
 	}
 
-	public static CallbackBus server() {
+	public static Bus server() {
 		return create(null, Mode.SERVER);
 	}
 
-	public static CallbackBus server(String conf) {
+	public static Bus server(String conf) {
 		return create(conf, Mode.SERVER);
 	}
 
-	static CallbackBus create(String conf, Mode mode) {
-		return new CallbackBusImpl(conf, mode);
+	static Bus create(String conf, Mode mode) {
+		return new BusImpl(conf, mode);
 	}
 }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Response;
 import net.butfly.bus.config.bean.FilterBean;
@@ -35,8 +36,13 @@ public final class FilterChain {
 	}
 
 	public Response execute(final FilterContext context) throws Exception {
-		executeOne(filters[0], context);
-		return context.response();
+		return new Task<Response>(new Task.Callable<Response>() {
+			@Override
+			public Response call() throws Exception {
+				executeOne(filters[0], context);
+				return context.response();
+			}
+		}, context.callback()) {}.execute();
 	}
 
 	private void executeOne(final Filter filter, final FilterContext context) throws Exception {

@@ -8,6 +8,7 @@ import java.util.Set;
 
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
+import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -59,16 +60,16 @@ final class Cluster implements Routeable {
 		invoking.bus = router.route(invoking.tx.value(), servers());
 		if (null == invoking.bus)
 			throw new RuntimeException("Server routing failure, no node found for [" + invoking.tx.value() + "].");
-		MethodInfo pi = ((BasicBusImpl) invoking.bus).invokeInfo(invoking.tx.value(), invoking.tx.version());
+		MethodInfo pi = ((BasicBusImpl) invoking.bus).invokeInfo(invoking.tx);
 		if (null == pi) throw new RuntimeException("Server routing failure.");
 		invoking.parameterClasses = pi.parametersClasses();
 	}
 
-	public final Response invoke(final Invoking invoking) {
+	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) {
+		Context.initialize(Context.deserialize(invoking.context));
 		Request req = new Request(invoking.tx, invoking.context, invoking.parameters);
-		Context.initialize(Context.deserialize(req.context()));
 		try {
-			return ((BasicBusImpl) invoking.bus).invoke(req, invoking.options);
+			((BusImpl) invoking.bus).invoke(req, callback, invoking.options);
 		} catch (Exception e) {
 			e = Exceptions.unwrap(e);
 			logger.error(e.getMessage(), e);

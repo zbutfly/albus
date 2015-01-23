@@ -23,7 +23,7 @@ public abstract class BusTest {
 			System.setProperty("bus.servlet.class", WebServiceServlet.class.getName());
 			System.setProperty("bus.server.base", "src/test/webapp");
 			System.setProperty("bus.threadpool.size", "3");
-			System.setProperty("bus.invoker.spring.lazy", "true");
+			// System.setProperty("bus.invoker.spring.lazy", "true");
 			System.setProperty("bus.server.waiting", "true");
 			logger.info("Remote test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
@@ -45,12 +45,7 @@ public abstract class BusTest {
 			getTestInstance(remote).doTestWrapper();
 	};
 
-	protected void doAllTest() throws BusinessException {
-		if (this.isRemote()) while (Boolean.parseBoolean(System.getProperty("bus.server.waiting")))
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e1) {}
-	}
+	protected abstract void doAllTest() throws BusinessException;
 
 	protected String[] getClientConfiguration() {
 		return null;
@@ -75,6 +70,10 @@ public abstract class BusTest {
 	}
 
 	private void doTestWrapper() throws BusinessException {
+		if (this.isRemote()) while (Boolean.parseBoolean(System.getProperty("bus.server.waiting")))
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {}
 		String desc = (remote ? "Remote" : "Local");
 		logger.info("==========================");
 		logger.info(desc + " test: test starting.");
