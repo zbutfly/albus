@@ -62,8 +62,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		return new Task.Callable<Response>() {
 			@Override
 			public Response call() throws Exception {
-				Map<String, String> headers = HttpHandler.headers(serializer, request.code(), request.version(),
-						request.context(), remoteOptions);
+				Map<String, String> headers = HttpHandler.headers(request.code(), request.version(), request.context(),
+						serializer.supportClass(), remoteOptions);
 				/**
 				 * <pre>
 				 * TODO: handle continuous, move to async proj.

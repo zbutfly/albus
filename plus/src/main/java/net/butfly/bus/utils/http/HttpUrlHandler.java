@@ -2,7 +2,6 @@ package net.butfly.bus.utils.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,10 +49,8 @@ public class HttpUrlHandler extends HttpHandler {
 			conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, ContentType.create(mimeType, charset).toString());
 
 		int statusCode = 500;
-		OutputStream req = conn.getOutputStream();
-
-		IOUtils.write(data, req);
-		req.flush();
+		IOUtils.write(data, conn.getOutputStream());
+		conn.getOutputStream().flush();
 
 		statusCode = conn.getResponseCode();
 		if (statusCode != 200) throw new SystemException("", "Http resposne status code: " + statusCode);

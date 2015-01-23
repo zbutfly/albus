@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
@@ -134,8 +135,7 @@ public abstract class HttpHandler {
 		if (supportClass) response.setHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
 		byte[] sent;
 		if (error) {
-			if (supportClass)
-				response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
+			if (supportClass) response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
 			response.setHeader(BusHttpHeaders.HEADER_ERROR, Boolean.toString(true));
 			sent = serializer.serialize(resp.error());
 		} else {
@@ -151,15 +151,20 @@ public abstract class HttpHandler {
 	}
 
 	// for client
-	public static Map<String, String> headers(Serializer serializer, String tx, String version, Map<String, String> context,
+	public static Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass,
 			Options... options) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHttpHeaders.HEADER_TX_CODE, tx);
 		headers.put(BusHttpHeaders.HEADER_TX_VERSION, version);
-		headers.put(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(!serializer.supportClass()));
+		headers.put(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(supportClass));
 		if (context != null) for (Entry<String, String> ctx : context.entrySet())
 			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-		if (null != options && options.length > 0) headers.put(BusHttpHeaders.HEADER_OPTIONS, serializer.asString(options));
+		if (null != options && options.length > 0) {
+			String[] opstrs = new String[options.length];
+			for (int i = 0; i < opstrs.length; i++)
+				opstrs[i] = options[i].toString();
+			headers.put(BusHttpHeaders.HEADER_OPTIONS, KeyUtils.join('|', opstrs));
+		}
 
 		return headers;
 	}
