@@ -42,7 +42,7 @@ public final class FilterChain {
 				executeOne(filters[0], context);
 				return context.response();
 			}
-		}, context.callback(), context.invoker().localOptions(context.options())) {}.execute();
+		}, context.callback(), context.invoker().localOptions(context.options())).execute();
 	}
 
 	private void executeOne(final Filter filter, final FilterContext context) throws Exception {
