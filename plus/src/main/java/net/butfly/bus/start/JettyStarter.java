@@ -7,6 +7,8 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Set;
 
+import javax.naming.NamingException;
+
 import net.butfly.albacore.utils.JNDIUtils;
 import net.butfly.albacore.utils.ReflectionUtils;
 import net.butfly.albacore.utils.async.Task;
@@ -21,7 +23,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.eclipse.jetty.http.spi.DelegatingThreadPool;
-import org.eclipse.jetty.plus.jndi.Resource;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -339,6 +340,11 @@ public class JettyStarter implements Runnable {
 	}
 
 	public static void addJNDI(String contextXml) {
-		JNDIUtils.addJNDI(contextXml, Resource.class.getName());
+		try {
+			JNDIUtils.bindContext("java:comp/env/", contextXml);
+		} catch (NamingException e) {
+			throw new RuntimeException("Failure in JNDI process", e);
+		}
 	}
+
 }
