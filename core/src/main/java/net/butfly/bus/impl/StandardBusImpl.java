@@ -13,11 +13,11 @@ import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
-abstract class StandardBusImpl extends BasicBusImpl {
+abstract class StandardBusImpl extends BasicBusImpl  {
 	private static final long serialVersionUID = -4835302344711170159L;
 
-	public StandardBusImpl(String configLocation, Mode mode) {
-		super(configLocation, mode);
+	public StandardBusImpl( Mode mode, String conf) {
+		super(mode, conf);
 	}
 
 	/**

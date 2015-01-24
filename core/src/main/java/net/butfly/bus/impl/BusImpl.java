@@ -5,7 +5,6 @@ import java.lang.reflect.Proxy;
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.CallbackBus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -15,7 +14,7 @@ import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
-public class BusImpl extends StandardBusImpl implements CallbackBus {
+public class BusImpl extends StandardBusImpl {
 	private static final long serialVersionUID = -4952475921832979927L;
 
 	/**
@@ -30,8 +29,8 @@ public class BusImpl extends StandardBusImpl implements CallbackBus {
 		chain.execute(new FilterContext(invoker, request, callback, options));
 	}
 
-	public BusImpl(String configLocation, Mode mode) {
-		super(configLocation, mode);
+	public BusImpl(Mode mode, String conf) {
+		super(mode, conf);
 	}
 
 	@SuppressWarnings("unchecked")

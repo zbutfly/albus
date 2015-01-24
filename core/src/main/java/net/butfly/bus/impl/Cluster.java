@@ -26,12 +26,12 @@ final class Cluster implements Routeable {
 	final private Mode mode;
 	final private Router router;
 
-	Cluster(String[] config, Mode mode, Router router) {
+	Cluster(Mode mode, Router router, String... conf) {
 		this.mode = mode;
 		this.router = router;
-		if (config == null || config.length == 0) this.registerSingle(null);
-		else for (String conf : config)
-			if (!"".equals(conf.trim())) this.registerSingle(conf);
+		if (null == conf || conf.length == 0) this.registerSingle(null);
+		else for (String c : conf)
+			if (!"".equals(c.trim())) this.registerSingle(c);
 	}
 
 	public Bus[] servers() {
@@ -52,7 +52,7 @@ final class Cluster implements Routeable {
 	}
 
 	private void registerSingle(String conf) {
-		Bus impl = (Bus) BusFactory.create(conf, mode);
+		Bus impl = (Bus) BusFactory.create(mode, conf);
 		nodes.put(impl.id(), impl);
 	}
 

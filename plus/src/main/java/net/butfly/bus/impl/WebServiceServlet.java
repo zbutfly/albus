@@ -36,11 +36,12 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
 		try {
-			this.cluster = BusFactoryImpl.serverCluster(null == paramConfig ? null : paramConfig.split(","),
-					this.getInitParameter("router"));
+			this.cluster = BusFactory.serverCluster(this.getInitParameter("router"),
+					null == paramConfig ? null : paramConfig.split(","));
 		} catch (ClassNotFoundException e) {
 			throw new ServletException("Router definition not found.", e);
 		}
+		// FOR debug
 		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
 		logger.info("Servlet [" + paramConfig + "] started.");
 	}

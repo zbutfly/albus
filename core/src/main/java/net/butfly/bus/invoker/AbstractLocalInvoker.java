@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -23,23 +22,18 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	}
 
 	@Override
-	public Task.Callable<Response> task(final Request request, final Options... remoteOptions) {
-		return new Task.Callable<Response>() {
-			@Override
-			public Response call() throws Exception {
-				Response resp = new Response(request);
-				if (auth != null) auth.login(AbstractLocalInvoker.this.token());
-				TXImpl key = scanTXLazily(TXUtils.TXImpl(request.code(), request.version()));
-				if (null == key)
-					throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key
-							+ "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
+	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
+		Response resp = new Response(request);
+		if (auth != null) auth.login(AbstractLocalInvoker.this.token());
+		TXImpl key = scanTXLazily(TXUtils.TXImpl(request.code(), request.version()));
+		if (null == key)
+			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
+					+ METHOD_POOL.keySet().toString() + "].");
 
-				Method method = METHOD_POOL.get(key);
-				Object bean = INSTANCE_POOL.get(key);
-				Object[] args = request.arguments();
-				return resp.result(method.invoke(bean, args));
-			}
-		};
+		Method method = METHOD_POOL.get(key);
+		Object bean = INSTANCE_POOL.get(key);
+		Object[] args = request.arguments();
+		return resp.result(method.invoke(bean, args));
 	}
 
 	private TXImpl scanTXLazily(TXImpl requestTX) {

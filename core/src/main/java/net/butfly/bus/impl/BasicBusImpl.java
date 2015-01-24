@@ -14,8 +14,6 @@ import net.butfly.albacore.utils.GenericUtils;
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Error;
@@ -35,7 +33,6 @@ import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.service.InternalFacade;
-import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.TXUtils;
 
@@ -50,11 +47,11 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 	protected Mode mode;
 	private Filter firstFilter, lastFilter;
 
-	public BasicBusImpl(String configLocation, Mode mode) {
+	public BasicBusImpl(Mode mode, String conf) {
 		Context.initialize(null);
 		this.mode = mode;
-		this.config = BusFactoryImpl.createConfiguration(configLocation, mode);
-		this.router = BusFactoryImpl.createRouter(this.config);
+		this.config = BusFactory.createConfiguration(conf, mode);
+		this.router = BusFactory.createRouter(this.config);
 		this.firstFilter = new FirstFilter();
 		this.lastFilter = new LastFilter();
 		this.chain = new FilterChain(this.firstFilter, config.getFilterList(), this.lastFilter, this);
@@ -119,15 +116,18 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 			try {
 				super.execute(context);
 			} finally {
-				switch (mode) {
-				case CLIENT:
-					Context.merge(Context.deserialize(context.response().context()));
-					break;
-				case SERVER:
-					context.response().context(Context.serialize(Context.toMap()));
-					break;
+				if (context.response() != null) {
+					switch (mode) {
+					case CLIENT:
+						Context.merge(Context.deserialize(context.response().context()));
+						break;
+					case SERVER:
+						context.response().context(Context.serialize(Context.toMap()));
+						break;
+					}
+					if (mode == Mode.CLIENT && null != context.response().error())
+						throw context.response().error().toException();
 				}
-				if (mode == Mode.CLIENT && null != context.response().error()) throw context.response().error().toException();
 			}
 		}
 
@@ -137,32 +137,14 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		// Kernal invoking of this bus.
 		@Override
 		public void execute(final FilterContext context) throws Exception {
-			final Callable<Response> invokeTask = context.invoker().task(context.request(),
-					context.invoker().remoteOptions(context.options()));
-			Task<Response> task = new Task<Response>(new Task.Callable<Response>() {
-				@Override
-				public Response call() throws Exception {
-					return invokeTask.call();
-				}
-			}, new Task.Callback<Response>() {
-				@Override
-				public void callback(Response response) {
-					context.response(response);
-				}
-			}/* , context.invoker().localOptions(context.options()) */).handler(new Task.ExceptionHandler<Response>() {
-				@Override
-				public Response handle(Exception ex) throws Exception {
-					Response resp = new Response(context.request()).error(new Error(ex, Context.debug()));
-					if (mode != Mode.SERVER) {
-						context.response(resp);
-						throw ex;
-					}
-					return resp;
-
-				}
-			});
-			Response resp = new BusTask<Response>(task).execute();
-			if (context.response() == null) context.response(resp);
+			try {
+				context.response(context.invoker()
+						.invoke(context.request(), context.invoker().remoteOptions(context.options())));
+			} catch (Exception ex) {
+				if (mode == Mode.SERVER) context
+						.response(new Response(context.request()).error(new Error(ex, Context.debug())));
+				else throw ex;
+			}
 		}
 	}
 

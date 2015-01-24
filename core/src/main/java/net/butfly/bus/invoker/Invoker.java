@@ -1,7 +1,6 @@
 package net.butfly.bus.invoker;
 
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
@@ -13,7 +12,7 @@ public interface Invoker<C extends InvokerConfigBean> {
 
 	void initialize();
 
-	Task.Callable<Response> task(final Request request, final Options... remoteOptions);
+	Response invoke(Request request, Options... remoteOptions) throws Exception;
 
 	Object[] getBeanList();
 
@@ -26,5 +25,4 @@ public interface Invoker<C extends InvokerConfigBean> {
 	Options localOptions(Options... options);
 
 	Options[] remoteOptions(Options... options);
-
 }

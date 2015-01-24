@@ -1,7 +1,6 @@
 package net.butfly.bus.filter;
 
 import net.butfly.bus.Request;
-import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
 
@@ -48,14 +47,15 @@ public class LoggerFilter extends FilterBase implements Filter {
 				long spent = System.currentTimeMillis() - now;
 				logger.info(prefix + " invoking ended in [" + spent + "ms].");
 			}
-			Response response = context.response();
-			if (response.error() != null) logger.error("Bus error: " + response.error().toString());
-			if (logger.isTraceEnabled()) {
-				StringBuilder sb = new StringBuilder();
-				sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.string())
-						.append("\n\tresponse result: ");
-				if (null != response) this.printObject(sb, response.result());
-				logger.trace(prefix + sb.toString());
+			if (null != context.response()) {
+				if (context.response().error() != null) logger.error("Bus error: " + context.response().error().toString());
+				if (logger.isTraceEnabled()) {
+					StringBuilder sb = new StringBuilder();
+					sb.append(" invoking response detail: ").append("\n\tcontext: ").append(Context.string())
+							.append("\n\tresponse result: ");
+					if (null != context.response()) this.printObject(sb, context.response().result());
+					logger.trace(prefix + sb.toString());
+				}
 			}
 		}
 	}

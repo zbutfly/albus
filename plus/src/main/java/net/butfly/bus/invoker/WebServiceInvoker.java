@@ -6,7 +6,6 @@ import java.util.Map;
 
 import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Error;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -58,46 +57,39 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
 
 	@Override
-	public Task.Callable<Response> task(final Request request, final Options... remoteOptions) {
-		return new Task.Callable<Response>() {
-			@Override
-			public Response call() throws Exception {
-				Map<String, String> headers = HttpHandler.headers(request.code(), request.version(), request.context(),
-						serializer.supportClass(), remoteOptions);
-				/**
-				 * <pre>
-				 * TODO: handle continuous, move to async proj.
-				 * 		if (remoteOptions instanceof ContinuousOptions) {
-				 * 			ContinuousOptions copts = (ContinuousOptions) remoteOptions;
-				 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
-				 * 			byte[] data = this.serializer.serialize(request.arguments());
-				 * 			for (int i = 0; i &lt; copts.retries(); i++)
-				 * 				this.webservice(data, headers, callback, copts);
-				 *  } else
-				 * </pre>
-				 */
-				HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers,
-						serializer.serialize(request.arguments()), serializer.defaultMimeType(), serializer.charset(), false);
+	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
+		Map<String, String> headers = HttpHandler.headers(request.code(), request.version(), request.context(),
+				serializer.supportClass(), remoteOptions);
+		/**
+		 * <pre>
+		 * TODO: handle continuous, move to async proj.
+		 * 		if (remoteOptions instanceof ContinuousOptions) {
+		 * 			ContinuousOptions copts = (ContinuousOptions) remoteOptions;
+		 * 			Map&lt;String, String&gt; headers = this.header(request, copts);
+		 * 			byte[] data = this.serializer.serialize(request.arguments());
+		 * 			for (int i = 0; i &lt; copts.retries(); i++)
+		 * 				this.webservice(data, headers, callback, copts);
+		 *  } else
+		 * </pre>
+		 */
+		HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers, serializer.serialize(request.arguments()),
+				serializer.defaultMimeType(), serializer.charset(), false);
 
-				Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG),
-						resp.header(BusHttpHeaders.HEADER_REQUEST_ID));
+		Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG), resp.header(BusHttpHeaders.HEADER_REQUEST_ID));
 
-				response.context(resp.parseContext());
+		response.context(resp.parseContext());
 
-				if (Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR))) {
-					Error detail = serializer.deserialize(resp.data, Error.class);
-					response.error(detail);
-				} else {
-					String className = resp.header(BusHttpHeaders.HEADER_CLASS);
-					Class<?> resultClass = className != null
-							&& Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT)) ? Class
-							.forName(className) : null;
-					Object result = serializer.deserialize(resp.data, resultClass);
-					response.result(result);
-				}
-				return ((ResponseWrapper) response).unwrap();
-			}
-		};
+		if (Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR))) {
+			Error detail = serializer.deserialize(resp.data, Error.class);
+			response.error(detail);
+		} else {
+			String className = resp.header(BusHttpHeaders.HEADER_CLASS);
+			Class<?> resultClass = className != null && Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT)) ? Class
+					.forName(className) : null;
+			Object result = serializer.deserialize(resp.data, resultClass);
+			response.result(result);
+		}
+		return ((ResponseWrapper) response).unwrap();
 	}
 
 	public static class HandlerResponse {
