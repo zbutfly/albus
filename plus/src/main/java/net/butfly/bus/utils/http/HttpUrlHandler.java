@@ -17,8 +17,9 @@ import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
 import net.butfly.bus.serialize.Serializers;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
+
+import com.google.common.net.HttpHeaders;
 
 public class HttpUrlHandler extends HttpHandler {
 	public HttpUrlHandler(int connTimeout, int readTimeout) {

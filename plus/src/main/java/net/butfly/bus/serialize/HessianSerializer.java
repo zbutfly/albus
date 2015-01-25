@@ -56,8 +56,10 @@ public class HessianSerializer extends HessianSupport {
 		this.factory = factory;
 	}
 
+	private static final String[] SUPPORTED_MIME = new String[] { APPLICATION_HESSIAN.getMimeType() };
+
 	@Override
 	public String[] supportedMimeTypes() {
-		return new String[] { HessianSupport.HESSIAN_CONTENT_TYPE };
+		return SUPPORTED_MIME;
 	}
 }

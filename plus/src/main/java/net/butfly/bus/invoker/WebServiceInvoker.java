@@ -11,16 +11,17 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
-import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.serialize.Serializers;
+import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpUrlHandler;
 
-import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.net.HttpHeaders;
 
 public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerConfig> implements
 		Invoker<WebServiceInvokerConfig> {
@@ -75,16 +76,17 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers, serializer.serialize(request.arguments()),
 				serializer.defaultMimeType(), serializer.charset(), false);
 
-		Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG), resp.header(BusHttpHeaders.HEADER_REQUEST_ID));
+		Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG),
+				resp.header(BusHeaders.HEADER_REQUEST_ID));
 
 		response.context(resp.parseContext());
 
-		if (Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_ERROR))) {
+		if (Boolean.parseBoolean(resp.header(BusHeaders.HEADER_ERROR))) {
 			Error detail = serializer.deserialize(resp.data, Error.class);
 			response.error(detail);
 		} else {
-			String className = resp.header(BusHttpHeaders.HEADER_CLASS);
-			Class<?> resultClass = className != null && Boolean.parseBoolean(resp.header(BusHttpHeaders.HEADER_CLASS_SUPPORT)) ? Class
+			String className = resp.header(BusHeaders.HEADER_CLASS);
+			Class<?> resultClass = className != null && Boolean.parseBoolean(resp.header(BusHeaders.HEADER_CLASS_SUPPORT)) ? Class
 					.forName(className) : null;
 			Object result = serializer.deserialize(resp.data, resultClass);
 			response.result(result);
@@ -103,11 +105,11 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		}
 
 		public Map<String, String> parseContext() {
-			int prefixLen = BusHttpHeaders.HEADER_CONTEXT_PREFIX.length();
+			int prefixLen = BusHeaders.HEADER_CONTEXT_PREFIX.length();
 			Map<String, String> ctx = new HashMap<String, String>();
 			if (headers == null || headers.size() == 0) return ctx;
 			for (String name : headers.keySet())
-				if (name != null && name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
+				if (name != null && name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX))
 					ctx.put(name.substring(prefixLen), header(name));
 			return ctx;
 		}

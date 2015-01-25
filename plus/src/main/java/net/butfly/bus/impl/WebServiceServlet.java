@@ -13,15 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
-import net.butfly.bus.context.BusHttpHeaders;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
+import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +56,9 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 		// XXX: goof off
 		this.doOptions(request, response);
-		response.setStatus(HttpStatus.SC_OK);
+		response.setStatus(HttpStatus.OK_200);
 		ContentType reqContentType = ContentType.parse(request.getContentType());
-		if (reqContentType.getCharset() == null)
-			reqContentType = ContentType.create(reqContentType.getMimeType(), Serializers.DEFAULT_CHARSET);
+		if (reqContentType.getCharset() == null) reqContentType = reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
 		if (reqContentType.getMimeType() == null)
 			reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, reqContentType.getCharset());
 		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
@@ -72,15 +71,15 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		invoking.context = HttpHandler.context(busHeaders);
 		invoking.context.put(Context.Key.SourceHost.name(), request.getRemoteAddr());
 		invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
-		if (!busHeaders.containsKey(BusHttpHeaders.HEADER_OPTIONS)) invoking.options = null;
+		if (!busHeaders.containsKey(BusHeaders.HEADER_OPTIONS)) invoking.options = null;
 		else {
-			String[] opstrs = busHeaders.get(BusHttpHeaders.HEADER_OPTIONS).split("\\|");
+			String[] opstrs = busHeaders.get(BusHeaders.HEADER_OPTIONS).split("\\|");
 			invoking.options = new Options[opstrs.length];
 			for (int i = 0; i < opstrs.length; i++)
 				invoking.options[i] = new Options(opstrs[i]);
 		}
 
-		invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHttpHeaders.HEADER_CLASS_SUPPORT));
+		invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHeaders.HEADER_CLASS_SUPPORT));
 		cluster.invoking(invoking);
 		byte[] paramsData;
 		try {

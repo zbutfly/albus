@@ -9,12 +9,16 @@ import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
 
+import org.apache.http.entity.ContentType;
+
 import com.caucho.hessian.io.AbstractSerializerFactory;
 import com.caucho.hessian.io.SerializerFactory;
+import com.google.common.base.Charsets;
 
 public abstract class HessianSupport extends SerializerBase implements Serializer, SerializerFactorySupport {
-	public static final String HESSIAN_CONTENT_TYPE = "x-application/hessian";
-	public static final String BURLAP_CONTENT_TYPE = "x-application/burlap";
+	public static final ContentType APPLICATION_HESSIAN = ContentType.create("x-application/hessian", Charsets.UTF_8);
+	public static final ContentType APPLICATION_BURLAP = ContentType.create("x-application/burlap", Charsets.UTF_8);
+
 	protected SerializerFactory factory;
 
 	public HessianSupport(Charset charset) {
