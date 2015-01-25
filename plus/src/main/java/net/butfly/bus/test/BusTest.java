@@ -66,7 +66,7 @@ public abstract class BusTest {
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
 		return (T) Reflections.construct(Reflections.getMainClass(),
-				Reflections.parameters(boolean.class, remote));
+				Reflections.parameter(remote, boolean.class));
 	}
 
 	private void doTestWrapper() throws BusinessException {

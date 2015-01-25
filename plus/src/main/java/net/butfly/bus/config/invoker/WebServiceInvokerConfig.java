@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.serialize.JSONSerializer;
+import net.butfly.bus.utils.http.HttpNingHandler;
 
 public class WebServiceInvokerConfig extends InvokerConfigBean {
 	private static final long serialVersionUID = -7791541622206850647L;
@@ -11,6 +12,7 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 	private int timeout;
 	private List<String> typeTranslators;
 	private String serializer;
+	private String handler;
 
 	public List<String> getTypeTranslators() {
 		return typeTranslators;
@@ -52,5 +54,14 @@ public class WebServiceInvokerConfig extends InvokerConfigBean {
 	public void setSerializer(String serializerClassname) throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
 		this.serializer = serializerClassname;
+	}
+
+	public String getHandler() {
+		return this.handler == null ? HttpNingHandler.class.getName() : this.handler;
+	}
+
+	public void setHandler(String handlerClassname) throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		this.handler = handlerClassname;
 	}
 }

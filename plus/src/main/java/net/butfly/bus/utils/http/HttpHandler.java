@@ -10,16 +10,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
+import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.utils.TXUtils;
 
@@ -33,22 +34,33 @@ public abstract class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 	protected int connTimeout;
 	protected int readTimeout;
+	protected Serializer serializer;
 
-	public HttpHandler() {
-		this(0, 0);
+	public HttpHandler(Serializer serializer) {
+		this(serializer, 0, 0);
 	}
 
-	public HttpHandler(int connTimeout, int readTimeout) {
+	public HttpHandler(Serializer serializer, int connTimeout, int readTimeout) {
+		this.serializer = serializer;
 		this.connTimeout = connTimeout > 0 ? connTimeout : 0;
 		this.readTimeout = readTimeout > 0 ? readTimeout : 0;
 	}
 
-	public abstract HandlerResponse post(String url, Map<String, String> headers, byte[] data, String mimeType,
-			Charset charset, boolean streaming) throws IOException;
+	public abstract ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
+			throws IOException;
 
-	protected static void logRequest(String url, Map<String, String> headers, byte[] sent, Charset charset, boolean streaming) {
+	public Future<Void> post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
+			final Task.Callback<Map<String, String>> contextCallback, final Task.Callback<Response> responseCallback,
+			final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
+		ResponseHandler resp = this.post(url, headers, data, mimeType, charset);
+		contextCallback.callback(resp.context());
+		responseCallback.callback(resp.response());
+		return null;
+	}
+
+	protected static void logRequest(String url, Map<String, String> headers, byte[] sent, Charset charset) {
 		if (logger.isTraceEnabled()) {
-			logger.trace("HTTP Request SEND ==> STREAM: " + (streaming ? "YES" : "NO") + " ==> " + url);
+			logger.trace("HTTP Request SEND ==> " + url);
 			logger.trace("HTTP Request SEND ==> HEADER: " + headers.toString());
 			logger.trace("HTTP Request SEND ==> CONTENT[" + sent.length + "]: " + new String(sent, charset));
 		}
@@ -104,7 +116,7 @@ public abstract class HttpHandler {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Object[] parameters(byte[] recv, Serializer serializer, Class<?>[] parameterClasses, Charset charset) {
+	public Object[] parameters(byte[] recv, Class<?>[] parameterClasses, Charset charset) {
 		if (logger.isTraceEnabled())
 			logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
 		Object r = serializer.deserialize(recv, parameterClasses);
@@ -127,8 +139,7 @@ public abstract class HttpHandler {
 		} else return new Object[] { r };
 	}
 
-	public byte[] response(final Response resp, final HttpServletResponse response, final Serializer serializer,
-			boolean supportClass, Charset charset) {
+	public byte[] response(final Response resp, final HttpServletResponse response, boolean supportClass, Charset charset) {
 		response.setHeader(HttpHeaders.ETAG, resp.id());
 		response.setHeader(BusHeaders.HEADER_REQUEST_ID, resp.requestId());
 		if (resp.context() != null) for (Entry<String, String> ctx : resp.context().entrySet())

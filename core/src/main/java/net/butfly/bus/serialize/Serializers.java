@@ -21,8 +21,8 @@ public final class Serializers extends UtilsBase {
 	private static void build() {
 		for (Class<? extends Serializer> clazz : Reflections.getSubClasses(Serializer.class, ""))
 			try {
-				Serializer def = Reflections.construct(clazz,
-						Reflections.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
+				Serializer def = Reflections
+						.construct(clazz, Reflections.parameter(Serializers.DEFAULT_CHARSET, Charset.class));
 				for (String mime : def.supportedMimeTypes())
 					pool.put(mime, clazz);
 			} catch (Exception e) {}
@@ -43,12 +43,11 @@ public final class Serializers extends UtilsBase {
 	public static Serializer serializer(String mimeType, Charset charset) {
 		Class<? extends Serializer> sub = pool.get(mimeType);
 		if (null == sub) throw new RuntimeException("mimeType not supportted: " + mimeType);
-		return Reflections.construct(sub, Reflections.parameters(Charset.class, charset));
+		return Reflections.construct(sub, Reflections.parameter(charset, Charset.class));
 	}
 
 	public static Serializer serializer(Class<? extends Serializer> clazz) {
-		Serializer def = Reflections.construct(clazz,
-				Reflections.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
+		Serializer def = Reflections.construct(clazz, Reflections.parameter(Serializers.DEFAULT_CHARSET, Charset.class));
 		return serializer(def.defaultMimeType());
 	}
 }

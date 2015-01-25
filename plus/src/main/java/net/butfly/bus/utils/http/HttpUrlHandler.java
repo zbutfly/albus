@@ -13,7 +13,7 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
+import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 
 import org.apache.commons.io.IOUtils;
@@ -22,18 +22,18 @@ import org.apache.http.entity.ContentType;
 import com.google.common.net.HttpHeaders;
 
 public class HttpUrlHandler extends HttpHandler {
-	public HttpUrlHandler() {
-		this(0, 0);
+	public HttpUrlHandler(Serializer serializer) {
+		this(serializer, 0, 0);
 	}
 
-	public HttpUrlHandler(int connTimeout, int readTimeout) {
-		super(connTimeout, readTimeout);
+	public HttpUrlHandler(Serializer serializer, int connTimeout, int readTimeout) {
+		super(serializer, connTimeout, readTimeout);
 	}
 
 	@Override
-	public HandlerResponse post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
-			boolean streaming) throws IOException {
-		logRequest(url, headers, data, charset, streaming);
+	public ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
+			throws IOException {
+		logRequest(url, headers, data, charset);
 		URL u;
 		try {
 			u = new URL(url);
@@ -41,11 +41,11 @@ public class HttpUrlHandler extends HttpHandler {
 			throw new SystemException("", e);
 		}
 		HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-		conn.setConnectTimeout(this.connTimeout);
-		conn.setReadTimeout(this.readTimeout);
+		conn.setConnectTimeout((int) this.connTimeout);
+		conn.setReadTimeout((int) this.readTimeout);
 		conn.setDoOutput(true);
 		conn.setDoInput(true);
-		if (streaming) conn.setChunkedStreamingMode(0);
+		conn.setChunkedStreamingMode(0);
 		for (Entry<String, String> h : headers.entrySet())
 			conn.setRequestProperty(h.getKey(), h.getValue());
 		if (conn.getRequestProperty(HttpHeaders.ACCEPT_ENCODING) == null)
@@ -67,7 +67,7 @@ public class HttpUrlHandler extends HttpHandler {
 			logger.trace("HTTP Response RECV <== HEADERS: " + recvHeaders);
 			logger.trace("HTTP Response RECV <== CONTENT[" + recv.length + "]: " + new String(recv, contentType(conn)));
 		}
-		return new HandlerResponse(recvHeaders, recv);
+		return new ResponseHandler(serializer, recvHeaders, recv);
 	}
 
 	private Charset contentType(HttpURLConnection conn) {

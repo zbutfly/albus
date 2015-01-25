@@ -2,6 +2,7 @@ package net.butfly.bus.impl;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.Servlet;
@@ -10,6 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
@@ -31,9 +33,10 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
 	private Cluster cluster;
-	private HttpHandler handler;
+	private Class<? extends HttpHandler> handlerClass;
 	private Opts opts;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
@@ -47,8 +50,8 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		}
 		String handlerConfig = this.getInitParameter("http-handler");
 		try {
-			this.handler = null == handlerConfig ? new HttpNingHandler() : (HttpHandler) Class.forName(handlerConfig)
-					.newInstance();
+			this.handlerClass = null == handlerConfig ? HttpNingHandler.class : (Class<? extends HttpHandler>) Class
+					.forName(handlerConfig);
 		} catch (Exception e) {
 			throw new ServletException("Http handler configuration (http-handler) invalid", e);
 		}
@@ -74,6 +77,7 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		if (reqContentType.getMimeType() == null)
 			reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, reqContentType.getCharset());
 		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
+		final HttpHandler handler = this.handler(serializer);
 		if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
 			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
 		final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
@@ -94,14 +98,13 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		} catch (IOException ex) {
 			throw new ServletException("Arguments reading I/O failure", ex);
 		}
-		invoking.parameters = handler
-				.parameters(paramsData, serializer, invoking.parameterClasses, reqContentType.getCharset());
+		invoking.parameters = handler.parameters(paramsData, invoking.parameterClasses, reqContentType.getCharset());
 		cluster.invoke(invoking, new Task.Callback<Response>() {
 			@Override
 			public void callback(Response resp) {
 				try {
 					response.getOutputStream().write(
-							handler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
+							handler.response(resp, response, invoking.supportClass, respContentType.getCharset()));
 					response.getOutputStream().flush();
 					response.flushBuffer();
 				} catch (IOException ex) {
@@ -109,5 +112,16 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 				}
 			}
 		});
+	}
+
+	private static final Map<Serializer, HttpHandler> pool = new HashMap<Serializer, HttpHandler>();
+
+	private HttpHandler handler(Serializer serializer) {
+		HttpHandler h = pool.get(serializer);
+		if (null == h) {
+			h = Reflections.construct(this.handlerClass, Reflections.parameter(serializer, Serializer.class));
+			pool.put(serializer, h);
+		}
+		return h;
 	}
 }
