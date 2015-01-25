@@ -16,7 +16,7 @@ import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
-import net.butfly.bus.utils.http.HttpUrlHandler;
+import net.butfly.bus.utils.http.HttpNingHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		super.initialize(config, token);
 	}
 
-	private HttpHandler handler = new HttpUrlHandler(this.timeout, this.timeout);
+	// new HttpUrlHandler(this.timeout, this.timeout);
+	private HttpHandler handler = new HttpNingHandler(this.timeout, this.timeout);
 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
@@ -76,8 +77,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers, serializer.serialize(request.arguments()),
 				serializer.defaultMimeType(), serializer.charset(), false);
 
-		Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG),
-				resp.header(BusHeaders.HEADER_REQUEST_ID));
+		Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG), resp.header(BusHeaders.HEADER_REQUEST_ID));
 
 		response.context(resp.parseContext());
 
