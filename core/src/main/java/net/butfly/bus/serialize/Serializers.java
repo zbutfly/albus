@@ -4,7 +4,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.UtilsBase;
 
 import com.google.common.base.Charsets;
@@ -19,10 +19,10 @@ public final class Serializers extends UtilsBase {
 	}
 
 	private static void build() {
-		for (Class<? extends Serializer> clazz : ReflectionUtils.getSubClasses(Serializer.class, ""))
+		for (Class<? extends Serializer> clazz : Reflections.getSubClasses(Serializer.class, ""))
 			try {
-				Serializer def = ReflectionUtils.safeConstruct(clazz,
-						ReflectionUtils.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
+				Serializer def = Reflections.construct(clazz,
+						Reflections.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
 				for (String mime : def.supportedMimeTypes())
 					pool.put(mime, clazz);
 			} catch (Exception e) {}
@@ -43,12 +43,12 @@ public final class Serializers extends UtilsBase {
 	public static Serializer serializer(String mimeType, Charset charset) {
 		Class<? extends Serializer> sub = pool.get(mimeType);
 		if (null == sub) throw new RuntimeException("mimeType not supportted: " + mimeType);
-		return ReflectionUtils.safeConstruct(sub, ReflectionUtils.parameters(Charset.class, charset));
+		return Reflections.construct(sub, Reflections.parameters(Charset.class, charset));
 	}
 
 	public static Serializer serializer(Class<? extends Serializer> clazz) {
-		Serializer def = ReflectionUtils.safeConstruct(clazz,
-				ReflectionUtils.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
+		Serializer def = Reflections.construct(clazz,
+				Reflections.parameters(Charset.class, Serializers.DEFAULT_CHARSET));
 		return serializer(def.defaultMimeType());
 	}
 }

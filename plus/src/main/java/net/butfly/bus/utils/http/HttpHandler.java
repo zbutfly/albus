@@ -14,8 +14,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.butfly.albacore.utils.KeyUtils;
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Opts;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -34,9 +34,13 @@ public abstract class HttpHandler {
 	protected int connTimeout;
 	protected int readTimeout;
 
+	public HttpHandler() {
+		this(0, 0);
+	}
+
 	public HttpHandler(int connTimeout, int readTimeout) {
-		this.connTimeout = connTimeout >= 0 ? connTimeout : 0;
-		this.readTimeout = readTimeout >= 0 ? readTimeout : 0;
+		this.connTimeout = connTimeout > 0 ? connTimeout : 0;
+		this.readTimeout = readTimeout > 0 ? readTimeout : 0;
 	}
 
 	public abstract HandlerResponse post(String url, Map<String, String> headers, byte[] data, String mimeType,
@@ -50,7 +54,7 @@ public abstract class HttpHandler {
 		}
 	}
 
-	public static Map<String, String> headers(final HttpServletRequest request) {
+	public Map<String, String> headers(final HttpServletRequest request) {
 		Map<String, String> busHeaders = new HashMap<String, String>();
 		Enumeration<String> en = request.getHeaderNames();
 		while (en.hasMoreElements()) {
@@ -63,7 +67,7 @@ public abstract class HttpHandler {
 		return busHeaders;
 	}
 
-	public static Map<String, String> headers(final HttpServletResponse response) {
+	public Map<String, String> headers(final HttpServletResponse response) {
 		Map<String, String> busHeaders = new HashMap<String, String>();
 		for (String name : response.getHeaderNames())
 			if (name != null && name.startsWith(BusHeaders.HEADER_PREFIX)) busHeaders.put(name, response.getHeader(name));
@@ -71,7 +75,7 @@ public abstract class HttpHandler {
 	}
 
 	// used by WebServiceServlet
-	public static Map<String, String> context(Map<String, String> busHeaders) {
+	public Map<String, String> context(Map<String, String> busHeaders) {
 		Map<String, String> context = new HashMap<String, String>();
 		for (String name : busHeaders.keySet()) {
 			if (name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX))
@@ -80,7 +84,7 @@ public abstract class HttpHandler {
 		return context;
 	}
 
-	public static TX tx(String pathInfo, Map<String, String> busHeaders) {
+	public TX tx(String pathInfo, Map<String, String> busHeaders) {
 		String[] reses = null != pathInfo && pathInfo.length() > 0 ? pathInfo.substring(1).split("/") : new String[0];
 		String code, version = null;
 		switch (reses.length) {
@@ -100,7 +104,7 @@ public abstract class HttpHandler {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Object[] parameters(byte[] recv, Serializer serializer, Class<?>[] parameterClasses, Charset charset) {
+	public Object[] parameters(byte[] recv, Serializer serializer, Class<?>[] parameterClasses, Charset charset) {
 		if (logger.isTraceEnabled())
 			logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
 		Object r = serializer.deserialize(recv, parameterClasses);
@@ -123,7 +127,7 @@ public abstract class HttpHandler {
 		} else return new Object[] { r };
 	}
 
-	public static byte[] response(final Response resp, final HttpServletResponse response, final Serializer serializer,
+	public byte[] response(final Response resp, final HttpServletResponse response, final Serializer serializer,
 			boolean supportClass, Charset charset) {
 		response.setHeader(HttpHeaders.ETAG, resp.id());
 		response.setHeader(BusHeaders.HEADER_REQUEST_ID, resp.requestId());
@@ -149,8 +153,10 @@ public abstract class HttpHandler {
 		return sent;
 	}
 
+	private Opts opts = new MoreOpts();
+
 	// for client
-	public static Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass,
+	public Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass,
 			Options... options) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHeaders.HEADER_TX_CODE, tx);
@@ -158,13 +164,7 @@ public abstract class HttpHandler {
 		headers.put(BusHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(supportClass));
 		if (context != null) for (Entry<String, String> ctx : context.entrySet())
 			headers.put(BusHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-		if (null != options && options.length > 0) {
-			String[] opstrs = new String[options.length];
-			for (int i = 0; i < opstrs.length; i++)
-				opstrs[i] = options[i].toString();
-			headers.put(BusHeaders.HEADER_OPTIONS, KeyUtils.join('|', opstrs));
-		}
-
+		if (null != options && options.length > 0) headers.put(BusHeaders.HEADER_OPTIONS, this.opts.format(options));
 		return headers;
 	}
 }

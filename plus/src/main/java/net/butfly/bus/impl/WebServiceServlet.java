@@ -10,7 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
@@ -18,6 +18,8 @@ import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
+import net.butfly.bus.utils.http.HttpNingHandler;
+import net.butfly.bus.utils.http.MoreOpts;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
@@ -29,6 +31,8 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 	private static final long serialVersionUID = 4533571572446977813L;
 	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
 	private Cluster cluster;
+	private HttpHandler handler;
+	private Opts opts;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
@@ -41,6 +45,14 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		} catch (ClassNotFoundException e) {
 			throw new ServletException("Router definition not found.", e);
 		}
+		String handlerConfig = this.getInitParameter("http-handler");
+		try {
+			this.handler = null == handlerConfig ? new HttpNingHandler() : (HttpHandler) Class.forName(handlerConfig)
+					.newInstance();
+		} catch (Exception e) {
+			throw new ServletException("Http handler configuration (http-handler) invalid", e);
+		}
+		this.opts = new MoreOpts();
 		// FOR debug
 		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
 		logger.info("Servlet [" + paramConfig + "] started.");
@@ -67,17 +79,12 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
 
 		final Invoking invoking = new Invoking();
-		Map<String, String> busHeaders = HttpHandler.headers(request);
-		invoking.context = HttpHandler.context(busHeaders);
+		Map<String, String> busHeaders = handler.headers(request);
+		invoking.context = handler.context(busHeaders);
 		invoking.context.put(Context.Key.SourceHost.name(), request.getRemoteAddr());
-		invoking.tx = HttpHandler.tx(request.getPathInfo(), busHeaders);
-		if (!busHeaders.containsKey(BusHeaders.HEADER_OPTIONS)) invoking.options = null;
-		else {
-			String[] opstrs = busHeaders.get(BusHeaders.HEADER_OPTIONS).split("\\|");
-			invoking.options = new Options[opstrs.length];
-			for (int i = 0; i < opstrs.length; i++)
-				invoking.options[i] = new Options(opstrs[i]);
-		}
+		invoking.tx = handler.tx(request.getPathInfo(), busHeaders);
+		invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS) ? this.opts.parses(busHeaders
+				.get(BusHeaders.HEADER_OPTIONS)) : null;
 
 		invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHeaders.HEADER_CLASS_SUPPORT));
 		cluster.invoking(invoking);
@@ -87,15 +94,14 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 		} catch (IOException ex) {
 			throw new ServletException("Arguments reading I/O failure", ex);
 		}
-		invoking.parameters = HttpHandler.parameters(paramsData, serializer, invoking.parameterClasses,
-				reqContentType.getCharset());
+		invoking.parameters = handler
+				.parameters(paramsData, serializer, invoking.parameterClasses, reqContentType.getCharset());
 		cluster.invoke(invoking, new Task.Callback<Response>() {
 			@Override
 			public void callback(Response resp) {
 				try {
 					response.getOutputStream().write(
-							HttpHandler.response(resp, response, serializer, invoking.supportClass,
-									respContentType.getCharset()));
+							handler.response(resp, response, serializer, invoking.supportClass, respContentType.getCharset()));
 					response.getOutputStream().flush();
 					response.flushBuffer();
 				} catch (IOException ex) {

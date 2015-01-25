@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Texts;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Error;
 import net.butfly.bus.Request;
@@ -48,7 +48,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 			} catch (Exception e) {
 				logger.error(
 						"Serializer factory instance construction failure for class: "
-								+ KeyUtils.join(',', config.getTypeTranslators().toArray(new String[0])), e);
+								+ Texts.join(',', config.getTypeTranslators().toArray(new String[0])), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 
@@ -60,7 +60,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
-		Map<String, String> headers = HttpHandler.headers(request.code(), request.version(), request.context(),
+		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(),
 				serializer.supportClass(), remoteOptions);
 		/**
 		 * <pre>
@@ -74,7 +74,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 		 *  } else
 		 * </pre>
 		 */
-		HandlerResponse resp = WebServiceInvoker.this.handler.post(path, headers, serializer.serialize(request.arguments()),
+		HandlerResponse resp = this.handler.post(path, headers, serializer.serialize(request.arguments()),
 				serializer.defaultMimeType(), serializer.charset(), false);
 
 		Response response = new ResponseWrapper(resp.header(HttpHeaders.ETAG), resp.header(BusHeaders.HEADER_REQUEST_ID));

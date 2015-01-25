@@ -22,6 +22,10 @@ import org.apache.http.entity.ContentType;
 import com.google.common.net.HttpHeaders;
 
 public class HttpUrlHandler extends HttpHandler {
+	public HttpUrlHandler() {
+		this(0, 0);
+	}
+
 	public HttpUrlHandler(int connTimeout, int readTimeout) {
 		super(connTimeout, readTimeout);
 	}

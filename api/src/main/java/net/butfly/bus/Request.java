@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.context.Context.Key;
 
 public class Request implements Serializable {
@@ -70,7 +70,7 @@ public class Request implements Serializable {
 	}
 
 	public Request(String code, String version, Map<String, String> context, Object... arguments) {
-		this.id = KeyUtils.objectId();
+		this.id = Keys.objectId();
 		this.code = code;
 		this.version = version;
 		this.arguments = null == arguments ? new Object[0] : arguments;

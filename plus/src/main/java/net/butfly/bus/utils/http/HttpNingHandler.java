@@ -21,6 +21,10 @@ import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 public class HttpNingHandler extends HttpHandler {
 	AsyncHttpClient client;
 
+	public HttpNingHandler() {
+		this(0, 0);
+	}
+
 	public HttpNingHandler(int connTimeout, int readTimeout) {
 		super(connTimeout, readTimeout);
 		Builder b = new AsyncHttpClientConfig.Builder();

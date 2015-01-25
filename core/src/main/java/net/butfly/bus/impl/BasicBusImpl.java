@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.GenericUtils;
-import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
+import net.butfly.albacore.utils.Generics;
+import net.butfly.albacore.utils.Keys;
+import net.butfly.albacore.utils.Reflections.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
@@ -55,7 +55,7 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		this.firstFilter = new FirstFilter();
 		this.lastFilter = new LastFilter();
 		this.chain = new FilterChain(this.firstFilter, config.getFilterList(), this.lastFilter, this);
-		this.id = KeyUtils.objectId();
+		this.id = Keys.objectId();
 
 		// initialize tx supporting status
 		// TODO: reg in database
@@ -93,9 +93,9 @@ abstract class BasicBusImpl implements Bus, InternalFacade {
 		if (r != null) {
 			if (r.isArray()) r = r.getComponentType();
 			else if (Map.class.isAssignableFrom(r)) r = null;
-			else if (Collection.class.isAssignableFrom(r)) r = GenericUtils.getGenericParamClass(r, Collection.class, "E");
-			else if (Enumeration.class.isAssignableFrom(r)) r = GenericUtils.getGenericParamClass(r, Enumeration.class, "E");
-			else if (Iterable.class.isAssignableFrom(r)) r = GenericUtils.getGenericParamClass(r, Iterable.class, "T");
+			else if (Collection.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Collection.class, "E");
+			else if (Enumeration.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Enumeration.class, "E");
+			else if (Iterable.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Iterable.class, "T");
 		}
 		return new MethodInfo(m.getParameterTypes(), r);
 	}

@@ -1,8 +1,8 @@
 package net.butfly.bus.test;
 
 import net.butfly.albacore.exception.BusinessException;
-import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.Reflections;
+import net.butfly.albacore.utils.Texts;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
 import net.butfly.bus.impl.WebServiceServlet;
@@ -35,7 +35,7 @@ public abstract class BusTest {
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
-		return KeyUtils.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
+		return Texts.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
 	}
 
 	protected static void run(boolean... isRemote) throws Exception {
@@ -56,7 +56,7 @@ public abstract class BusTest {
 	}
 
 	protected String[] getServerMainArguments() {
-		return new String[] { "-k", KeyUtils.join(',', getServerConfiguration()) };
+		return new String[] { "-k", Texts.join(',', getServerConfiguration()) };
 	}
 
 	protected boolean isRemote() {
@@ -65,8 +65,8 @@ public abstract class BusTest {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
-		return (T) ReflectionUtils.safeConstruct(ReflectionUtils.getMainClass(),
-				ReflectionUtils.parameters(boolean.class, remote));
+		return (T) Reflections.construct(Reflections.getMainClass(),
+				Reflections.parameters(boolean.class, remote));
 	}
 
 	private void doTestWrapper() throws BusinessException {

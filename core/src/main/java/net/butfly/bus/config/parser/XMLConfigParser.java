@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.GenericUtils;
-import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.XMLUtils;
+import net.butfly.albacore.utils.Generics;
+import net.butfly.albacore.utils.Keys;
+import net.butfly.albacore.utils.more.XMLUtils;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigParser;
@@ -79,7 +79,7 @@ public class XMLConfigParser extends ConfigParser {
 			Class<? extends Invoker<?>> clazz = classForName(className);
 			InvokerConfigBean config = getInvokerConfig(clazz);
 			if (null != config) XMLUtils.setPropsByNode(config, element);
-			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
+			return new InvokerBean(Keys.objectId(), clazz, element.attributeValue("tx"), config,
 					this.parseInvokerAuth(element));
 		}
 	}
@@ -171,7 +171,7 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	private static InvokerConfigBean getInvokerConfig(Class<? extends Invoker<?>> invokerClass) {
-		Class<? extends InvokerConfigBean> configClass = GenericUtils.getGenericParamClass(invokerClass, Invoker.class, "C");
+		Class<? extends InvokerConfigBean> configClass = Generics.getGenericParamClass(invokerClass, Invoker.class, "C");
 		try {
 			return configClass.newInstance();
 		} catch (Throwable e) {

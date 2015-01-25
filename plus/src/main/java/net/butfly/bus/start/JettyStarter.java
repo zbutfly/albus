@@ -9,9 +9,9 @@ import java.util.Set;
 
 import javax.naming.NamingException;
 
-import net.butfly.albacore.utils.JNDIUtils;
-import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.more.JNDIUtils;
 import net.butfly.bus.impl.BusServlet;
 import net.butfly.bus.impl.ServletInitParams;
 import net.butfly.bus.impl.WebServiceServlet;
@@ -117,7 +117,7 @@ public class JettyStarter implements Runnable {
 			for (Field f : conf.servletClass.getDeclaredFields()) {
 				Object a = f.getAnnotation(ServletInitParams.class);
 				if (null != a && Map.class.isAssignableFrom(f.getType()) && Modifier.isStatic(f.getModifiers())) {
-					Map<String, String> params = ReflectionUtils.safeFieldGet(f, null);
+					Map<String, String> params = Reflections.get(f, null);
 					for (String name : params.keySet())
 						servlet.setInitParameter(name, params.get(name));
 				}
@@ -128,7 +128,7 @@ public class JettyStarter implements Runnable {
 	}
 
 	private static Class<? extends BusServlet> scanServletClass() {
-		Set<Class<? extends BusServlet>> classes = ReflectionUtils.getSubClasses(BusServlet.class, "");
+		Set<Class<? extends BusServlet>> classes = Reflections.getSubClasses(BusServlet.class, "");
 		for (Class<? extends BusServlet> c : classes)
 			if (!c.getName().startsWith("net.butfly.bus.")) return c;
 		return WebServiceServlet.class;

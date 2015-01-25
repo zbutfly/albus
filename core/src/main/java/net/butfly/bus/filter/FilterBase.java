@@ -2,7 +2,7 @@ package net.butfly.bus.filter;
 
 import java.util.Map;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.Bus;
 
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ public abstract class FilterBase implements Filter {
 	protected FilterChain chain;
 
 	public FilterBase() {
-		this.id = KeyUtils.defaults();
+		this.id = Keys.defaults();
 	}
 
 	@Override

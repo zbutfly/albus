@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.albacore.utils.Exceptions;
-import net.butfly.albacore.utils.ReflectionUtils.MethodInfo;
+import net.butfly.albacore.utils.Reflections.MethodInfo;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
