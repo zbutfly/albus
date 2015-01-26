@@ -1,6 +1,7 @@
 package net.butfly.bus.start;
 
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -111,11 +112,12 @@ public class JettyStarter implements Runnable {
 			InvocationTargetException {
 		for (String cfg : conf.config) {
 			ServletHolder servlet = new ServletHolder(conf.servletClass);
+			servlet.setAsyncSupported(true);
 			servlet.setDisplayName("BusServlet[" + null == cfg ? "DEFAULT" : cfg + "]");
 			servlet.setInitOrder(0);
 			if (null != cfg) servlet.setInitParameter("config", cfg);
 			for (Field f : conf.servletClass.getDeclaredFields()) {
-				Object a = f.getAnnotation(ServletInitParams.class);
+				Annotation a = f.getAnnotation(ServletInitParams.class);
 				if (null != a && Map.class.isAssignableFrom(f.getType()) && Modifier.isStatic(f.getModifiers())) {
 					Map<String, String> params = Reflections.get(f, null);
 					for (String name : params.keySet())

@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class WebServiceServlet extends BusServlet implements Container<Servlet> {
 	private static final long serialVersionUID = 4533571572446977813L;
-	private static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
+	protected static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
 	private Cluster cluster;
 	private Class<? extends HttpHandler> handlerClass;
 	private Opts opts;
@@ -68,20 +68,25 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
+			IOException {
+		// prepare http
 		// XXX: goof off
 		this.doOptions(request, response);
 		response.setStatus(HttpStatus.OK_200);
+
 		ContentType reqContentType = ContentType.parse(request.getContentType());
 		if (reqContentType.getCharset() == null) reqContentType = reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
 		if (reqContentType.getMimeType() == null)
 			reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, reqContentType.getCharset());
 		final Serializer serializer = Serializers.serializer(reqContentType.getMimeType(), reqContentType.getCharset());
-		final HttpHandler handler = this.handler(serializer);
 		if (serializer == null || Arrays.binarySearch(serializer.supportedMimeTypes(), reqContentType.getMimeType()) < 0)
 			throw new ServletException("Unsupported content type: " + reqContentType.getMimeType());
 		final ContentType respContentType = ContentType.create(serializer.defaultMimeType(), reqContentType.getCharset());
 
+		final HttpHandler handler = this.handler(serializer);
+
+		// prepare invoke
 		final Invoking invoking = new Invoking();
 		Map<String, String> busHeaders = handler.headers(request);
 		invoking.context = handler.context(busHeaders);
@@ -99,6 +104,8 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 			throw new ServletException("Arguments reading I/O failure", ex);
 		}
 		invoking.parameters = handler.parameters(paramsData, invoking.parameterClasses, reqContentType.getCharset());
+
+		// do invoke
 		cluster.invoke(invoking, new Task.Callback<Response>() {
 			@Override
 			public void callback(Response resp) {
