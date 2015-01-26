@@ -317,7 +317,6 @@ public class JettyStarter implements Runnable {
 			this.resBase = System.getProperty("bus.server.base");
 
 			try {
-				// cmd.getOptionValue('e');
 				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));
 			} catch (Throwable t) {
 				this.servletClass = scanServletClass();

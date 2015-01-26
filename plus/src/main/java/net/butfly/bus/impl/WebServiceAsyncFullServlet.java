@@ -16,7 +16,7 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class WebServiceAsyncServlet extends WebServiceServlet {
+public class WebServiceAsyncFullServlet extends WebServiceServlet {
 	private static final long serialVersionUID = 5048648001222215248L;
 
 	@Override

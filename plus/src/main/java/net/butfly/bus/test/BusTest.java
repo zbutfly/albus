@@ -5,7 +5,6 @@ import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.Texts;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
-import net.butfly.bus.impl.WebServiceServlet;
 import net.butfly.bus.start.JettyStarter;
 
 import org.slf4j.Logger;
@@ -20,10 +19,7 @@ public abstract class BusTest {
 	protected BusTest(boolean remote) throws Exception {
 		this.remote = remote;
 		if (remote) {
-			System.setProperty("bus.servlet.class", WebServiceServlet.class.getName());
-			System.setProperty("bus.server.base", "src/test/webapp");
-			System.setProperty("bus.threadpool.size", "3");
-			// System.setProperty("bus.invoker.spring.lazy", "true");
+			// set this prop for debug, waiting server side init before client invoking.
 			System.setProperty("bus.server.waiting", "true");
 			logger.info("Remote test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
@@ -65,8 +61,7 @@ public abstract class BusTest {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
-		return (T) Reflections.construct(Reflections.getMainClass(),
-				Reflections.parameter(remote, boolean.class));
+		return (T) Reflections.construct(Reflections.getMainClass(), Reflections.parameter(remote, boolean.class));
 	}
 
 	private void doTestWrapper() throws BusinessException {
