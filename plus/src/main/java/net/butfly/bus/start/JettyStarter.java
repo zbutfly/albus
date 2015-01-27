@@ -130,7 +130,7 @@ public class JettyStarter implements Runnable {
 	}
 
 	private static Class<? extends BusServlet> scanServletClass() {
-		Set<Class<? extends BusServlet>> classes = Reflections.getSubClasses(BusServlet.class, "");
+		Set<Class<? extends BusServlet>> classes = Reflections.getSubClasses(BusServlet.class);
 		for (Class<? extends BusServlet> c : classes)
 			if (!c.getName().startsWith("net.butfly.bus.")) return c;
 		return WebServiceServlet.class;

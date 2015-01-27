@@ -3,6 +3,7 @@ package net.butfly.bus.filter;
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
+import net.butfly.bus.service.LogService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 			logger.trace(prefix + sb.toString());
 		}
 		try {
+			LogService log = context.invoker().awared(LogService.class);
+			if (null != log) log.logAccess();
 			super.execute(context);
 		} catch (Exception exception) {
 			logger.error("Bus exception: ", exception);

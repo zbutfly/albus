@@ -19,7 +19,7 @@ public final class Serializers extends UtilsBase {
 	}
 
 	private static void build() {
-		for (Class<? extends Serializer> clazz : Reflections.getSubClasses(Serializer.class, ""))
+		for (Class<? extends Serializer> clazz : Reflections.getSubClasses(Serializer.class))
 			try {
 				Serializer def = Reflections
 						.construct(clazz, Reflections.parameter(Serializers.DEFAULT_CHARSET, Charset.class));

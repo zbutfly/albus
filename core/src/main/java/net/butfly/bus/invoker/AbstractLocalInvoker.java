@@ -24,7 +24,7 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
 		Response resp = new Response(request);
-		if (auth != null) auth.login(AbstractLocalInvoker.this.token());
+//		if (auth != null) auth.login(AbstractLocalInvoker.this.token());
 		TXImpl key = scanTXLazily(TXUtils.TXImpl(request.code(), request.version()));
 		if (null == key)
 			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["

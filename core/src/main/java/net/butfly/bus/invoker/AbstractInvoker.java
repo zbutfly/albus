@@ -7,11 +7,13 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.service.Service;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.TX;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.service.AuthService;
+import net.butfly.bus.service.AwareService;
 import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
@@ -27,7 +29,7 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 	protected Map<String, TreeSet<TXImpl>> TX_POOL = new HashMap<String, TreeSet<TXImpl>>();
 	protected Map<TXImpl, Object> INSTANCE_POOL = new HashMap<TXImpl, Object>();
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
-	protected AuthService auth;
+	private Map<Class<? extends Service>, Service> AWARED_POOL = new HashMap<Class<? extends Service>, Service>();
 
 	@Override
 	public String[] getTXCodes() {
@@ -40,21 +42,27 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 		this.token = token;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void initialize() {
-		if (this.METHOD_POOL.isEmpty()) try {
-			logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsing...");
-			for (Object bean : getBeanList()) {
-				Class<?> implClass = bean.getClass();
-				/* DO not scan tx on implementation of facade. scanMethodsForTX(implClass, bean); */
-				for (Class<?> clazz : implClass.getInterfaces())
-					scanMethodsForTX(clazz, bean);
-				if (AuthService.class.isAssignableFrom(implClass)) this.auth = (AuthService) bean;
+		if (this.METHOD_POOL.isEmpty())
+			try {
+				logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsing...");
+				Object[] beans = getBeanList();
+				Class<?>[] serviceClasses = Reflections.getAnnotatedTypes(AwareService.class);
+				for (Object bean : beans) {
+					Class<?> implClass = bean.getClass();
+					/* DO not scan tx on implementation of facade. scanMethodsForTX(implClass, bean); */
+					for (Class<?> clazz : implClass.getInterfaces())
+						scanMethodsForTX(clazz, bean);
+					for (Class<?> cl : serviceClasses)
+						if (cl.isInterface() && cl.isAssignableFrom(implClass))
+							this.AWARED_POOL.put((Class<? extends Service>) cl, (Service) bean);
+				}
+				logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsed.");
+			} catch (Exception _ex) {
+				throw new SystemException(Constants.BusinessError.CONFIG_ERROR, _ex);
 			}
-			logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsed.");
-		} catch (Exception _ex) {
-			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, _ex);
-		}
 		this.config = null;
 	}
 
@@ -97,8 +105,10 @@ public abstract class AbstractInvoker<C extends InvokerConfigBean> implements In
 		return null == t ? this.token : t;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public final AuthService authBean() {
-		return this.auth;
+	public <S extends Service> S awared(Class<S> serviceClass) {
+		if (serviceClass.isInterface()) return (S) this.AWARED_POOL.get(serviceClass);
+		throw new IllegalArgumentException("Can fetch awared bean by interface only.");
 	}
 }
