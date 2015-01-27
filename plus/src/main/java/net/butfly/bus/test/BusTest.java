@@ -11,34 +11,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BusTest {
+	protected enum Mode {
+		LOCAL, REMOTE, CLIENT
+	}
+
 	protected static final Logger logger = LoggerFactory.getLogger(BusTest.class);
 
-	private boolean remote;
+	protected Mode mode;
 	protected Bus client;
 
-	protected BusTest(boolean remote) throws Exception {
-		this.remote = remote;
-		if (remote) {
-			// set this prop for debug, waiting server side init before client invoking.
+	protected BusTest(Mode mode) throws Exception {
+		this.mode = mode;
+		if (mode == Mode.REMOTE) {
 			System.setProperty("bus.server.waiting", "true");
-			logger.info("Remote test: bus server starting.");
+			logger.info(mode.name() + " test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
-			logger.info("Remote test: bus client starting.");
-		} else {
-			logger.info("Local test: bus instance starting.");
 		}
-		client = BusFactory.client(this.getClientConfigurationForType(remote));
+		logger.info(mode.name() + " test: bus client starting.");
+		client = BusFactory.client(this.getClientConfigurationForType(this.isRemote()));
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
 		return Texts.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
 	}
 
-	protected static void run(boolean... isRemote) throws Exception {
-		if (null == isRemote || isRemote.length == 0) isRemote = new boolean[] { false, true };
+	protected static void run(Mode... mode) throws Exception {
+		if (null == mode || mode.length == 0) mode = new Mode[] { Mode.LOCAL, Mode.REMOTE };
 
-		for (boolean remote : isRemote)
-			getTestInstance(remote).doTestWrapper();
+		for (Mode m : mode)
+			getTestInstance(m).doTestWrapper();
 	};
 
 	protected abstract void doAllTest() throws BusinessException;
@@ -56,12 +57,12 @@ public abstract class BusTest {
 	}
 
 	protected boolean isRemote() {
-		return this.remote;
+		return mode != Mode.LOCAL;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
-		return (T) Reflections.construct(Reflections.getMainClass(), Reflections.parameter(remote, boolean.class));
+	private static <T extends BusTest> T getTestInstance(Mode mode) throws BusinessException {
+		return (T) Reflections.construct(Reflections.getMainClass(), Reflections.parameter(mode));
 	}
 
 	private void doTestWrapper() throws BusinessException {
@@ -69,13 +70,12 @@ public abstract class BusTest {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e1) {}
-		String desc = (remote ? "Remote" : "Local");
 		logger.info("==========================");
-		logger.info(desc + " test: test starting.");
+		logger.info(mode.name() + " test: test starting.");
 		logger.info("==========================");
 		doAllTest();
 		logger.info("==========================");
-		logger.info(desc + " test: test finished.");
+		logger.info(mode.name() + " test: test finished.");
 		logger.info("==========================");
 	}
 
