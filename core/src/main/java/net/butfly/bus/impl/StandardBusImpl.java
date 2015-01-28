@@ -9,14 +9,11 @@ import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.FilterContext;
-import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
-abstract class StandardBusImpl extends BasicBusImpl  {
-	private static final long serialVersionUID = -4835302344711170159L;
-
-	public StandardBusImpl( Mode mode, String conf) {
+abstract class StandardBusImpl extends BasicBusImpl {
+	public StandardBusImpl(Mode mode, String conf) {
 		super(mode, conf);
 	}
 
@@ -30,8 +27,8 @@ abstract class StandardBusImpl extends BasicBusImpl  {
 	@Override
 	Response invoke(Request request, Options... options) throws Exception {
 		check(request);
-		Invoker<InvokerConfigBean> invoker = Invokers.getInvoker(router.route(request.code(), config.getInvokers()), mode);
-		return chain.execute(new FilterContext(invoker, request, null, options));
+		Invoker<InvokerConfigBean> invoker = Invokers.getInvoker(router.route(request.code(), config.getInvokers()));
+		return chain.execute(new FilterContext(invoker, request, null, mode, options));
 	}
 
 	@Override

@@ -1,25 +1,21 @@
 package net.butfly.bus.impl;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import net.butfly.albacore.utils.Reflections.MethodInfo;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
+import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.impl.BusFactory.Mode;
-import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.policy.Router;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class Cluster implements Routeable {
+final class Cluster {
 	protected static Logger logger = LoggerFactory.getLogger(Cluster.class);
 	private final Map<String, Bus> nodes = new HashMap<String, Bus>();
 	final private Mode mode;
@@ -35,19 +31,6 @@ final class Cluster implements Routeable {
 
 	public Bus[] servers() {
 		return nodes.values().toArray(new Bus[nodes.values().size()]);
-	}
-
-	@Override
-	public String id() {
-		return null;
-	}
-
-	@Override
-	public String[] supportedTXs() {
-		Set<String> all = new HashSet<String>();
-		for (Bus impl : nodes.values())
-			all.addAll(Arrays.asList(impl.supportedTXs()));
-		return all.toArray(new String[all.size()]);
 	}
 
 	private void registerSingle(String conf) {

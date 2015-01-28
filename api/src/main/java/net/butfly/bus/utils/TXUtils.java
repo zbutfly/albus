@@ -96,9 +96,9 @@ public class TXUtils extends UtilsBase {
 		return code + ":" + version;
 	}
 
-	public static final int matching(String[] patterns, String code) {
-		for (int i = 0; i < patterns.length; i++) {
-			String pattern = patterns[i];
+	public static final int matching(String code, String... parttern) {
+		for (int i = 0; i < parttern.length; i++) {
+			String pattern = parttern[i];
 			if (pattern.equals("*")) return i;
 			if (pattern.equalsIgnoreCase(code)) return i;
 			if (pattern.endsWith("*") && code.startsWith(pattern.substring(0, pattern.indexOf("*")))) return i;

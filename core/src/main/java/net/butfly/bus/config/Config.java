@@ -43,8 +43,8 @@ public class Config {
 			this.invokers.put(ivk.id(), ivk);
 	}
 
-	public List<FilterBean> getFilterList() {
-		return filterBeanList;
+	public FilterBean[] getFilterList() {
+		return filterBeanList.toArray(new FilterBean[filterBeanList.size()]);
 	}
 
 	public RouterBean getRouter() {

@@ -2,6 +2,7 @@ package net.butfly.bus.invoker;
 
 import java.util.Arrays;
 
+import net.butfly.albacore.service.Service;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 
@@ -21,5 +22,16 @@ public abstract class AbstractRemoteInvoker<C extends InvokerConfigBean> extends
 	@Override
 	public Object[] getBeanList() {
 		return new Object[0];
+	}
+
+	@Override
+	public boolean isSupported(String tx) {
+		// TODO
+		return false;
+	}
+
+	@Override
+	public <S extends Service> S awared(Class<S> serviceClass) {
+		return null;
 	}
 }

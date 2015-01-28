@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.butfly.bus.utils.TXUtils;
-
 public abstract class RouterBase implements Router {
 	protected final Map<String, Routeable[]> cache;
 
@@ -16,7 +14,7 @@ public abstract class RouterBase implements Router {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public final <T extends Routeable> T route(String requestTX, T[] possiable) {
+	public final <T extends Routeable> T route(String requestTX, T... possiable) {
 		if (possiable == null || possiable.length == 0) return null;
 		// XXX: for global route cache.
 		// Class<T> clazz = (Class<T>) possiable.getClass().getComponentType();
@@ -26,12 +24,11 @@ public abstract class RouterBase implements Router {
 		else {
 			Set<Routeable> results = new HashSet<Routeable>();
 			if (possiable != null && possiable.length > 0) for (T et : possiable)
-				if (TXUtils.matching(et.supportedTXs(), requestTX) >= 0) results.add(et);
-
+				if (et.isSupported(requestTX)) results.add(et);
 			target = results.toArray(new Routeable[results.size()]);
 		}
 		return (T) this.route(target);
 	}
 
-	protected abstract <T> T route(T[] filted);
+	protected abstract <T> T route(T... filted);
 }

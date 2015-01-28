@@ -3,6 +3,7 @@ package net.butfly.bus.impl;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.bus.Bus;
+import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigLoader;
 import net.butfly.bus.config.loader.ClasspathConfigLoad;
@@ -15,9 +16,6 @@ import net.butfly.bus.utils.Constants;
 public final class BusFactory {
 	private BusFactory() {}
 
-	enum Mode {
-		SERVER, CLIENT;
-	}
 
 	public static Bus client() {
 		return create(Mode.CLIENT, null);

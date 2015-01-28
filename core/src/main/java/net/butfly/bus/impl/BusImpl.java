@@ -10,13 +10,10 @@ import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.FilterContext;
-import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
 class BusImpl extends StandardBusImpl {
-	private static final long serialVersionUID = -4952475921832979927L;
-
 	/**
 	 * Kernal invoking of back bus, async bus. <br>
 	 * Does not start async here, <br>
@@ -25,8 +22,8 @@ class BusImpl extends StandardBusImpl {
 	@Override
 	void invoke(final Request request, final Task.Callback<Response> callback, final Options... options) throws Exception {
 		check(request);
-		Invoker<InvokerConfigBean> invoker = Invokers.getInvoker(router.route(request.code(), config.getInvokers()), mode);
-		chain.execute(new FilterContext(invoker, request, callback, options));
+		Invoker<InvokerConfigBean> invoker = Invokers.getInvoker(router.route(request.code(), config.getInvokers()));
+		chain.execute(new FilterContext(invoker, request, callback, mode, options));
 	}
 
 	public BusImpl(Mode mode, String conf) {

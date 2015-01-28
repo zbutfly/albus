@@ -42,9 +42,6 @@ public class LoggerFilter extends FilterBase implements Filter {
 			LogService log = context.invoker().awared(LogService.class);
 			if (null != log) log.logAccess();
 			super.execute(context);
-		} catch (Exception exception) {
-			logger.error("Bus exception: ", exception);
-			throw exception;
 		} finally {
 			if (logger.isInfoEnabled()) {
 				long spent = System.currentTimeMillis() - now;

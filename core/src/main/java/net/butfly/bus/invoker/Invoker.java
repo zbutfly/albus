@@ -6,8 +6,9 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
+import net.butfly.bus.policy.Routeable;
 
-public interface Invoker<C extends InvokerConfigBean> {
+public interface Invoker<C extends InvokerConfigBean> extends Routeable {
 	void initialize(C config, Token token);
 
 	void initialize();
@@ -15,8 +16,6 @@ public interface Invoker<C extends InvokerConfigBean> {
 	Response invoke(Request request, Options... remoteOptions) throws Exception;
 
 	Object[] getBeanList();
-
-	String[] getTXCodes();
 
 	<S extends Service> S awared(Class<S> serviceClass);
 

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +29,7 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebServiceServlet extends BusServlet implements Container<Servlet> {
+public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
 	protected static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
 	private Class<? extends HttpHandler> handlerClass;

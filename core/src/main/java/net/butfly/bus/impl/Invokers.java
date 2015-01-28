@@ -7,7 +7,6 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.UtilsBase;
 import net.butfly.bus.config.bean.invoker.InvokerBean;
 import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
-import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.Constants;
 
@@ -15,7 +14,7 @@ import net.butfly.bus.utils.Constants;
 public class Invokers extends UtilsBase {
 	private static Map<String, Invoker<?>> INVOKER_POOL = new HashMap<String, Invoker<?>>();
 
-	static <C extends InvokerConfigBean> Invoker<C> getInvoker(InvokerBean bean, Mode mode) {
+	static <C extends InvokerConfigBean> Invoker<C> getInvoker(InvokerBean bean) {
 		return (Invoker<C>) INVOKER_POOL.get(key(bean));
 	}
 
