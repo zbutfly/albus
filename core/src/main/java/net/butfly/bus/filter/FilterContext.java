@@ -13,9 +13,9 @@ public class FilterContext {
 	private Response response;
 	private Options[] options;
 	private Task.Callback<Response> callback;
-	private Invoker<?> invoker;
+	private Invoker invoker;
 
-	public FilterContext(Invoker<?> invoker, Request request, Task.Callback<Response> callback, Mode mode, Options... options) {
+	public FilterContext(Invoker invoker, Request request, Task.Callback<Response> callback, Mode mode, Options... options) {
 		this.invoker = invoker;
 		this.request = request;
 		this.callback = callback;
@@ -35,7 +35,7 @@ public class FilterContext {
 		return this.callback;
 	}
 
-	public Invoker<?> invoker() {
+	public Invoker invoker() {
 		return this.invoker;
 	}
 

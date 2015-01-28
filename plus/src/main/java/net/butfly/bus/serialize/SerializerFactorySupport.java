@@ -1,7 +1,5 @@
-package net.butfly.albacore.utils.serialize;
-
-import com.caucho.hessian.io.AbstractSerializerFactory;
+package net.butfly.bus.serialize;
 
 public interface SerializerFactorySupport {
-	void addFactory(AbstractSerializerFactory factory);
+	void addFactoriesByClassName(String... classes);
 }

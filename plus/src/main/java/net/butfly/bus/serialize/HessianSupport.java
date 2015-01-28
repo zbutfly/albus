@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
-import java.util.List;
 
 import net.butfly.albacore.exception.SystemException;
 
@@ -46,7 +45,7 @@ public abstract class HessianSupport extends SerializerBase implements Serialize
 	}
 
 	@Override
-	public void addFactoriesByClassName(List<String> classes) {
+	public void addFactoriesByClassName(String... classes) {
 		if (this.factory == null) this.factory = new SerializerFactory();
 		if (null != classes) for (String f : classes)
 			try {

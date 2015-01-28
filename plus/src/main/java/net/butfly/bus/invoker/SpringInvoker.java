@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.butfly.albacore.base.Unit;
 import net.butfly.bus.Token;
-import net.butfly.bus.config.invoker.SpringInvokerConfig;
+import net.butfly.bus.config.bean.InvokerBean;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
@@ -13,12 +13,12 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-public class SpringInvoker extends AbstractLocalInvoker<SpringInvokerConfig> implements Invoker<SpringInvokerConfig> {
+public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 	private ApplicationContext spring;
 
 	@Override
-	public void initialize(SpringInvokerConfig config, Token token) {
-		String[] files = config.getFiles().split(";");
+	public void initialize(InvokerBean config, Token token) {
+		String[] files = config.param("files").split(";");
 		List<Resource> reses = new ArrayList<Resource>();
 		for (String file : files)
 			reses.add(new ClassPathResource(file));

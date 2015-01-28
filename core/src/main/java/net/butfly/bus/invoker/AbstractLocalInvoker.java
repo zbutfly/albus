@@ -13,13 +13,12 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.service.AwareService;
 import net.butfly.bus.utils.Constants;
 import net.butfly.bus.utils.TXUtils;
 import net.butfly.bus.utils.TXUtils.TXImpl;
 
-public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends AbstractInvoker<C> {
+public abstract class AbstractLocalInvoker extends AbstractInvoker {
 	protected Map<String, TreeSet<TXImpl>> TX_POOL = new HashMap<String, TreeSet<TXImpl>>();
 	protected Map<TXImpl, Object> INSTANCE_POOL = new HashMap<TXImpl, Object>();
 	protected Map<TXImpl, Method> METHOD_POOL = new HashMap<TXImpl, Method>();
@@ -47,6 +46,12 @@ public abstract class AbstractLocalInvoker<C extends InvokerConfigBean> extends 
 				throw new SystemException(Constants.BusinessError.CONFIG_ERROR, _ex);
 			}
 		super.initialize();
+	}
+
+	@Override
+	public boolean lazy() {
+		String l = System.getProperty("bus.invoker.spring.lazy");
+		return Boolean.parseBoolean(l == null ? config.param("lazy") : l);
 	}
 
 	public Method getMethod(String code, String version) {

@@ -17,7 +17,7 @@ import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.config.Config;
-import net.butfly.bus.config.bean.invoker.InvokerBean;
+import net.butfly.bus.config.bean.InvokerBean;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
 import net.butfly.bus.filter.FilterChain;
@@ -33,7 +33,6 @@ abstract class BasicBusImpl implements Bus {
 	protected Router router;
 	protected FilterChain chain;
 
-	// private String[] supportedTXs;
 	protected Mode mode;
 
 	public BasicBusImpl(Mode mode, String conf) {
@@ -43,13 +42,6 @@ abstract class BasicBusImpl implements Bus {
 		this.router = BusFactory.createRouter(this.config);
 		this.chain = new FilterChain(this, config.getFilterList());
 		this.id = Keys.objectId();
-
-		// initialize tx supporting status
-		// TODO: reg in database
-		// Set<String> txs = new HashSet<String>();
-		// for (String id : config.getAllNodeIDs())
-		// txs.addAll(Arrays.asList(config.getInvoker(id).supportedTXs()));
-		// this.supportedTXs = txs.toArray(new String[txs.size()]);
 	}
 
 	public String id() {
@@ -62,16 +54,12 @@ abstract class BasicBusImpl implements Bus {
 		return ivkb != null;
 	}
 
-	@SuppressWarnings("rawtypes")
 	MethodInfo invokeInfo(TX tx) {
-		InvokerBean ivkb = this.router.route(tx.value(), this.config.getInvokers());
-		if (null == ivkb) return null;
-		Invoker<?> ivk = Invokers.getInvoker(ivkb);
-		if (null == ivk) return null;
+		Invoker ivk = this.find(tx.value());
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
 		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
-		if (null == m) return null;
+		if (null == m) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
 		Class<?> r = m.getReturnType();
 		if (r != null) {
 			if (r.isArray()) r = r.getComponentType();
@@ -115,4 +103,11 @@ abstract class BasicBusImpl implements Bus {
 	abstract Response invoke(Request request, Options... options) throws Exception;
 
 	abstract void invoke(Request request, Callback<Response> callback, Options... options) throws Exception;
+
+	protected Invoker find(String tx) {
+		// TODO: handle route failure null exception
+		InvokerBean b = router.route(tx, config.getInvokers());
+		if (null == b) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
+		return b.invoker();
+	}
 }

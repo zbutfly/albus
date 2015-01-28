@@ -9,18 +9,18 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
-import net.butfly.bus.config.invoker.WebServiceInvokerConfig;
+import net.butfly.bus.config.bean.InvokerBean;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.HttpHandler;
+import net.butfly.bus.utils.http.HttpNingHandler;
 import net.butfly.bus.utils.http.ResponseHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerConfig> implements
-		Invoker<WebServiceInvokerConfig> {
+public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker {
 	private static Logger logger = LoggerFactory.getLogger(WebServiceInvoker.class);
 	private String path;
 	private int timeout;
@@ -30,31 +30,32 @@ public class WebServiceInvoker extends AbstractRemoteInvoker<WebServiceInvokerCo
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void initialize(WebServiceInvokerConfig config, Token token) {
-		this.path = config.getPath();
-		this.timeout = config.getTimeout();
+	public void initialize(InvokerBean config, Token token) {
+		this.path = config.param("path");
+		String to = config.param("timeout");
+		this.timeout = to == null ? 0 : Integer.parseInt(to);
 		try {
-			this.serializer = Serializers.serializer((Class<? extends Serializer>) Class.forName(config.getSerializer()));
+			this.serializer = Serializers.serializer((Class<? extends Serializer>) Class.forName(config.param("serializer")));
 		} catch (Exception e) {
 			logger.error("Invoker initialization failure, Serializer could not be created.", e);
 			throw Exceptions.wrap(e);
 		}
-		if (this.serializer instanceof SerializerFactorySupport)
+		if (this.serializer instanceof SerializerFactorySupport) {
+			String[] trs = config.param("typeTranslators") == null ? new String[0] : config.param("typeTranslators").split(",");
 			try {
-				((SerializerFactorySupport) this.serializer).addFactoriesByClassName(config.getTypeTranslators());
+				((SerializerFactorySupport) this.serializer).addFactoriesByClassName(trs);
 			} catch (Exception e) {
-				logger.error(
-						"Serializer factory instance construction failure for class: "
-								+ Texts.join(',', config.getTypeTranslators().toArray(new String[0])), e);
+				logger.error("Serializer factory instance construction failure for class: " + Texts.join(',', trs), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
-
-		try {
-			this.handler = (HttpHandler) Reflections.construct(Class.forName(config.getHandler()),
+		}
+		String handleClassname = config.param("handler");
+		if (null == handleClassname) this.handler = new HttpNingHandler(serializer, timeout, timeout);
+		else try {
+			this.handler = (HttpHandler) Reflections.construct(Class.forName(handleClassname),
 					Reflections.parameter(this.serializer, Serializer.class), Reflections.parameter(this.timeout, int.class),
 					Reflections.parameter(this.timeout, int.class));
 		} catch (Exception e) {
-			logger.error("Invoker initialization failure, Http handler could not be created.", e);
 			throw Exceptions.wrap(e);
 		}
 		super.initialize(config, token);

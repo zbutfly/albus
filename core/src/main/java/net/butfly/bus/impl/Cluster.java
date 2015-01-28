@@ -3,7 +3,6 @@ package net.butfly.bus.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.albacore.utils.Reflections.MethodInfo;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Bus.Mode;
@@ -42,9 +41,7 @@ final class Cluster {
 		invoking.bus = router.route(invoking.tx.value(), servers());
 		if (null == invoking.bus)
 			throw new RuntimeException("Server routing failure, no node found for [" + invoking.tx.value() + "].");
-		MethodInfo pi = ((BasicBusImpl) invoking.bus).invokeInfo(invoking.tx);
-		if (null == pi) throw new RuntimeException("Server routing failure.");
-		invoking.parameterClasses = pi.parametersClasses();
+		invoking.parameterClasses = ((BasicBusImpl) invoking.bus).invokeInfo(invoking.tx).parametersClasses();
 	}
 
 	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) throws Exception {

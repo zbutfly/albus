@@ -7,9 +7,7 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.FilterContext;
-import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
 abstract class StandardBusImpl extends BasicBusImpl {
@@ -27,8 +25,7 @@ abstract class StandardBusImpl extends BasicBusImpl {
 	@Override
 	Response invoke(Request request, Options... options) throws Exception {
 		check(request);
-		Invoker<InvokerConfigBean> invoker = Invokers.getInvoker(router.route(request.code(), config.getInvokers()));
-		return chain.execute(new FilterContext(invoker, request, null, mode, options));
+		return chain.execute(new FilterContext(find(request.code()), request, null, mode, options));
 	}
 
 	@Override
