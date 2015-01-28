@@ -35,11 +35,11 @@ public class HttpNingHandler extends HttpHandler {
 
 	public HttpNingHandler(Serializer serializer, int connTimeout, int readTimeout) {
 		super(serializer, connTimeout, readTimeout);
-		Builder b = new AsyncHttpClientConfig.Builder();
+		Builder b = new AsyncHttpClientConfig.Builder().setReadTimeout(readTimeout > 0 ? readTimeout : Integer.MAX_VALUE)
+				.setRequestTimeout(Integer.MAX_VALUE);
 		if (connTimeout > 0) b.setConnectTimeout(connTimeout);
-		if (readTimeout > 0) b.setReadTimeout(readTimeout);
 		AsyncHttpClientConfig config = b.build();
-		this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(config));
+		this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(config));// , config
 	}
 
 	@Override

@@ -12,15 +12,15 @@ import net.butfly.bus.test.BusTest;
 public class StandardTest extends BusTest {
 	protected CometFacade facade;
 
-	protected StandardTest(boolean remote) throws Exception {
-		super(remote);
+	protected StandardTest(Mode mode) throws Exception {
+		super(mode);
 		Context.token(new Token("user", "pass"));
 		Context.sourceAppID("CometTestClient");
 		this.facade = this.client.service(CometFacade.class, new Options().fork());
 	}
 
 	public static void main(String args[]) throws Exception {
-		run(false, true);
+		run();
 		waiting();
 		// finish();
 	}

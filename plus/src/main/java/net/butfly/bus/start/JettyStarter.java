@@ -50,9 +50,9 @@ public class JettyStarter implements Runnable {
 	protected final static Logger logger = LoggerFactory.getLogger(JettyStarter.class);
 	protected final int BUF_SIZE = 8 * 1024;
 	protected final static String DEFAULT_CONTEXT_PATH = "/bus/*";
-	protected final static String DEFAULT_PORT = "19080";
-	protected final static String DEFAULT_SECURE_PORT = "19443";
-	protected final static String DEFAULT_THREAD_POOL_SIZE = "-1";
+	protected final static int DEFAULT_PORT = 19080;
+	protected final static int DEFAULT_SECURE_PORT = 19443;
+	protected final static int DEFAULT_THREAD_POOL_SIZE = -1;
 	private static final long DEFAULT_IDLE = 60000;
 	protected final Server server;
 	protected final ServletContextHandler context;
@@ -309,9 +309,9 @@ public class JettyStarter implements Runnable {
 
 		@SuppressWarnings("unchecked")
 		private void loadSystemProperties() {
-			this.port = Integer.parseInt(System.getProperty("bus.port", DEFAULT_PORT));
-			this.sslPort = Integer.parseInt(System.getProperty("bus.port.secure", DEFAULT_SECURE_PORT));
-			this.threads = Integer.parseInt(System.getProperty("bus.threadpool.size", DEFAULT_THREAD_POOL_SIZE));
+			this.port = Integer.getInteger("bus.port", DEFAULT_PORT);
+			this.sslPort = Integer.getInteger("bus.port.secure", DEFAULT_SECURE_PORT);
+			this.threads = Integer.getInteger("bus.threadpool.size", DEFAULT_THREAD_POOL_SIZE);
 			this.context = System.getProperty("bus.server.context", DEFAULT_CONTEXT_PATH);
 			this.jndi = System.getProperty("bus.jndi");
 			this.resBase = System.getProperty("bus.server.base");

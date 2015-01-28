@@ -14,7 +14,7 @@ import net.butfly.bus.impl.BusFactory.Mode;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.utils.TXUtils;
 
-public class BusImpl extends StandardBusImpl {
+class BusImpl extends StandardBusImpl {
 	private static final long serialVersionUID = -4952475921832979927L;
 
 	/**

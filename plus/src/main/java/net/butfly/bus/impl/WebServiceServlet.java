@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -71,20 +72,24 @@ public class WebServiceServlet extends BusServlet implements Container<Servlet> 
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
 			IOException {
 		final ServiceContext context = this.prepare(request, response);
-		cluster.invoke(context.invoking, new Task.Callback<Response>() {
-			@Override
-			public void callback(Response resp) {
-				try {
-					response.getOutputStream().write(
-							context.handler.response(resp, response, context.invoking.supportClass,
-									context.respContentType.getCharset()));
-					response.getOutputStream().flush();
-					response.flushBuffer();
-				} catch (IOException ex) {
-					logger.error("Response writing I/O failure", ex);
+		try {
+			cluster.invoke(context.invoking, new Task.Callback<Response>() {
+				@Override
+				public void callback(Response resp) {
+					try {
+						response.getOutputStream().write(
+								context.handler.response(resp, response, context.invoking.supportClass,
+										context.respContentType.getCharset()));
+						response.getOutputStream().flush();
+						response.flushBuffer();
+					} catch (IOException ex) {
+						logger.error("Response writing I/O failure", ex);
+					}
 				}
-			}
-		});
+			});
+		} catch (Exception ex) {
+			throw Exceptions.wrap(ex, ServletException.class);
+		}
 	}
 
 	private static final Map<Serializer, HttpHandler> pool = new HashMap<Serializer, HttpHandler>();

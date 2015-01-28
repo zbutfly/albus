@@ -6,8 +6,8 @@ import net.butfly.bus.CallbackBus;
 import net.butfly.bus.comet.facade.CometFacade;
 
 public class ContinuousTest extends CallbackTest {
-	protected ContinuousTest(boolean remote) throws Exception {
-		super(remote);
+	protected ContinuousTest(Mode mode) throws Exception {
+		super(mode);
 	}
 
 	public static void main(String args[]) throws Exception {

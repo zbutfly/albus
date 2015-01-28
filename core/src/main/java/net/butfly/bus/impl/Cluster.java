@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Reflections.MethodInfo;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
@@ -21,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 final class Cluster implements Routeable {
-	private static Logger logger = LoggerFactory.getLogger(Cluster.class);
+	protected static Logger logger = LoggerFactory.getLogger(Cluster.class);
 	private final Map<String, Bus> nodes = new HashMap<String, Bus>();
 	final private Mode mode;
 	final private Router router;
@@ -65,15 +64,9 @@ final class Cluster implements Routeable {
 		invoking.parameterClasses = pi.parametersClasses();
 	}
 
-	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) {
+	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) throws Exception {
 		Context.initialize(Context.deserialize(invoking.context));
 		Request req = new Request(invoking.tx, invoking.context, invoking.parameters);
-		try {
-			((BusImpl) invoking.bus).invoke(req, callback, invoking.options);
-		} catch (Exception e) {
-			e = Exceptions.unwrap(e);
-			logger.error(e.getMessage(), e);
-			throw new RuntimeException(e);
-		}
+		((BusImpl) invoking.bus).invoke(req, callback, invoking.options);
 	}
 }
