@@ -17,7 +17,7 @@ public interface Invoker extends Routeable {
 
 	Object[] getBeanList();
 
-	<S extends Service> S awared(Class<S> serviceClass);
+	<S extends Service> S awared(Class<S> awaredServiceClass);
 
 	Token token();
 

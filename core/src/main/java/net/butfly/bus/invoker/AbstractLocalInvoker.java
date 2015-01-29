@@ -31,13 +31,13 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 			try {
 				logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsing...");
 				Object[] beans = getBeanList();
-				Class<?>[] serviceClasses = Reflections.getAnnotatedTypes(AwareService.class);
+				Class<?>[] awaredServiceClasses = Reflections.getAnnotatedTypes(AwareService.class);
 				for (Object bean : beans) {
 					Class<?> implClass = bean.getClass();
 					/* DO not scan tx on implementation of facade.scanMethodsForTX(implClass, bean); */
 					for (Class<?> clazz : implClass.getInterfaces())
 						scanMethodsForTX(clazz, bean);
-					for (Class<?> cl : serviceClasses)
+					for (Class<?> cl : awaredServiceClasses)
 						if (cl.isInterface() && cl.isAssignableFrom(implClass))
 							this.AWARED_POOL.put((Class<? extends Service>) cl, (Service) bean);
 				}
@@ -79,8 +79,8 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <S extends Service> S awared(Class<S> serviceClass) {
-		if (serviceClass.isInterface()) return (S) this.AWARED_POOL.get(serviceClass);
+	public <S extends Service> S awared(Class<S> awaredServiceClass) {
+		if (awaredServiceClass.isInterface()) return (S) this.AWARED_POOL.get(awaredServiceClass);
 		throw new IllegalArgumentException("Can fetch awared bean by interface only.");
 	}
 

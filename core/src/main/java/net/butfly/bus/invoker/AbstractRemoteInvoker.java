@@ -29,7 +29,7 @@ public abstract class AbstractRemoteInvoker extends AbstractInvoker {
 	}
 
 	@Override
-	public <S extends Service> S awared(Class<S> serviceClass) {
+	public <S extends Service> S awared(Class<S> awaredServiceClass) {
 		return null;
 	}
 
