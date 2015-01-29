@@ -50,7 +50,7 @@ public class XMLConfigParser extends ConfigParser {
 		this.root = this.document.getRootElement();
 	}
 
-	protected InvokerBean[] parseInvokers() {
+	private InvokerBean[] parseInvokers() {
 		List<Element> elements = this.elements("invoker");
 		List<InvokerBean> beans = new ArrayList<InvokerBean>();
 		if (elements == null || elements.size() == 0)
@@ -63,7 +63,7 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected InvokerBean parseInvoker(Element element) {
+	private InvokerBean parseInvoker(Element element) {
 		if (Boolean.parseBoolean(element.attributeValue("enabled", "false"))) return null;
 		else {
 			logAsXml(element);
@@ -93,7 +93,7 @@ public class XMLConfigParser extends ConfigParser {
 		return null;
 	}
 
-	public List<FilterBean> parseFilters(List<Element> filters) {
+	private List<FilterBean> parseFilters(List<Element> filters) {
 		List<FilterBean> list = new ArrayList<FilterBean>();
 		for (Element filter : filters) {
 			FilterBean f = parseFilter(filter);
@@ -128,21 +128,22 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected static void logAsXml(Element element) {
-		logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
-				.replaceAll("\n$$", ""));
+		if (logger.isTraceEnabled())
+			logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+					.replaceAll("\n$$", ""));
 	}
 
 	@SuppressWarnings("unchecked")
-	protected List<Element> elements(String xpath) {
+	private List<Element> elements(String xpath) {
 		return root.selectNodes(xpath);
 	}
 
-	protected Element element(String xpath) {
+	private Element element(String xpath) {
 		return (Element) root.selectSingleNode(xpath);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected RouterBean parseRouter() {
+	private RouterBean parseRouter() {
 		Element element = this.element("router");
 		if (element == null) return null;
 		try {
