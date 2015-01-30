@@ -30,7 +30,7 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 		try {
 			logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsing...");
 			Object[] beans = getBeanList();
-			Class<?>[] awaredServiceClasses = Reflections.getAnnotatedTypes(AwareService.class);
+			Class<?>[] awaredServiceClasses = Reflections.getClassesAnnotatedWith(AwareService.class);
 			for (Object bean : beans) {
 				Class<?> implClass = bean.getClass();
 				/* DO not scan tx on implementation of facade.scanMethodsForTX(implClass, bean); */

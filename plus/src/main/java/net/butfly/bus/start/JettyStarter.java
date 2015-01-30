@@ -317,7 +317,6 @@ public class JettyStarter implements Runnable {
 			this.loadSystemProperties();
 		}
 
-		@SuppressWarnings("unchecked")
 		private void loadSystemProperties() {
 			this.port = Integer.getInteger("bus.port", DEFAULT_PORT);
 			this.sslPort = Integer.getInteger("bus.port.secure", DEFAULT_SECURE_PORT);
@@ -326,11 +325,8 @@ public class JettyStarter implements Runnable {
 			this.jndi = System.getProperty("bus.jndi");
 			this.resBase = System.getProperty("bus.server.base");
 
-			try {
-				this.servletClass = (Class<? extends BusServlet>) Class.forName(System.getProperty("bus.servlet.class"));
-			} catch (Throwable t) {
-				this.servletClass = scanServletClass();
-			}
+			this.servletClass = Reflections.forClassName(System.getProperty("bus.servlet.class"));
+			if (null == this.servletClass) this.servletClass = scanServletClass();
 		}
 
 		@Override

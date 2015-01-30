@@ -2,12 +2,11 @@ package net.butfly.bus.config.loader;
 
 import java.io.InputStream;
 
-import net.butfly.bus.config.ConfigLoader;
 import net.butfly.albacore.exception.NotImplementedException;
 
-public class MongoConfigLoad extends ConfigLoader {
-	public MongoConfigLoad(String mongoConnURL) {
-		super(mongoConnURL);
+public class JDBCLoader extends Loader {
+	public JDBCLoader(String jdbcConnURL) {
+		super(jdbcConnURL);
 		// DataSource ds = new DataSource();
 	}
 

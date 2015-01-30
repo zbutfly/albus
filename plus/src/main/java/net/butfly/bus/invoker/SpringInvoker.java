@@ -6,7 +6,7 @@ import java.util.List;
 import net.butfly.albacore.base.Unit;
 import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.Token;
-import net.butfly.bus.config.bean.InvokerBean;
+import net.butfly.bus.config.bean.InvokerConfig;
 
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -18,7 +18,7 @@ public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 	private GenericXmlApplicationContext spring;
 
 	@Override
-	public void initialize(InvokerBean config, Token token) {
+	public void initialize(InvokerConfig config, Token token) {
 		String module = config.param("module");
 		String[] files = config.param("files").split(";");
 		List<Resource> reses = new ArrayList<Resource>();

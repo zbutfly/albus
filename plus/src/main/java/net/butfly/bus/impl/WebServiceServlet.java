@@ -36,22 +36,17 @@ public class WebServiceServlet extends BusServlet {
 	protected Cluster cluster;
 	protected Opts opts;
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
-		try {
-			this.cluster = BusFactory.serverCluster(this.getInitParameter("router"),
-					null == paramConfig ? null : paramConfig.split(","));
-		} catch (ClassNotFoundException e) {
-			throw new ServletException("Router definition not found.", e);
-		}
+		this.cluster = BusFactory.serverCluster(this.getInitParameter("router"),
+				null == paramConfig ? null : paramConfig.split(","));
 		String handlerConfig = this.getInitParameter("http-handler");
 		try {
-			this.handlerClass = null == handlerConfig ? HttpNingHandler.class : (Class<? extends HttpHandler>) Class
-					.forName(handlerConfig);
+			this.handlerClass = Reflections.forClassName(handlerConfig);
+			if (this.handlerClass == null) this.handlerClass = HttpNingHandler.class;
 		} catch (Exception e) {
 			throw new ServletException("Http handler configuration (http-handler) invalid", e);
 		}

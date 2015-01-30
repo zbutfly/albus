@@ -7,6 +7,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.Reflections;
 
 import org.apache.http.entity.ContentType;
 
@@ -49,7 +50,8 @@ public abstract class HessianSupport extends SerializerBase implements Serialize
 		if (this.factory == null) this.factory = new SerializerFactory();
 		if (null != classes) for (String f : classes)
 			try {
-				this.factory.addFactory((AbstractSerializerFactory) Class.forName(f).newInstance());
+				AbstractSerializerFactory fact = Reflections.construct(f);
+				this.factory.addFactory(fact);
 			} catch (Exception e) {
 				throw new SystemException("", e);
 			}

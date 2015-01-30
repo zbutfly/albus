@@ -5,13 +5,11 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import net.butfly.bus.config.ConfigLoader;
-
 /**
  * load configuration of current bus node from another bus node (console node).
  */
-public class ConsoleConfigLoad extends ConfigLoader {
-	public ConsoleConfigLoad(String remoteConfigURL) {
+public class BusLoad extends Loader {
+	public BusLoad(String remoteConfigURL) {
 		super(remoteConfigURL);
 	}
 

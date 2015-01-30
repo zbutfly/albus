@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.serialize.Serializer;
@@ -50,13 +51,8 @@ public class ResponseHandler {
 			response.error(detail);
 		} else {
 			String className = header(BusHeaders.HEADER_CLASS);
-			Class<?> resultClass;
-			try {
-				resultClass = className != null && Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT)) ? Class
-						.forName(className) : null;
-			} catch (ClassNotFoundException e) {
-				throw new IOException("Response class invalid: " + className, e);
-			}
+			Class<?> resultClass = Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT)) ? Reflections
+					.forClassName(className) : null;
 			Object result = serializer.deserialize(data, resultClass);
 			response.result(result);
 		}

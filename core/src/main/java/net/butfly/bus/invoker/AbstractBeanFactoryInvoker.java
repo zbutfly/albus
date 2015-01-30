@@ -1,11 +1,11 @@
 package net.butfly.bus.invoker;
 
 import net.butfly.bus.Token;
-import net.butfly.bus.config.bean.InvokerBean;
+import net.butfly.bus.config.bean.InvokerConfig;
 
 public abstract class AbstractBeanFactoryInvoker extends AbstractLocalInvoker {
 	@Override
-	public final void initialize(InvokerBean config, Token token) {
+	public final void initialize(InvokerConfig config, Token token) {
 		super.initialize(config, token);
 	}
 

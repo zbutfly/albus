@@ -11,14 +11,14 @@ import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.utils.Constants;
 
-public class InvokerBean extends ConfigBean implements Routeable {
+public class InvokerConfig extends Config implements Routeable {
 	private static final long serialVersionUID = 1333442276226287430L;
 	private String id;
 	private String[] txs;
 	private Map<String, String> params;
 	private Invoker instance = null;
 
-	public InvokerBean(Class<? extends Invoker> invokeClass, Map<String, String> params, String tx, Token token) {
+	public InvokerConfig(Class<? extends Invoker> invokeClass, Map<String, String> params, String tx, Token token) {
 		this.id = Keys.defaults();
 		this.params = params;
 
