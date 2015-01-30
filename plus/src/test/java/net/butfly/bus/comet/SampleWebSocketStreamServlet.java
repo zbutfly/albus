@@ -96,7 +96,7 @@ package net.butfly.bus.comet;
 //                PrintWriter writer = response.getWriter();
 //
 //                // Id
-//                final String id = KeyUtils.generateObjectId();
+//                final String id = Keys.generateObjectId();
 //                writer.print(id);
 //                writer.print(';');
 //

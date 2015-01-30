@@ -69,8 +69,5 @@ public interface Constants {
 		public final String INTERNAL_SERVER_CONFIG = "net/butfly/bus/" + DEFAULT_SERVER_CONFIG;
 		public final String INTERNAL_CLIENT_CONFIG = "net/butfly/bus/" + DEFAULT_CLIENT_CONFIG;
 		public final String INTERNAL_COMMON_CONFIG = "net/butfly/bus/" + DEFAULT_COMMON_CONFIG;
-		public final String INTERNAL_BEAN_CONFIG = "net/butfly/bus/beans-internal.xml";
-		public final String INTERNAL_LOG4J_CONFIG = "net/butfly/bus/log4j.xml";
-		public static final String RECOMMEND_SERVLET_CLASSNAME = "net.butfly.bus.deploy.WebServiceServlet";
 	}
 }

@@ -1,33 +1,28 @@
-package net.butfly.bus.utils;
+package net.butfly.bus;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
 
 import net.butfly.albacore.utils.UtilsBase;
-import net.butfly.bus.TX;
 
-public class TXUtils extends UtilsBase {
-	public static final TX TXImpl(final String tx) {
-		return TXImpl(tx, null);
+public class TXes extends UtilsBase {
+	public static final TX impl(final String... tx) {
+		switch (tx.length) {
+		case 0:
+			return null;
+		case 1:
+			return doimpl(tx[0], TX.ALL_VERSION);
+		default:
+			return doimpl(tx[0], null == tx[1] ? TX.ALL_VERSION : tx[1]);
+		}
 	}
 
-	public static final TXImpl TXImpl(final TX tx) {
-		return TXImpl(tx.value(), tx.version());
-	}
-
-	public static TXImpl TXImpl(final String code, final String version) {
-		String ver = version == null ? TX.ALL_VERSION : version;
-		String key = key(code, ver);
-		if (TX_IMPL_POOL.containsKey(key)) return TX_IMPL_POOL.get(key);
-		TXImpl impl = new TXImpl(code, ver);
-		TX_IMPL_POOL.put(key, impl);
-		return impl;
+	private static TX doimpl(final String code, final String version) {
+		return new TXImpl(code, version);
 	}
 
 	@SuppressWarnings("all")
-	public static class TXImpl implements TX, Serializable, Comparable<TX> {
+	private static class TXImpl implements TX, Serializable, Comparable<TX> {
 		private static final long serialVersionUID = 2457478261818103564L;
 
 		public TXImpl(String code, String version) {
@@ -86,8 +81,6 @@ public class TXUtils extends UtilsBase {
 		}
 	}
 
-	private static final Map<String, TXImpl> TX_IMPL_POOL = new HashMap<String, TXImpl>();
-
 	public static final String key(TX tx) {
 		return key(tx.value(), tx.version());
 	}
@@ -96,9 +89,9 @@ public class TXUtils extends UtilsBase {
 		return code + ":" + version;
 	}
 
-	public static final int matching(String[] patterns, String code) {
-		for (int i = 0; i < patterns.length; i++) {
-			String pattern = patterns[i];
+	public static final int matching(String code, String... parttern) {
+		for (int i = 0; i < parttern.length; i++) {
+			String pattern = parttern[i];
 			if (pattern.equals("*")) return i;
 			if (pattern.equalsIgnoreCase(code)) return i;
 			if (pattern.endsWith("*") && code.startsWith(pattern.substring(0, pattern.indexOf("*")))) return i;

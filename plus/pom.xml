@@ -29,20 +29,13 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-			<version>4.3.2</version>
+			<version>4.4</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore-nio</artifactId>
-			<version>4.3.2</version>
+			<groupId>com.ning</groupId>
+			<artifactId>async-http-client</artifactId>
+			<version>1.9.5</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>${deps.version.httpclient}</version>
-		</dependency>
-		<!--<dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpasyncclient</artifactId> <version>4.1-beta1</version> 
-			</dependency> -->
 		<!-- jetty dependencies. -->
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -72,16 +65,16 @@
 			<artifactId>gson</artifactId>
 			<version>2.3</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.codehaus.jackson</groupId> -->
-<!-- 			<artifactId>jackson-core-asl</artifactId> -->
-<!-- 			<version>1.9.13</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.codehaus.jackson</groupId> -->
-<!-- 			<artifactId>jackson-mapper-asl</artifactId> -->
-<!-- 			<version>1.9.13</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.codehaus.jackson</groupId> -->
+		<!-- <artifactId>jackson-core-asl</artifactId> -->
+		<!-- <version>1.9.13</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.codehaus.jackson</groupId> -->
+		<!-- <artifactId>jackson-mapper-asl</artifactId> -->
+		<!-- <version>1.9.13</version> -->
+		<!-- </dependency> -->
 
 		<!-- hessian -->
 		<dependency>

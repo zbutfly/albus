@@ -7,18 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.GenericUtils;
-import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.XMLUtils;
+import net.butfly.albacore.utils.more.XMLUtils;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.ConfigParser;
 import net.butfly.bus.config.bean.FilterBean;
+import net.butfly.bus.config.bean.InvokerBean;
 import net.butfly.bus.config.bean.RouterBean;
-import net.butfly.bus.config.bean.invoker.InvokerBean;
-import net.butfly.bus.config.bean.invoker.InvokerConfigBean;
 import net.butfly.bus.filter.Filter;
-import net.butfly.bus.impl.Invokers;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
@@ -54,33 +50,34 @@ public class XMLConfigParser extends ConfigParser {
 		this.root = this.document.getRootElement();
 	}
 
-	protected InvokerBean[] parseInvokers() {
+	private InvokerBean[] parseInvokers() {
 		List<Element> elements = this.elements("invoker");
 		List<InvokerBean> beans = new ArrayList<InvokerBean>();
 		if (elements == null || elements.size() == 0)
 			throw new SystemException(Constants.UserError.CONFIG_ERROR, "No invoker found, bus could not work.");
 		for (Element element : elements) {
 			InvokerBean ivk = this.parseInvoker(element);
-			if (null != ivk) {
-				beans.add(ivk);
-				Invokers.register(ivk);
-			}
+			if (null != ivk) beans.add(ivk);
 		}
 		return beans.toArray(new InvokerBean[beans.size()]);
 	}
 
-	protected InvokerBean parseInvoker(Element element) {
+	@SuppressWarnings("unchecked")
+	private InvokerBean parseInvoker(Element element) {
 		if (Boolean.parseBoolean(element.attributeValue("enabled", "false"))) return null;
 		else {
 			logAsXml(element);
 			String className = element.attributeValue("class");
 			if (null == className || "".equals(className))
 				throw new SystemException(Constants.UserError.CONFIG_ERROR, "Invoker elements need class attribute.");
-			Class<? extends Invoker<?>> clazz = classForName(className);
-			InvokerConfigBean config = getInvokerConfig(clazz);
-			if (null != config) XMLUtils.setPropsByNode(config, element);
-			return new InvokerBean(KeyUtils.objectId(), clazz, element.attributeValue("tx"), config,
-					this.parseInvokerAuth(element));
+			Class<? extends Invoker> clazz = classForName(className);
+			Map<String, String> params = new HashMap<String, String>();
+			for (Element node : (List<Element>) element.selectNodes("*")) {
+				String name = node.getName();
+				String value = node.getTextTrim();
+				params.put(name, value);
+			}
+			return new InvokerBean(clazz, params, element.attributeValue("tx"), this.parseInvokerAuth(element));
 		}
 	}
 
@@ -90,26 +87,13 @@ public class XMLConfigParser extends ConfigParser {
 		String token = node.attributeValue("token");
 		if (token != null) return new Token(token);
 		// TODO: suppurt key file (one key per line)
-		// token = node.attributeValue("file");
-		// if (token != null) {
-		// BufferedReader r = new BufferedReader(new
-		// InputStreamReader(Thread.currentThread().getContextClassLoader()
-		// .getResourceAsStream(token)));
-		// String line;
-		// StringBuilder sb = new StringBuilder();
-		// try {
-		// while ((line = r.readLine()) != null)
-		// sb.append(line).append("\n");
-		// } catch (IOException e) {}
-		// return new Token(sb.toString());
-		// }
 		String user = node.attributeValue("username");
 		String pass = node.attributeValue("password");
 		if (user != null && pass != null) return new Token(user, pass);
 		return null;
 	}
 
-	public List<FilterBean> parseFilters(List<Element> filters) {
+	private List<FilterBean> parseFilters(List<Element> filters) {
 		List<FilterBean> list = new ArrayList<FilterBean>();
 		for (Element filter : filters) {
 			FilterBean f = parseFilter(filter);
@@ -144,21 +128,22 @@ public class XMLConfigParser extends ConfigParser {
 	}
 
 	protected static void logAsXml(Element element) {
-		logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
-				.replaceAll("\n$$", ""));
+		if (logger.isTraceEnabled())
+			logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+					.replaceAll("\n$$", ""));
 	}
 
 	@SuppressWarnings("unchecked")
-	protected List<Element> elements(String xpath) {
+	private List<Element> elements(String xpath) {
 		return root.selectNodes(xpath);
 	}
 
-	protected Element element(String xpath) {
+	private Element element(String xpath) {
 		return (Element) root.selectSingleNode(xpath);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected RouterBean parseRouter() {
+	private RouterBean parseRouter() {
 		Element element = this.element("router");
 		if (element == null) return null;
 		try {
@@ -167,15 +152,6 @@ public class XMLConfigParser extends ConfigParser {
 		} catch (Throwable th) {
 			throw new SystemException(Constants.UserError.CONFIG_ERROR,
 					"Route setting error: can't parse route/policy class name.", th);
-		}
-	}
-
-	private static InvokerConfigBean getInvokerConfig(Class<? extends Invoker<?>> invokerClass) {
-		Class<? extends InvokerConfigBean> configClass = GenericUtils.getGenericParamClass(invokerClass, Invoker.class, "C");
-		try {
-			return configClass.newInstance();
-		} catch (Throwable e) {
-			return null;
 		}
 	}
 }

@@ -1,56 +1,48 @@
 package net.butfly.bus.test;
 
 import net.butfly.albacore.exception.BusinessException;
-import net.butfly.albacore.utils.KeyUtils;
-import net.butfly.albacore.utils.ReflectionUtils;
+import net.butfly.albacore.utils.Reflections;
+import net.butfly.albacore.utils.Texts;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
-import net.butfly.bus.impl.WebServiceServlet;
 import net.butfly.bus.start.JettyStarter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BusTest {
+	protected enum Mode {
+		LOCAL, REMOTE, CLIENT
+	}
+
 	protected static final Logger logger = LoggerFactory.getLogger(BusTest.class);
 
-	private boolean remote;
+	protected Mode mode;
 	protected Bus client;
 
-	protected BusTest(boolean remote) throws Exception {
-		this.remote = remote;
-		if (remote) {
-			System.setProperty("bus.servlet.class", WebServiceServlet.class.getName());
-			System.setProperty("bus.server.base", "src/test/webapp");
-			System.setProperty("bus.threadpool.size", "3");
-			System.setProperty("bus.invoker.spring.lazy", "true");
+	protected BusTest(Mode mode) throws Exception {
+		this.mode = mode;
+		if (mode == Mode.REMOTE) {
 			System.setProperty("bus.server.waiting", "true");
-			logger.info("Remote test: bus server starting.");
+			logger.info(mode.name() + " test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
-			logger.info("Remote test: bus client starting.");
-		} else {
-			logger.info("Local test: bus instance starting.");
 		}
-		client = BusFactory.client(this.getClientConfigurationForType(remote));
+		logger.info(mode.name() + " test: bus client starting.");
+		client = BusFactory.client(this.getClientConfigurationForType(this.isRemote()));
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
-		return KeyUtils.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
+		return Texts.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
 	}
 
-	protected static void run(boolean... isRemote) throws Exception {
-		if (null == isRemote || isRemote.length == 0) isRemote = new boolean[] { false, true };
+	protected static void run(Mode... mode) throws Exception {
+		if (null == mode || mode.length == 0) mode = new Mode[] { Mode.LOCAL, Mode.REMOTE };
 
-		for (boolean remote : isRemote)
-			getTestInstance(remote).doTestWrapper();
+		for (Mode m : mode)
+			getTestInstance(m).doTestWrapper();
 	};
 
-	protected void doAllTest() throws BusinessException {
-		if (this.isRemote()) while (Boolean.parseBoolean(System.getProperty("bus.server.waiting")))
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e1) {}
-	}
+	protected abstract void doAllTest() throws BusinessException;
 
 	protected String[] getClientConfiguration() {
 		return null;
@@ -61,27 +53,29 @@ public abstract class BusTest {
 	}
 
 	protected String[] getServerMainArguments() {
-		return new String[] { "-k", KeyUtils.join(',', getServerConfiguration()) };
+		return new String[] { "-k", Texts.join(',', getServerConfiguration()) };
 	}
 
 	protected boolean isRemote() {
-		return this.remote;
+		return mode != Mode.LOCAL;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T extends BusTest> T getTestInstance(Object remote) throws BusinessException {
-		return (T) ReflectionUtils.safeConstruct(ReflectionUtils.getMainClass(),
-				ReflectionUtils.parameters(boolean.class, remote));
+	private static <T extends BusTest> T getTestInstance(Mode mode) throws BusinessException {
+		return (T) Reflections.construct(Reflections.getMainClass(), Reflections.parameter(mode));
 	}
 
 	private void doTestWrapper() throws BusinessException {
-		String desc = (remote ? "Remote" : "Local");
+		if (this.isRemote()) while (Boolean.parseBoolean(System.getProperty("bus.server.waiting")))
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {}
 		logger.info("==========================");
-		logger.info(desc + " test: test starting.");
+		logger.info(mode.name() + " test: test starting.");
 		logger.info("==========================");
 		doAllTest();
 		logger.info("==========================");
-		logger.info(desc + " test: test finished.");
+		logger.info(mode.name() + " test: test finished.");
 		logger.info("==========================");
 	}
 

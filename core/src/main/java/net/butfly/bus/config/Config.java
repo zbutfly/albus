@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.butfly.bus.config.bean.FilterBean;
+import net.butfly.bus.config.bean.InvokerBean;
 import net.butfly.bus.config.bean.RouterBean;
-import net.butfly.bus.config.bean.invoker.InvokerBean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +43,8 @@ public class Config {
 			this.invokers.put(ivk.id(), ivk);
 	}
 
-	public List<FilterBean> getFilterList() {
-		return filterBeanList;
+	public FilterBean[] getFilterList() {
+		return filterBeanList.toArray(new FilterBean[filterBeanList.size()]);
 	}
 
 	public RouterBean getRouter() {

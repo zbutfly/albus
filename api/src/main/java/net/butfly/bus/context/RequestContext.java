@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Keys;
 
 class RequestContext extends WrappedContext {
 	private static final ThreadLocal<String> KEY_LOCAL = new ThreadLocal<String>();
@@ -14,7 +14,7 @@ class RequestContext extends WrappedContext {
 	protected void load(Map<String, Object> original) {
 		if (null == original) original = new HashMap<String, Object>();
 		// emulate request id for local testing.
-		if (!original.containsKey(Key.RequestID.name())) original.put(Key.RequestID.name(), KeyUtils.objectId());
+		if (!original.containsKey(Key.RequestID.name())) original.put(Key.RequestID.name(), Keys.objectId());
 		KEY_LOCAL.set((String) original.get(Key.RequestID.name()));
 		super.load(original);
 	}

@@ -3,7 +3,7 @@ package net.butfly.bus.serialize;
 import java.lang.reflect.Type;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.EnumUtils;
+import net.butfly.albacore.utils.Enums;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -18,7 +18,7 @@ public class JSONEnumSerializer implements JsonSerializer<Enum>, JsonDeserialize
 	@SuppressWarnings("unchecked")
 	@Override
 	public JsonElement serialize(Enum src, Type typeOfSrc, JsonSerializationContext context) {
-		return new JsonPrimitive(EnumUtils.value(src));
+		return new JsonPrimitive(Enums.value(src));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -34,7 +34,7 @@ public class JSONEnumSerializer implements JsonSerializer<Enum>, JsonDeserialize
 			throw new SystemException("", "only enum could be deserialized to.");
 		}
 		for (Enum<?> e : values)
-			if (EnumUtils.value(e) == value) return e;
+			if (Enums.value(e) == value) return e;
 		return null;
 	}
 }
