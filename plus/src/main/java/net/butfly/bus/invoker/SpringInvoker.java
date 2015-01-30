@@ -28,6 +28,7 @@ public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 		spring.load(reses.toArray(new Resource[reses.size()]));
 		if (null != module) {
 			PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
+			bean.setOrder(99);
 			bean.setIgnoreResourceNotFound(true);
 			bean.setLocation(new ClassPathResource(module + ".properties"));
 			spring.getBeanFactory().registerSingleton(Keys.defaults(), bean);
