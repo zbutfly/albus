@@ -73,8 +73,8 @@ public class XMLParser extends Parser {
 				String value = node.getTextTrim();
 				params.put(name, value);
 			}
-			return new InvokerConfig((Class<? extends Invoker>) Reflections.forClassName(element.attributeValue("class")),
-					params, element.attributeValue("tx"), this.parseInvokerAuth(element));
+			Class<? extends Invoker> cl = Reflections.forClassName(element.attributeValue("class"));
+			return new InvokerConfig(cl, params, element.attributeValue("tx"), this.parseInvokerAuth(element));
 		}
 	}
 
