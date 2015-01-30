@@ -4,12 +4,12 @@ import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Keys;
+import net.butfly.bus.TXes;
 import net.butfly.bus.Token;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Routeable;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.TXUtils;
 
 public class InvokerBean extends ConfigBean implements Routeable {
 	private static final long serialVersionUID = 1333442276226287430L;
@@ -43,7 +43,7 @@ public class InvokerBean extends ConfigBean implements Routeable {
 
 	@Override
 	public boolean isSupported(String tx) {
-		if (this.txs != null) return TXUtils.matching(tx, this.txs) >= 0;
+		if (this.txs != null) return TXes.matching(tx, this.txs) >= 0;
 		if (this.txs == null && instance instanceof AbstractLocalInvoker) return this.instance.isSupported(tx);
 		return false;
 

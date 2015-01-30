@@ -8,8 +8,8 @@ import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.TXes;
 import net.butfly.bus.filter.FilterContext;
-import net.butfly.bus.utils.TXUtils;
 
 class BusImpl extends StandardBusImpl {
 	/**
@@ -36,7 +36,7 @@ class BusImpl extends StandardBusImpl {
 
 	@Override
 	public <T> void invoke(String code, Object[] arguments, Task.Callback<T> callback, Options... options) throws Exception {
-		this.invoke(TXUtils.TXImpl(code), arguments, callback, options);
+		this.invoke(TXes.impl(code), arguments, callback, options);
 	};
 
 	@Override

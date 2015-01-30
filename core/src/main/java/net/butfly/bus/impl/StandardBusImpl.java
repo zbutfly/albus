@@ -7,8 +7,8 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.TXes;
 import net.butfly.bus.filter.FilterContext;
-import net.butfly.bus.utils.TXUtils;
 
 abstract class StandardBusImpl extends BasicBusImpl {
 	public StandardBusImpl(Mode mode, String conf) {
@@ -37,7 +37,7 @@ abstract class StandardBusImpl extends BasicBusImpl {
 
 	@Override
 	public <T> T invoke(String code, Object[] args, Options... options) throws Exception {
-		return this.invoke(TXUtils.TXImpl(code), args, options);
+		return this.invoke(TXes.impl(code), args, options);
 	}
 
 	@SuppressWarnings("unchecked")

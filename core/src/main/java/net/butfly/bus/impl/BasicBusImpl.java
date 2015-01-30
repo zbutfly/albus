@@ -16,6 +16,7 @@ import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
+import net.butfly.bus.TXes;
 import net.butfly.bus.config.Config;
 import net.butfly.bus.config.bean.InvokerBean;
 import net.butfly.bus.context.Context;
@@ -25,7 +26,6 @@ import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
-import net.butfly.bus.utils.TXUtils;
 
 abstract class BasicBusImpl implements Bus {
 	private final String id;
@@ -97,7 +97,7 @@ abstract class BasicBusImpl implements Bus {
 		if (request.version() == null)
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
 		new FlowNo(request);
-		Context.txInfo(TXUtils.TXImpl(request.code(), request.version()));
+		Context.txInfo(TXes.impl(request.code(), request.version()));
 	}
 
 	abstract Response invoke(Request request, Options... options) throws Exception;
