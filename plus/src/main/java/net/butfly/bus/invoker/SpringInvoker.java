@@ -22,15 +22,23 @@ public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 		String module = config.param("module");
 		String[] files = config.param("files").split(";");
 		List<Resource> reses = new ArrayList<Resource>();
-		for (String file : files)
-			reses.add(new ClassPathResource(file));
+		Resource res;
+		for (String file : files) {
+			res = new ClassPathResource(file);
+			if (res.exists()) reses.add(res);
+		}
 		spring = new GenericXmlApplicationContext();
 		spring.load(reses.toArray(new Resource[reses.size()]));
 		if (null != module) {
 			PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
 			bean.setOrder(99);
 			bean.setIgnoreResourceNotFound(true);
-			bean.setLocation(new ClassPathResource(module + ".properties"));
+			reses = new ArrayList<Resource>();
+			res = new ClassPathResource(module + "-internal.properties");
+			if (res.exists()) reses.add(res);
+			res = new ClassPathResource(module + ".properties");
+			if (res.exists()) reses.add(res);
+			bean.setLocations(reses.toArray(new Resource[reses.size()]));
 			spring.getBeanFactory().registerSingleton(Keys.defaults(), bean);
 		}
 		spring.refresh();
