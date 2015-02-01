@@ -41,8 +41,8 @@ public class WebServiceServlet extends BusServlet {
 		super.init(config);
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
-		this.cluster = BusFactory.serverCluster(this.getInitParameter("router"),
-				null == paramConfig ? null : paramConfig.split(","));
+		this.cluster = BusFactory.serverCluster(this.getInitParameter("router"), null == paramConfig ? new String[0]
+				: paramConfig.split(","));
 		String handlerConfig = this.getInitParameter("http-handler");
 		try {
 			this.handlerClass = Reflections.forClassName(handlerConfig);

@@ -100,7 +100,8 @@ public class JettyStarter implements Runnable {
 		for (String contextPath : conf.definitions.keySet())
 			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(), conf.definitions.get(contextPath)
 					.value1().toArray(new String[0]));
-		 new RuntimeException("Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
+		new RuntimeException(
+				"Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
 		return this;
 	}
 
@@ -124,6 +125,8 @@ public class JettyStarter implements Runnable {
 		if (!contextPath.startsWith("/")) contextPath = "/" + contextPath;
 		if (!contextPath.endsWith("/*")) contextPath = contextPath + "/*";
 		this.handler.addServlet(servlet, contextPath);
+		logger.info("Servlet " + servletClass.getName() + " is registeried to \"" + contextPath + "\" with configuration(s): "
+				+ Texts.join(", ", configLocation) + "");
 	}
 
 	protected void createServer(int port) {

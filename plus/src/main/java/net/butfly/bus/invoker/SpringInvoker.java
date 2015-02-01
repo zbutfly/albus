@@ -2,6 +2,7 @@ package net.butfly.bus.invoker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import net.butfly.albacore.base.Unit;
 import net.butfly.albacore.utils.Keys;
@@ -29,10 +30,16 @@ public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 		}
 		spring = new GenericXmlApplicationContext();
 		spring.load(reses.toArray(new Resource[reses.size()]));
+		// placeholder could not be replaced repeatly. we can only hack "localProperties" field of existed
+		// PropertyPlaceholderConfigurer bean.
 		if (null != module) {
 			PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-			bean.setOrder(99);
+			bean.setOrder(0);
 			bean.setIgnoreResourceNotFound(true);
+			bean.setIgnoreUnresolvablePlaceholders(true);
+			Properties prop = new Properties();
+			prop.setProperty("ibatis.config.location.pattern", "classpath*:**/" + module + "-mybatis-config.xml");
+			bean.setProperties(prop);
 			reses = new ArrayList<Resource>();
 			res = new ClassPathResource(module + "-internal.properties");
 			if (res.exists()) reses.add(res);

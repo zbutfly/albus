@@ -44,8 +44,8 @@ final class StarterConfiguration {
 			defs = arg.split(":");
 			if (defs.length == 1) this.addDefinition(this.defaultContextPath, this.defaultServletClass, defs);
 			else {
-				String[] newdefs = arg.split("@", 2);
-				if (newdefs.length == 1) this.addDefinition(newdefs[0], this.defaultServletClass,
+				String[] newdefs = defs[0].split("@", 2);
+				if (newdefs.length == 1) this.addDefinition(defs[0], this.defaultServletClass,
 						Arrays.copyOfRange(defs, 1, defs.length));
 				else {
 					Class<? extends BusServlet> servletClass = Reflections.forClassName(newdefs[1]);
