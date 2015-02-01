@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.bus.TX;
-import net.butfly.bus.TXes;
+import net.butfly.bus.TXs;
 import net.butfly.bus.Token;
 
 public abstract class Context implements Map<String, Object> {
@@ -156,7 +156,7 @@ public abstract class Context implements Map<String, Object> {
 			case TXInfo:
 				Object tx = src.get(key.name());
 				if (tx instanceof TX) dst.put(key.name(), (TX) tx);
-				else dst.put(key.name(), TXes.impl(tx.toString().split(":")));
+				else dst.put(key.name(), TXs.impl(tx.toString().split(":")));
 				continue;
 			default:
 				dst.put(key.name(), src.get(key.name()).toString());

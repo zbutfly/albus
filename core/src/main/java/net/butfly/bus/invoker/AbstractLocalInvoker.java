@@ -13,7 +13,7 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.TXes;
+import net.butfly.bus.TXs;
 import net.butfly.bus.service.AwareService;
 import net.butfly.bus.utils.Constants;
 
@@ -84,14 +84,14 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 
 	private String key(String code, String version) {
 		if (TX_POOL.containsKey(code)) {
-			if (TX.ALL_VERSION.equals(version)) return TXes.key(code, TX_POOL.get(code).first());
-			return TXes.key(code, TX_POOL.get(code).ceiling(version));
+			if (TX.ALL_VERSION.equals(version)) return TXs.key(code, TX_POOL.get(code).first());
+			return TXs.key(code, TX_POOL.get(code).ceiling(version));
 		}
 		if (config != null) {
 			this.initialize();
 			if (TX_POOL.containsKey(code)) {
-				if (TX.ALL_VERSION.equals(version)) return TXes.key(code, TX_POOL.get(code).first());
-				return TXes.key(code, TX_POOL.get(code).ceiling(version));
+				if (TX.ALL_VERSION.equals(version)) return TXs.key(code, TX_POOL.get(code).first());
+				return TXs.key(code, TX_POOL.get(code).ceiling(version));
 			}
 		}
 		return null;
@@ -117,7 +117,7 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 			for (Method m : clazz.getDeclaredMethods()) {
 				TX tx = m.getAnnotation(TX.class);
 				if (null != tx) {
-					String key = TXes.key(tx);
+					String key = TXs.key(tx);
 					logger.info("TX found: " + key + ".");
 					if (METHOD_POOL.containsKey(key)) {
 						logger.warn("TX duplicated: " + key + ", ignored...");

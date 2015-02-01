@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.UtilsBase;
+import net.butfly.albacore.utils.Utils;
 
 import com.google.common.base.Charsets;
 
-public final class Serializers extends UtilsBase {
+public final class Serializers extends Utils {
 	public static final String DEFAULT_MIME_TYPE = "text/plain";
 	public static final Charset DEFAULT_CHARSET = Charsets.UTF_8;
 

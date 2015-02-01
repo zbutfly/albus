@@ -3,9 +3,9 @@ package net.butfly.bus;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
-import net.butfly.albacore.utils.UtilsBase;
+import net.butfly.albacore.utils.Utils;
 
-public class TXes extends UtilsBase {
+public class TXs extends Utils {
 	public static final TX impl(final String... tx) {
 		switch (tx.length) {
 		case 0:

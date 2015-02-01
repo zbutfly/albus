@@ -4,7 +4,7 @@ import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Keys;
-import net.butfly.bus.TXes;
+import net.butfly.bus.TXs;
 import net.butfly.bus.Token;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
@@ -43,7 +43,7 @@ public class InvokerConfig extends Config implements Routeable {
 
 	@Override
 	public boolean isSupported(String tx) {
-		if (this.txs != null) return TXes.matching(tx, this.txs) >= 0;
+		if (this.txs != null) return TXs.matching(tx, this.txs) >= 0;
 		if (this.txs == null && instance instanceof AbstractLocalInvoker) return this.instance.isSupported(tx);
 		return false;
 
