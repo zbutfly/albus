@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import net.butfly.bus.config.ConfigLoader;
-
-public class ClasspathConfigLoad extends ConfigLoader {
-	public ClasspathConfigLoad(String configLocation) {
+public class ClasspathLoader extends Loader {
+	public ClasspathLoader(String configLocation) {
 		super(configLocation);
 	}
 

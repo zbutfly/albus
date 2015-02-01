@@ -1,15 +1,16 @@
 package net.butfly.bus.serialize;
 
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.UtilsBase;
+import net.butfly.albacore.utils.Utils;
 
 import com.google.common.base.Charsets;
 
-public final class Serializers extends UtilsBase {
+public final class Serializers extends Utils {
 	public static final String DEFAULT_MIME_TYPE = "text/plain";
 	public static final Charset DEFAULT_CHARSET = Charsets.UTF_8;
 
@@ -20,12 +21,12 @@ public final class Serializers extends UtilsBase {
 
 	private static void build() {
 		for (Class<? extends Serializer> clazz : Reflections.getSubClasses(Serializer.class))
-			try {
+			if (!Modifier.isAbstract(clazz.getModifiers())) {
 				Serializer def = Reflections
 						.construct(clazz, Reflections.parameter(Serializers.DEFAULT_CHARSET, Charset.class));
 				for (String mime : def.supportedMimeTypes())
 					pool.put(mime, clazz);
-			} catch (Exception e) {}
+			}
 	}
 
 	public static Serializer serializer() {

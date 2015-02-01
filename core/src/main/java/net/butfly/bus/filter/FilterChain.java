@@ -6,18 +6,18 @@ import net.butfly.bus.Bus;
 import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
-import net.butfly.bus.config.bean.FilterBean;
+import net.butfly.bus.config.bean.FilterConfig;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.utils.Constants;
 
 public final class FilterChain {
 	private Filter[] filters;
 
-	public FilterChain(Bus bus, FilterBean... bean) {
+	public FilterChain(Bus bus, FilterConfig... bean) {
 		filters = new Filter[bean == null ? 2 : bean.length + 2];
 		int i = 0;
 		filters[i++] = process(new ContextFilter(), bus);
-		if (bean != null) for (FilterBean b : bean) {
+		if (bean != null) for (FilterConfig b : bean) {
 			b.getFilter().initialize(b.getParams());
 			filters[i++] = process(b.getFilter(), bus);
 		}

@@ -2,7 +2,7 @@ package net.butfly.bus.invoker;
 
 import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.Token;
-import net.butfly.bus.config.bean.InvokerBean;
+import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.context.Context;
 
 import org.slf4j.Logger;
@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractInvoker implements Invoker {
 	protected static Logger logger = LoggerFactory.getLogger(Invoker.class);
-	protected InvokerBean config;
+	protected InvokerConfig config;
 	private Token token;
 	private String id;
 
 	@Override
-	public void initialize(InvokerBean config, Token token) {
+	public void initialize(InvokerConfig config, Token token) {
 		this.config = config;
 		this.token = token;
 		this.id = Keys.defaults();

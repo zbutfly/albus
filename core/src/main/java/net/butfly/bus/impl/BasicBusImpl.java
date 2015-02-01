@@ -16,9 +16,9 @@ import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.TXes;
-import net.butfly.bus.config.Config;
-import net.butfly.bus.config.bean.InvokerBean;
+import net.butfly.bus.TXs;
+import net.butfly.bus.config.Configuration;
+import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
 import net.butfly.bus.filter.FilterChain;
@@ -29,7 +29,7 @@ import net.butfly.bus.utils.Constants;
 
 abstract class BasicBusImpl implements Bus {
 	private final String id;
-	protected Config config;
+	protected Configuration config;
 	protected Router router;
 	protected FilterChain chain;
 
@@ -50,7 +50,7 @@ abstract class BasicBusImpl implements Bus {
 
 	@Override
 	public boolean isSupported(String requestTX) {
-		InvokerBean ivkb = this.router.route(requestTX, this.config.getInvokers());
+		InvokerConfig ivkb = this.router.route(requestTX, this.config.getInvokers());
 		return ivkb != null;
 	}
 
@@ -97,7 +97,7 @@ abstract class BasicBusImpl implements Bus {
 		if (request.version() == null)
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
 		new FlowNo(request);
-		Context.txInfo(TXes.impl(request.code(), request.version()));
+		Context.txInfo(TXs.impl(request.code(), request.version()));
 	}
 
 	abstract Response invoke(Request request, Options... options) throws Exception;
@@ -106,7 +106,7 @@ abstract class BasicBusImpl implements Bus {
 
 	protected Invoker find(String tx) {
 		// TODO: handle route failure null exception
-		InvokerBean b = router.route(tx, config.getInvokers());
+		InvokerConfig b = router.route(tx, config.getInvokers());
 		if (null == b) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
 		return b.invoker();
 	}

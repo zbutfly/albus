@@ -6,7 +6,7 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.bus.filter.Filter;
 import net.butfly.bus.utils.Constants;
 
-public class FilterBean extends ConfigBean {
+public class FilterConfig extends Config {
 	private static final long serialVersionUID = 7823660786588727817L;
 
 	private String title;
@@ -14,7 +14,7 @@ public class FilterBean extends ConfigBean {
 	private Filter instance;
 	private Map<String, String> params;
 
-	public FilterBean(String title, Class<? extends Filter> clazz, Map<String, String> params) {
+	public FilterConfig(String title, Class<? extends Filter> clazz, Map<String, String> params) {
 		this.title = title;
 		this.params = params;
 		try {

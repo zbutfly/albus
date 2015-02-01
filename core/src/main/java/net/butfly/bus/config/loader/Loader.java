@@ -1,15 +1,15 @@
-package net.butfly.bus.config;
+package net.butfly.bus.config.loader;
 
 import java.io.InputStream;
 
-public abstract class ConfigLoader {
+public abstract class Loader {
 	protected String configLocation;
 
 	public String getConfigLocation() {
 		return configLocation;
 	}
 
-	public ConfigLoader(String configLocation) {
+	public Loader(String configLocation) {
 		this.configLocation = configLocation;
 	}
 

@@ -5,11 +5,11 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
-import net.butfly.bus.config.bean.InvokerBean;
+import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.policy.Routeable;
 
 public interface Invoker extends Routeable {
-	void initialize(InvokerBean config, Token token);
+	void initialize(InvokerConfig config, Token token);
 
 	void initialize();
 

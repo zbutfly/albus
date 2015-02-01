@@ -9,7 +9,7 @@ import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.Token;
-import net.butfly.bus.config.bean.InvokerBean;
+import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.serialize.Serializers;
@@ -28,14 +28,14 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 	private Serializer serializer;
 	private HttpHandler handler;
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public void initialize(InvokerBean config, Token token) {
+	public void initialize(InvokerConfig config, Token token) {
 		this.path = config.param("path");
 		String to = config.param("timeout");
 		this.timeout = to == null ? 0 : Integer.parseInt(to);
 		try {
-			this.serializer = Serializers.serializer((Class<? extends Serializer>) Class.forName(config.param("serializer")));
+			Class<? extends Serializer> cl = Reflections.forClassName(config.param("serializer"));
+			this.serializer = Serializers.serializer(cl);
 		} catch (Exception e) {
 			logger.error("Invoker initialization failure, Serializer could not be created.", e);
 			throw Exceptions.wrap(e);
@@ -52,7 +52,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		String handleClassname = config.param("handler");
 		if (null == handleClassname) this.handler = new HttpNingHandler(serializer, timeout, timeout);
 		else try {
-			this.handler = (HttpHandler) Reflections.construct(Class.forName(handleClassname),
+			this.handler = (HttpHandler) Reflections.construct(handleClassname,
 					Reflections.parameter(this.serializer, Serializer.class), Reflections.parameter(this.timeout, int.class),
 					Reflections.parameter(this.timeout, int.class));
 		} catch (Exception e) {

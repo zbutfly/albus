@@ -21,7 +21,7 @@ import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.TXes;
+import net.butfly.bus.TXs;
 import net.butfly.bus.serialize.Serializer;
 
 import org.slf4j.Logger;
@@ -112,7 +112,7 @@ public abstract class HttpHandler {
 		default:
 			throw new RuntimeException("Invalid path: " + pathInfo);
 		}
-		return TXes.impl(code, version);
+		return TXs.impl(code, version);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
