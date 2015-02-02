@@ -6,8 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
-import javax.naming.NamingException;
-
 import net.butfly.albacore.utils.Objects;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.Texts;
@@ -206,7 +204,7 @@ public class JettyStarter implements Runnable {
 
 			JettyStarter j = new JettyStarter(conf);
 			j.addBusInstances(conf);
-			if (null != conf.jndi) addJNDI(conf.jndi);
+			if (null != conf.jndi) JNDIUtils.attachContext(conf.jndi);
 			j.run(conf.fork);
 		}
 	}
@@ -214,13 +212,4 @@ public class JettyStarter implements Runnable {
 	public boolean starting() {
 		return this.server.isStarting();
 	}
-
-	public static void addJNDI(String contextXml) {
-		try {
-			JNDIUtils.bindContext("java:comp/env/", contextXml);
-		} catch (NamingException e) {
-			throw new RuntimeException("Failure in JNDI process", e);
-		}
-	}
-
 }

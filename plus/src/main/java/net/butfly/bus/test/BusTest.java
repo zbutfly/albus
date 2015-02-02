@@ -71,11 +71,11 @@ public abstract class BusTest {
 				Thread.sleep(1000);
 			} catch (InterruptedException e1) {}
 		logger.info("==========================");
-		logger.info(mode.name() + " test: test starting.");
+		logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test starting.");
 		logger.info("==========================");
 		doAllTest();
 		logger.info("==========================");
-		logger.info(mode.name() + " test: test finished.");
+		logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test finished.");
 		logger.info("==========================");
 	}
 
