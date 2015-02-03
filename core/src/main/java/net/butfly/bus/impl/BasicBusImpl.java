@@ -54,12 +54,14 @@ abstract class BasicBusImpl implements Bus {
 		return ivkb != null;
 	}
 
+	@Deprecated
 	MethodInfo invokeInfo(TX tx) {
 		Invoker ivk = this.find(tx.value());
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
 		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
 		if (null == m) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
+		// we do not use return type on invoking.
 		Class<?> r = m.getReturnType();
 		if (r != null) {
 			if (r.isArray()) r = r.getComponentType();
@@ -69,6 +71,15 @@ abstract class BasicBusImpl implements Bus {
 			else if (Iterable.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Iterable.class, "T");
 		}
 		return new MethodInfo(m.getParameterTypes(), r);
+	}
+
+	Class<?>[] invokingParameterTypes(TX tx) {
+		Invoker ivk = this.find(tx.value());
+		if (!(ivk instanceof AbstractLocalInvoker))
+			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
+		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
+		if (null == m) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
+		return m.getParameterTypes();
 	}
 
 	protected abstract class ServiceProxy<T> implements InvocationHandler {
