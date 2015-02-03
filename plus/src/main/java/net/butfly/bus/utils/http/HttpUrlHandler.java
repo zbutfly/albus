@@ -22,10 +22,6 @@ import org.apache.http.entity.ContentType;
 import com.google.common.net.HttpHeaders;
 
 public class HttpUrlHandler extends HttpHandler {
-	public HttpUrlHandler(Serializer serializer) {
-		this(serializer, 0, 0);
-	}
-
 	public HttpUrlHandler(Serializer serializer, int connTimeout, int readTimeout) {
 		super(serializer, connTimeout, readTimeout);
 	}

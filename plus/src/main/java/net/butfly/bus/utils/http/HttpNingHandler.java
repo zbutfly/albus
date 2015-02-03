@@ -2,13 +2,13 @@ package net.butfly.bus.utils.http;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.albacore.utils.async.Task.ExceptionHandler;
 import net.butfly.bus.serialize.Serializer;
@@ -20,7 +20,8 @@ import com.ning.http.client.AsyncHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.AsyncHttpClientConfig.Builder;
+//import com.ning.http.client.AsyncHttpClientConfig.Builder;
+import com.ning.http.client.AsyncHttpProvider;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
@@ -28,25 +29,33 @@ import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 
 public class HttpNingHandler extends HttpHandler {
-	private static final Map<String, AsyncHttpClient> CLIENT_POOL = new HashMap<String, AsyncHttpClient>();
 	private AsyncHttpClient client;
-
-	public HttpNingHandler(Serializer serializer) {
-		this(serializer, 0, 0);
-	}
 
 	public HttpNingHandler(Serializer serializer, int connTimeout, int readTimeout) {
 		super(serializer, connTimeout, readTimeout);
-		readTimeout = readTimeout > 0 ? readTimeout : Integer.MAX_VALUE; // FOR debug
-		connTimeout = connTimeout > 0 ? connTimeout : 0;
-		String key = readTimeout + ":" + connTimeout;
-		this.client = CLIENT_POOL.get(key);
-		if (this.client == null) {
-			Builder b = new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE);
-			if (readTimeout > 0) b.setReadTimeout(readTimeout);
-			if (connTimeout > 0) b.setConnectTimeout(connTimeout);
-			this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(b.build()));
-		}
+		final int rt = readTimeout > 0 ? readTimeout : Integer.MAX_VALUE; // FOR debug
+		final int ct = connTimeout > 0 ? connTimeout : 0;
+		final AsyncHttpClientConfig conf = Instances.fetch(new Instances.Instantiator<AsyncHttpClientConfig>() {
+			@Override
+			public AsyncHttpClientConfig create() {
+				AsyncHttpClientConfig.Builder b = new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE);
+				if (rt > 0) b.setReadTimeout(rt);
+				if (ct > 0) b.setConnectTimeout(ct);
+				return b.build();
+			}
+		}, rt, ct);
+		final AsyncHttpProvider prov = Instances.fetch(new Instances.Instantiator<AsyncHttpProvider>() {
+			@Override
+			public AsyncHttpProvider create() {
+				return new NettyAsyncHttpProvider(conf);
+			}
+		}, conf);
+		this.client = Instances.fetch(new Instances.Instantiator<AsyncHttpClient>() {
+			@Override
+			public AsyncHttpClient create() {
+				return new AsyncHttpClient(prov);
+			}
+		}, readTimeout, connTimeout);
 	}
 
 	@Override

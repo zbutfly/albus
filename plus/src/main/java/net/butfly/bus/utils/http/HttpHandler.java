@@ -15,6 +15,9 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.exception.NotImplementedException;
+import net.butfly.albacore.utils.Instances;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -30,15 +33,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
-public abstract class HttpHandler {
+public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 	protected int connTimeout;
 	protected int readTimeout;
 	protected Serializer serializer;
-
-	public HttpHandler(Serializer serializer) {
-		this(serializer, 0, 0);
-	}
 
 	public HttpHandler(Serializer serializer, int connTimeout, int readTimeout) {
 		this.serializer = serializer;
@@ -46,8 +45,10 @@ public abstract class HttpHandler {
 		this.readTimeout = readTimeout > 0 ? readTimeout : 0;
 	}
 
-	public abstract ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
-			throws IOException;
+	public ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
+			throws IOException {
+		throw new NotImplementedException();
+	}
 
 	public Future<Void> post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
 			final Task.Callback<Map<String, String>> contextCallback, final Task.Callback<Response> responseCallback,
@@ -66,7 +67,7 @@ public abstract class HttpHandler {
 		}
 	}
 
-	public Map<String, String> headers(final HttpServletRequest request) {
+	public final Map<String, String> headers(final HttpServletRequest request) {
 		Map<String, String> busHeaders = new HashMap<String, String>();
 		Enumeration<String> en = request.getHeaderNames();
 		while (en.hasMoreElements()) {
@@ -177,5 +178,25 @@ public abstract class HttpHandler {
 			headers.put(BusHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 		if (null != options && options.length > 0) headers.put(BusHeaders.HEADER_OPTIONS, this.opts.format(options));
 		return headers;
+	}
+
+	public static final class Instantiator implements Instances.Instantiator<HttpHandler> {
+		private Class<? extends HttpHandler> handlerClass;
+		private int connTimeout;
+		private int readTimeout;
+		private Serializer serializer;
+
+		public Instantiator(Class<? extends HttpHandler> handlerClass, Serializer serializer, int connTimeout, int readTimeout) {
+			this.handlerClass = handlerClass;
+			this.connTimeout = connTimeout;
+			this.readTimeout = readTimeout;
+			this.serializer = serializer;
+		}
+
+		@Override
+		public HttpHandler create() {
+			return Reflections.construct(handlerClass, Reflections.parameter(serializer, Serializer.class),
+					Reflections.parameter(connTimeout, int.class), Reflections.parameter(readTimeout, int.class));
+		}
 	}
 }
