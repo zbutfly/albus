@@ -33,7 +33,7 @@ public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 			module = module.substring(0, module.length() - 1);
 		Springs.appendPlaceholder(beanFactory, 99,
 				Springs.searchResource(module + "-internal.properties", module + ".properties"),
-				"ibatis.config.location.pattern", "classpath*:**/" + module + "-mybatis-config.xml");
+				"albacore.mybatis.config.location.pattern", "classpath*:**/" + module + "-mybatis-config.xml");
 	}
 
 	@Override
