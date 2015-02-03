@@ -2,6 +2,7 @@ package net.butfly.bus.utils.http;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -27,7 +28,8 @@ import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 
 public class HttpNingHandler extends HttpHandler {
-	AsyncHttpClient client;
+	private static final Map<String, AsyncHttpClient> CLIENT_POOL = new HashMap<String, AsyncHttpClient>();
+	private AsyncHttpClient client;
 
 	public HttpNingHandler(Serializer serializer) {
 		this(serializer, 0, 0);
@@ -35,11 +37,16 @@ public class HttpNingHandler extends HttpHandler {
 
 	public HttpNingHandler(Serializer serializer, int connTimeout, int readTimeout) {
 		super(serializer, connTimeout, readTimeout);
-		Builder b = new AsyncHttpClientConfig.Builder().setReadTimeout(readTimeout > 0 ? readTimeout : Integer.MAX_VALUE)
-				.setRequestTimeout(Integer.MAX_VALUE);
-		if (connTimeout > 0) b.setConnectTimeout(connTimeout);
-		AsyncHttpClientConfig config = b.build();
-		this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(config));// , config
+		readTimeout = readTimeout > 0 ? readTimeout : Integer.MAX_VALUE; // FOR debug
+		connTimeout = connTimeout > 0 ? connTimeout : 0;
+		String key = readTimeout + ":" + connTimeout;
+		this.client = CLIENT_POOL.get(key);
+		if (this.client == null) {
+			Builder b = new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE);
+			if (readTimeout > 0) b.setReadTimeout(readTimeout);
+			if (connTimeout > 0) b.setConnectTimeout(connTimeout);
+			this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(b.build()));
+		}
 	}
 
 	@Override

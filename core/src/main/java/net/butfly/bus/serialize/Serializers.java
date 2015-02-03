@@ -14,18 +14,19 @@ public final class Serializers extends Utils {
 	public static final String DEFAULT_MIME_TYPE = "text/plain";
 	public static final Charset DEFAULT_CHARSET = Charsets.UTF_8;
 
-	private static final Map<String, Class<? extends Serializer>> pool = new HashMap<String, Class<? extends Serializer>>();
+	private static final Map<String, Class<? extends Serializer>> CLASSES = new HashMap<String, Class<? extends Serializer>>();
+	private static final Map<String, Serializer> INSTANCES = new HashMap<String, Serializer>();
 	static {
 		build();
 	}
 
 	private static void build() {
-		for (Class<? extends Serializer> clazz : Reflections.getSubClasses(Serializer.class))
-			if (!Modifier.isAbstract(clazz.getModifiers())) {
-				Serializer def = Reflections
-						.construct(clazz, Reflections.parameter(Serializers.DEFAULT_CHARSET, Charset.class));
+		for (Class<? extends Serializer> subClass : Reflections.getSubClasses(Serializer.class))
+			if (!Modifier.isAbstract(subClass.getModifiers())) {
+				Serializer def = Reflections.construct(subClass,
+						Reflections.parameter(Serializers.DEFAULT_CHARSET, Charset.class));
 				for (String mime : def.supportedMimeTypes())
-					pool.put(mime, clazz);
+					CLASSES.put(mime, subClass);
 			}
 	}
 
@@ -42,9 +43,15 @@ public final class Serializers extends Utils {
 	}
 
 	public static Serializer serializer(String mimeType, Charset charset) {
-		Class<? extends Serializer> sub = pool.get(mimeType);
-		if (null == sub) throw new RuntimeException("mimeType not supportted: " + mimeType);
-		return Reflections.construct(sub, Reflections.parameter(charset, Charset.class));
+		Class<? extends Serializer> subClass = CLASSES.get(mimeType);
+		if (null == subClass) throw new RuntimeException("mimeType not supportted: " + mimeType);
+		String key = subClass.getName() + "#" + charset.name();
+		Serializer inst = INSTANCES.get(key);
+		if (null == inst) {
+			inst = Reflections.construct(subClass, Reflections.parameter(charset, Charset.class));
+			INSTANCES.put(key, inst);
+		}
+		return inst;
 	}
 
 	public static Serializer serializer(Class<? extends Serializer> clazz) {
