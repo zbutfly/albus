@@ -3,7 +3,7 @@ package net.butfly.bus.serialize.converter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import net.butfly.albacore.utils.EnumUtils;
+import net.butfly.albacore.utils.Enums;
 
 import com.caucho.hessian.io.AbstractDeserializer;
 import com.caucho.hessian.io.AbstractHessianInput;
@@ -37,7 +37,7 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 
 		@Override
 		public void writeObject(Object obj, AbstractHessianOutput out) throws IOException {
-			out.writeInt(EnumUtils.value((Enum<?>) obj));
+			out.writeInt(Enums.value((Enum<?>) obj));
 		}
 	}
 
@@ -93,7 +93,7 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 
 		private <E extends Enum<E>> E readEnum(AbstractHessianInput in) throws IOException {
 			Class<E> clazz = (Class<E>) this.clazz;
-			E e = EnumUtils.parse(clazz, (byte) in.readInt());
+			E e = Enums.parse(clazz, (byte) in.readInt());
 			return e;
 		}
 	}

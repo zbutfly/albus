@@ -15,7 +15,13 @@ public class ValidateFilter extends FilterBase implements Filter {
 	private Validator validator;
 
 	@Override
-	public void before(FilterContext context) throws Exception {
+	public void initialize(Map<String, String> params) {
+		super.initialize(params);
+		this.validator = Validation.buildDefaultValidatorFactory().getValidator();
+	}
+
+	@Override
+	public void execute(final FilterContext context) throws Exception {
 		Request request = context.request();
 		List<ConstraintViolation<?>> violations = new ArrayList<ConstraintViolation<?>>();
 		if (request.arguments() != null || request.arguments().length > 0) {
@@ -24,11 +30,6 @@ public class ValidateFilter extends FilterBase implements Filter {
 			if (violations.size() > 0)
 				throw new ValidateException(violations.toArray(new ConstraintViolation<?>[violations.size()]));
 		}
-	}
-
-	@Override
-	public void initialize(Map<String, String> params) {
-		super.initialize(params);
-		this.validator = Validation.buildDefaultValidatorFactory().getValidator();
+		super.execute(context);
 	}
 }

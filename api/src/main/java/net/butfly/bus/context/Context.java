@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.bus.TX;
+import net.butfly.bus.TXs;
 import net.butfly.bus.Token;
-import net.butfly.bus.utils.TXUtils;
 
 public abstract class Context implements Map<String, Object> {
 	private static Context CURRENT = null;
@@ -25,6 +25,7 @@ public abstract class Context implements Map<String, Object> {
 		if (CURRENT == null) CURRENT = new RequestContext();
 		CURRENT.load(original);
 	}
+
 	public static void clean(Map<String, Object> original) {
 		if (CURRENT == null) CURRENT = new RequestContext();
 		CURRENT.load(original);
@@ -95,7 +96,7 @@ public abstract class Context implements Map<String, Object> {
 	}
 
 	public static void txInfo(TX tx) {
-		CURRENT.put(Key.TXInfo.name(), (TXUtils.TXImpl) TXUtils.TXImpl(tx));
+		CURRENT.put(Key.TXInfo.name(), tx);
 	}
 
 	public static void temp(String key, Object value) {
@@ -153,7 +154,9 @@ public abstract class Context implements Map<String, Object> {
 				dst.put(key.name(), new FlowNo(src.get(key.name())));
 				continue;
 			case TXInfo:
-				dst.put(key.name(), new TXUtils.TXImpl(src.get(key.name())));
+				Object tx = src.get(key.name());
+				if (tx instanceof TX) dst.put(key.name(), (TX) tx);
+				else dst.put(key.name(), TXs.impl(tx.toString().split(":")));
 				continue;
 			default:
 				dst.put(key.name(), src.get(key.name()).toString());

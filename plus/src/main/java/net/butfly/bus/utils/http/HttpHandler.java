@@ -10,52 +10,68 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.async.Options;
+import net.butfly.albacore.utils.async.Opts;
+import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
-import net.butfly.bus.context.BusHttpHeaders;
-import net.butfly.bus.invoker.WebServiceInvoker.HandlerResponse;
+import net.butfly.bus.TXs;
 import net.butfly.bus.serialize.Serializer;
-import net.butfly.bus.utils.TXUtils;
 
-import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
 public abstract class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 	protected int connTimeout;
 	protected int readTimeout;
+	protected Serializer serializer;
 
-	public HttpHandler(int connTimeout, int readTimeout) {
-		this.connTimeout = connTimeout >= 0 ? connTimeout : 0;
-		this.readTimeout = readTimeout >= 0 ? readTimeout : 0;
+	public HttpHandler(Serializer serializer) {
+		this(serializer, 0, 0);
 	}
 
-	public abstract HandlerResponse post(String url, Map<String, String> headers, byte[] data, String mimeType,
-			Charset charset, boolean streaming) throws IOException;
+	public HttpHandler(Serializer serializer, int connTimeout, int readTimeout) {
+		this.serializer = serializer;
+		this.connTimeout = connTimeout > 0 ? connTimeout : 0;
+		this.readTimeout = readTimeout > 0 ? readTimeout : 0;
+	}
 
-	protected static void logRequest(String url, Map<String, String> headers, byte[] sent, Charset charset, boolean streaming) {
+	public abstract ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
+			throws IOException;
+
+	public Future<Void> post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
+			final Task.Callback<Map<String, String>> contextCallback, final Task.Callback<Response> responseCallback,
+			final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
+		ResponseHandler resp = this.post(url, headers, data, mimeType, charset);
+		contextCallback.callback(resp.context());
+		responseCallback.callback(resp.response());
+		return null;
+	}
+
+	protected static void logRequest(String url, Map<String, String> headers, byte[] sent, Charset charset) {
 		if (logger.isTraceEnabled()) {
-			logger.trace("HTTP Request SEND ==> STREAM: " + (streaming ? "YES" : "NO") + " ==> " + url);
+			logger.trace("HTTP Request SEND ==> " + url);
 			logger.trace("HTTP Request SEND ==> HEADER: " + headers.toString());
 			logger.trace("HTTP Request SEND ==> CONTENT[" + sent.length + "]: " + new String(sent, charset));
 		}
 	}
 
-	public static Map<String, String> headers(final HttpServletRequest request) {
+	public Map<String, String> headers(final HttpServletRequest request) {
 		Map<String, String> busHeaders = new HashMap<String, String>();
 		Enumeration<String> en = request.getHeaderNames();
 		while (en.hasMoreElements()) {
 			String name = en.nextElement();
-			if (name != null && name.startsWith(BusHttpHeaders.HEADER_PREFIX))
+			if (name != null && name.startsWith(BusHeaders.HEADER_PREFIX))
 			// XXX: multiple values header?
 				busHeaders.put(name, request.getHeader(name));
 		}
@@ -63,30 +79,30 @@ public abstract class HttpHandler {
 		return busHeaders;
 	}
 
-	public static Map<String, String> headers(final HttpServletResponse response) {
+	public Map<String, String> headers(final HttpServletResponse response) {
 		Map<String, String> busHeaders = new HashMap<String, String>();
 		for (String name : response.getHeaderNames())
-			if (name != null && name.startsWith(BusHttpHeaders.HEADER_PREFIX)) busHeaders.put(name, response.getHeader(name));
+			if (name != null && name.startsWith(BusHeaders.HEADER_PREFIX)) busHeaders.put(name, response.getHeader(name));
 		return busHeaders;
 	}
 
 	// used by WebServiceServlet
-	public static Map<String, String> context(Map<String, String> busHeaders) {
+	public Map<String, String> context(Map<String, String> busHeaders) {
 		Map<String, String> context = new HashMap<String, String>();
 		for (String name : busHeaders.keySet()) {
-			if (name.startsWith(BusHttpHeaders.HEADER_CONTEXT_PREFIX))
-				context.put(name.substring(BusHttpHeaders.HEADER_CONTEXT_PREFIX.length()), busHeaders.get(name));
+			if (name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX))
+				context.put(name.substring(BusHeaders.HEADER_CONTEXT_PREFIX.length()), busHeaders.get(name));
 		}
 		return context;
 	}
 
-	public static TX tx(String pathInfo, Map<String, String> busHeaders) {
+	public TX tx(String pathInfo, Map<String, String> busHeaders) {
 		String[] reses = null != pathInfo && pathInfo.length() > 0 ? pathInfo.substring(1).split("/") : new String[0];
 		String code, version = null;
 		switch (reses.length) {
 		case 0: // anything in header.
-			code = busHeaders.get(BusHttpHeaders.HEADER_TX_CODE);
-			version = busHeaders.get(BusHttpHeaders.HEADER_TX_VERSION);
+			code = busHeaders.get(BusHeaders.HEADER_TX_CODE);
+			version = busHeaders.get(BusHeaders.HEADER_TX_VERSION);
 			break;
 		case 2:
 			version = reses[1];
@@ -96,11 +112,11 @@ public abstract class HttpHandler {
 		default:
 			throw new RuntimeException("Invalid path: " + pathInfo);
 		}
-		return TXUtils.TXImpl(code, version);
+		return TXs.impl(code, version);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Object[] parameters(byte[] recv, Serializer serializer, Class<?>[] parameterClasses, Charset charset) {
+	public Object[] parameters(byte[] recv, Class<?>[] parameterClasses, Charset charset) {
 		if (logger.isTraceEnabled())
 			logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
 		Object r = serializer.deserialize(recv, parameterClasses);
@@ -123,24 +139,22 @@ public abstract class HttpHandler {
 		} else return new Object[] { r };
 	}
 
-	public static byte[] response(final Response resp, final HttpServletResponse response, final Serializer serializer,
-			boolean supportClass, Charset charset) {
+	public byte[] response(final Response resp, final HttpServletResponse response, boolean supportClass, Charset charset) {
 		response.setHeader(HttpHeaders.ETAG, resp.id());
-		response.setHeader(BusHttpHeaders.HEADER_REQUEST_ID, resp.requestId());
+		response.setHeader(BusHeaders.HEADER_REQUEST_ID, resp.requestId());
 		if (resp.context() != null) for (Entry<String, String> ctx : resp.context().entrySet())
-			response.setHeader(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
+			response.setHeader(BusHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 
 		boolean error = resp.error() != null;
-		if (supportClass) response.setHeader(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
+		if (supportClass) response.setHeader(BusHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
 		byte[] sent;
 		if (error) {
-			if (supportClass)
-				response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
-			response.setHeader(BusHttpHeaders.HEADER_ERROR, Boolean.toString(true));
+			if (supportClass) response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
+			response.setHeader(BusHeaders.HEADER_ERROR, Boolean.toString(true));
 			sent = serializer.serialize(resp.error());
 		} else {
 			if (supportClass && resp.result() != null)
-				response.setHeader(BusHttpHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
+				response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
 			sent = serializer.serialize(resp.result());
 		}
 		if (logger.isTraceEnabled()) {
@@ -150,17 +164,18 @@ public abstract class HttpHandler {
 		return sent;
 	}
 
+	private Opts opts = new MoreOpts();
+
 	// for client
-	public static Map<String, String> headers(Serializer serializer, String tx, String version, Map<String, String> context,
+	public Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass,
 			Options... options) throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put(BusHttpHeaders.HEADER_TX_CODE, tx);
-		headers.put(BusHttpHeaders.HEADER_TX_VERSION, version);
-		headers.put(BusHttpHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(!serializer.supportClass()));
+		headers.put(BusHeaders.HEADER_TX_CODE, tx);
+		headers.put(BusHeaders.HEADER_TX_VERSION, version);
+		headers.put(BusHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(supportClass));
 		if (context != null) for (Entry<String, String> ctx : context.entrySet())
-			headers.put(BusHttpHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
-		if (null != options && options.length > 0) headers.put(BusHttpHeaders.HEADER_OPTIONS, serializer.asString(options));
-
+			headers.put(BusHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
+		if (null != options && options.length > 0) headers.put(BusHeaders.HEADER_OPTIONS, this.opts.format(options));
 		return headers;
 	}
 }

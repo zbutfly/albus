@@ -16,7 +16,7 @@ public class Error implements Serializable {
 	private StackTraceElement[] stackTrace;
 
 	public Error(Throwable ex, boolean debugging) {
-		this(Exceptions.unlink(ex), debugging);
+		this(Exceptions.unlink(Exceptions.unwrap(ex)), debugging);
 	}
 
 	private Error(Throwable[] list, boolean debugging) {

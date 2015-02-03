@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Keys;
 
 public class Response implements Serializable {
 	private static final long serialVersionUID = 5897857767191140750L;
@@ -19,7 +19,7 @@ public class Response implements Serializable {
 	protected Response() {}
 
 	public Response(Request request) {
-		this.id = KeyUtils.objectId();
+		this.id = Keys.objectId();
 		this.requestId = request.id;
 	}
 

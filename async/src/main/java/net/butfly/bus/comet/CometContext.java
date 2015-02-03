@@ -8,7 +8,7 @@ import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.context.Context;
 
 public class CometContext {
@@ -27,7 +27,7 @@ public class CometContext {
 //		Context.CURRENT.put(SERVLET_REQUEST_KEY, options);
 //		Context.CURRENT.put(SERVLET_RESPONSE_KEY, response);
 		response.setHeader("Access-Control-Allow-Origin", "*");
-		final String id = KeyUtils.objectId();
+		final String id = Keys.objectId();
 		if (!request.isAsyncStarted()) {
 			final AsyncContext ac = request.startAsync(request, response);
 

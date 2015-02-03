@@ -7,8 +7,8 @@ import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 
 public class CallbackTest extends StandardTest {
-	protected CallbackTest(boolean remote) throws Exception {
-		super(remote);
+	protected CallbackTest(Mode mode) throws Exception {
+		super(mode);
 		this.echoCallback = new Callback<CometEchoReponse>() {
 			@Override
 			public void callback(CometEchoReponse echo) {

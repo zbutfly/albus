@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.butfly.albacore.utils.KeyUtils;
+import net.butfly.albacore.utils.Keys;
 
 import com.google.gson.Gson;
 
@@ -78,7 +78,7 @@ public class SampleStreamServlet extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 
 		// Id
-		final String id = KeyUtils.objectId();
+		final String id = Keys.objectId();
 		writer.print(id);
 		writer.print(';');
 
