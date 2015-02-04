@@ -12,10 +12,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.policy.Router;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
@@ -42,8 +44,8 @@ public class WebServiceServlet extends BusServlet {
 		Serializers.build(serializerClassesMap);
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
-		this.cluster = BusFactory.serverCluster(this.getInitParameter("router"), null == paramConfig ? new String[0]
-				: paramConfig.split(","));
+		Class<? extends Router> routerClass = Reflections.forClassName(this.getInitParameter("router"));
+		this.cluster = BusFactory.serverCluster(routerClass, null == paramConfig ? new String[0] : paramConfig.split(","));
 		this.opts = new MoreOpts();
 		// FOR debug
 		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
