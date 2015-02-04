@@ -35,25 +35,20 @@ import com.google.common.reflect.TypeToken;
 
 public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
-	protected int connTimeout;
-	protected int readTimeout;
 	protected Serializer serializer;
 
-	public HttpHandler(Serializer serializer, int connTimeout, int readTimeout) {
+	public HttpHandler(Serializer serializer) {
 		this.serializer = serializer;
-		this.connTimeout = connTimeout > 0 ? connTimeout : 0;
-		this.readTimeout = readTimeout > 0 ? readTimeout : 0;
 	}
 
-	public ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
-			throws IOException {
+	public ResponseHandler post(final BusHttpRequest httpRequest) throws IOException {
 		throw new NotImplementedException();
 	}
 
-	public Future<Void> post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
-			final Task.Callback<Map<String, String>> contextCallback, final Task.Callback<Response> responseCallback,
-			final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
-		ResponseHandler resp = this.post(url, headers, data, mimeType, charset);
+	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
+			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception)
+			throws IOException {
+		ResponseHandler resp = this.post(httpRequest);
 		contextCallback.callback(resp.context());
 		responseCallback.callback(resp.response());
 		return null;
@@ -182,21 +177,16 @@ public class HttpHandler {
 
 	public static final class Instantiator implements Instances.Instantiator<HttpHandler> {
 		private Class<? extends HttpHandler> handlerClass;
-		private int connTimeout;
-		private int readTimeout;
 		private Serializer serializer;
 
-		public Instantiator(Class<? extends HttpHandler> handlerClass, Serializer serializer, int connTimeout, int readTimeout) {
+		public Instantiator(Class<? extends HttpHandler> handlerClass, Serializer serializer) {
 			this.handlerClass = handlerClass;
-			this.connTimeout = connTimeout;
-			this.readTimeout = readTimeout;
 			this.serializer = serializer;
 		}
 
 		@Override
 		public HttpHandler create() {
-			return Reflections.construct(handlerClass, Reflections.parameter(serializer, Serializer.class),
-					Reflections.parameter(connTimeout, int.class), Reflections.parameter(readTimeout, int.class));
+			return Reflections.construct(handlerClass, Reflections.parameter(serializer, Serializer.class));
 		}
 	}
 }

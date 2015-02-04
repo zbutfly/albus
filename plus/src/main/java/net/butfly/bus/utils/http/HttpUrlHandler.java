@@ -23,34 +23,36 @@ import com.google.common.net.HttpHeaders;
 
 public class HttpUrlHandler extends HttpHandler {
 	public HttpUrlHandler(Serializer serializer, int connTimeout, int readTimeout) {
-		super(serializer, connTimeout, readTimeout);
+		super(serializer);
 	}
 
 	@Override
-	public ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
-			throws IOException {
-		logRequest(url, headers, data, charset);
+	public ResponseHandler post(BusHttpRequest httpRequest) throws IOException {
+		httpRequest.logRequest(logger);
 		URL u;
 		try {
-			u = new URL(url);
+			u = new URL(httpRequest.url);
 		} catch (MalformedURLException e) {
 			throw new SystemException("", e);
 		}
 		HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-		conn.setConnectTimeout((int) this.connTimeout);
-		conn.setReadTimeout((int) this.readTimeout);
+		if (httpRequest.timeout > 0) {
+			// conn.setConnectTimeout(httpRequest.timeout);
+			conn.setReadTimeout(httpRequest.timeout);
+		}
 		conn.setDoOutput(true);
 		conn.setDoInput(true);
 		conn.setChunkedStreamingMode(0);
-		for (Entry<String, String> h : headers.entrySet())
+		for (Entry<String, String> h : httpRequest.headers.entrySet())
 			conn.setRequestProperty(h.getKey(), h.getValue());
 		if (conn.getRequestProperty(HttpHeaders.ACCEPT_ENCODING) == null)
 			conn.setRequestProperty(HttpHeaders.ACCEPT_ENCODING, "deflate");
 		if (conn.getRequestProperty(HttpHeaders.CONTENT_TYPE) == null)
-			conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, ContentType.create(mimeType, charset).toString());
+			conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, ContentType.create(httpRequest.mimeType, httpRequest.charset)
+					.toString());
 
 		int statusCode = 500;
-		IOUtils.write(data, conn.getOutputStream());
+		IOUtils.write(httpRequest.data, conn.getOutputStream());
 		conn.getOutputStream().flush();
 
 		statusCode = conn.getResponseCode();

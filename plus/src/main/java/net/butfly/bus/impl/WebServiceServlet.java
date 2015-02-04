@@ -101,8 +101,8 @@ public class WebServiceServlet extends BusServlet {
 				|| Arrays.binarySearch(serializer.supportedMimeTypes(), context.reqContentType.getMimeType()) < 0)
 			throw new ServletException("Unsupported content type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.defaultMimeType(), context.reqContentType.getCharset());
-		context.handler = Instances.fetch(new HttpHandler.Instantiator(HttpHandler.class, serializer, 0, 0), HttpHandler.class,
-				serializer, 0, 0);
+		context.handler = Instances.fetch(new HttpHandler.Instantiator(HttpHandler.class, serializer), HttpHandler.class,
+				serializer);
 
 		// prepare invoke
 		context.invoking = new Invoking();

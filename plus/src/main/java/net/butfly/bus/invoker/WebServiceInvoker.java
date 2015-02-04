@@ -14,6 +14,7 @@ import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.SerializerFactorySupport;
 import net.butfly.bus.serialize.Serializers;
+import net.butfly.bus.utils.http.BusHttpRequest;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpNingHandler;
 import net.butfly.bus.utils.http.ResponseHandler;
@@ -52,11 +53,10 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		}
 		final String handleClassname = config.param("handler");
 		final Class<? extends HttpHandler> handlerClass;
-		if (null == handleClassname) handlerClass = HttpNingHandler.class;// (serializer, timeout, timeout);
+		if (null == handleClassname) handlerClass = HttpNingHandler.class;
 		else handlerClass = Reflections.forClassName(handleClassname);
 		try {
-			this.handler = Instances.fetch(new HttpHandler.Instantiator(handlerClass, serializer, timeout, timeout),
-					handlerClass, serializer, timeout, timeout);
+			this.handler = Instances.fetch(new HttpHandler.Instantiator(handlerClass, serializer), handlerClass, serializer);
 		} catch (Exception e) {
 			throw Exceptions.wrap(e);
 		}
@@ -69,6 +69,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
 		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(),
 				serializer.supportClass(), remoteOptions);
+		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, serializer.serialize(request.arguments()),
+				serializer.defaultMimeType(), serializer.charset(), timeout);
 		/**
 		 * <pre>
 		 * TODO: handle continuous, move to async proj.
@@ -81,8 +83,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		 *  } else
 		 * </pre>
 		 */
-		ResponseHandler resp = this.handler.post(path, headers, serializer.serialize(request.arguments()),
-				serializer.defaultMimeType(), serializer.charset());
+		ResponseHandler resp = this.handler.post(httpRequest);
 		return resp.response();
 	}
 }
