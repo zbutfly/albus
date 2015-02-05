@@ -18,7 +18,7 @@ public abstract class AbstractInvoker implements Invoker {
 	public void initialize(InvokerConfig config, Token token) {
 		this.config = config;
 		this.token = token;
-		this.id = Keys.defaults();
+		this.id = Keys.key(String.class);
 	}
 
 	@Override

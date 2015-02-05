@@ -19,7 +19,7 @@ public class Response implements Serializable {
 	protected Response() {}
 
 	public Response(Request request) {
-		this.id = Keys.objectId();
+		this.id = Keys.key(String.class);
 		this.requestId = request.id;
 	}
 

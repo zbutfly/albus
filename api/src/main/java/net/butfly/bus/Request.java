@@ -70,7 +70,7 @@ public class Request implements Serializable {
 	}
 
 	public Request(String code, String version, Map<String, String> context, Object... arguments) {
-		this.id = Keys.objectId();
+		this.id = Keys.key(String.class);
 		this.code = code;
 		this.version = version;
 		this.arguments = null == arguments ? new Object[0] : arguments;

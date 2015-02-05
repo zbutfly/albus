@@ -15,7 +15,7 @@ public abstract class FilterBase implements Filter {
 	protected FilterChain chain;
 
 	public FilterBase() {
-		this.id = Keys.defaults();
+		this.id = Keys.key(String.class);
 	}
 
 	@Override

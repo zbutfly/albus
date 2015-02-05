@@ -41,7 +41,7 @@ abstract class BasicBusImpl implements Bus {
 		this.config = BusFactory.createConfiguration(conf, mode);
 		this.router = BusFactory.createRouter(this.config);
 		this.chain = new FilterChain(this, config.getFilterList());
-		this.id = Keys.objectId();
+		this.id = Keys.key(String.class);
 	}
 
 	public String id() {

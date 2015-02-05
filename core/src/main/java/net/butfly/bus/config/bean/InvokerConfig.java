@@ -19,7 +19,7 @@ public class InvokerConfig extends Config implements Routeable {
 	private Invoker instance = null;
 
 	public InvokerConfig(Class<? extends Invoker> invokeClass, Map<String, String> params, String tx, Token token) {
-		this.id = Keys.defaults();
+		this.id = Keys.key(String.class);
 		this.params = params;
 
 		if (null != tx) this.txs = tx.split(",");
