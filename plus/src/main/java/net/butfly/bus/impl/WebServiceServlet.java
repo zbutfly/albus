@@ -1,8 +1,6 @@
 package net.butfly.bus.impl;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -33,7 +31,6 @@ import org.slf4j.LoggerFactory;
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
 	protected static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
-	private final Map<String, Class<? extends Serializer>> serializerClassesMap = new HashMap<String, Class<? extends Serializer>>();
 
 	protected Cluster cluster;
 	protected Opts opts;
@@ -41,7 +38,6 @@ public class WebServiceServlet extends BusServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		Serializers.build(serializerClassesMap);
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
 		Class<? extends Router> routerClass = Reflections.forClassName(this.getInitParameter("router"));
@@ -95,13 +91,9 @@ public class WebServiceServlet extends BusServlet {
 			context.reqContentType = context.reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
 		if (context.reqContentType.getMimeType() == null)
 			context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, context.reqContentType.getCharset());
-		Class<? extends Serializer> serializerClass = serializerClassesMap.get(context.reqContentType.getMimeType());
-		if (null == serializerClass)
-			throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
-		final Serializer serializer = Serializers.serializer(serializerClass, context.reqContentType.getCharset());
-		if (serializer == null
-				|| Arrays.binarySearch(serializer.supportedMimeTypes(), context.reqContentType.getMimeType()) < 0)
-			throw new ServletException("Unsupported content type: " + context.reqContentType.getMimeType());
+		final Serializer serializer = Serializers.serializer(Serializers.serializerClass(context.reqContentType.getMimeType()),
+				context.reqContentType.getCharset());
+		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.defaultMimeType(), context.reqContentType.getCharset());
 		context.handler = Instances.fetch(new HttpHandler.Instantiator(HttpHandler.class, serializer), HttpHandler.class,
 				serializer);
