@@ -4,7 +4,7 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public interface Constants {
-	public final static String _PREFIX = "BUS_";
+	public static final String _PREFIX = "BUS_";
 
 	public interface SystemError {// 000-099
 		String UNKNOW_CAUSE = _PREFIX + "000";// 未知异常
