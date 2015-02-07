@@ -41,7 +41,7 @@ final class Cluster {
 		invoking.bus = router.route(invoking.tx.value(), servers());
 		if (null == invoking.bus)
 			throw new RuntimeException("Server routing failure, no node found for [" + invoking.tx.value() + "].");
-		invoking.parameterClasses = ((BasicBusImpl) invoking.bus).invokingParameterTypes(invoking.tx);
+		invoking.parameterClasses = ((BasicBusImpl) invoking.bus).invokingMethod(invoking.tx).getParameterTypes();
 	}
 
 	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) throws Exception {

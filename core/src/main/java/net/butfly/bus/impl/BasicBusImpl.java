@@ -2,14 +2,9 @@ package net.butfly.bus.impl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Map;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.utils.Generics;
 import net.butfly.albacore.utils.Keys;
-import net.butfly.albacore.utils.Reflections.MethodInfo;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
@@ -54,32 +49,13 @@ abstract class BasicBusImpl implements Bus {
 		return ivkb != null;
 	}
 
-	@Deprecated
-	MethodInfo invokeInfo(TX tx) {
+	Method invokingMethod(TX tx) {
 		Invoker ivk = this.find(tx.value());
 		if (!(ivk instanceof AbstractLocalInvoker))
 			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
 		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
 		if (null == m) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
-		// we do not use return type on invoking.
-		Class<?> r = m.getReturnType();
-		if (r != null) {
-			if (r.isArray()) r = r.getComponentType();
-			else if (Map.class.isAssignableFrom(r)) r = null;
-			else if (Collection.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Collection.class, "E");
-			else if (Enumeration.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Enumeration.class, "E");
-			else if (Iterable.class.isAssignableFrom(r)) r = Generics.getGenericParamClass(r, Iterable.class, "T");
-		}
-		return new MethodInfo(m.getParameterTypes(), r);
-	}
-
-	Class<?>[] invokingParameterTypes(TX tx) {
-		Invoker ivk = this.find(tx.value());
-		if (!(ivk instanceof AbstractLocalInvoker))
-			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
-		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
-		if (null == m) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
-		return m.getParameterTypes();
+		return m;
 	}
 
 	protected abstract class ServiceProxy<T> implements InvocationHandler {

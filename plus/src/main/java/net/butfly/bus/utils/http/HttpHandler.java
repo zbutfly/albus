@@ -16,8 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.NotImplementedException;
-import net.butfly.albacore.utils.Instances;
-import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -173,20 +171,5 @@ public class HttpHandler {
 			headers.put(BusHeaders.HEADER_CONTEXT_PREFIX + ctx.getKey(), ctx.getValue());
 		if (null != options && options.length > 0) headers.put(BusHeaders.HEADER_OPTIONS, this.opts.format(options));
 		return headers;
-	}
-
-	public static final class Instantiator implements Instances.Instantiator<HttpHandler> {
-		private Class<? extends HttpHandler> handlerClass;
-		private Serializer serializer;
-
-		public Instantiator(Class<? extends HttpHandler> handlerClass, Serializer serializer) {
-			this.handlerClass = handlerClass;
-			this.serializer = serializer;
-		}
-
-		@Override
-		public HttpHandler create() {
-			return Reflections.construct(handlerClass, Reflections.parameter(serializer, Serializer.class));
-		}
 	}
 }

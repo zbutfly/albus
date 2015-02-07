@@ -30,7 +30,7 @@ public class HttpNingHandler extends HttpHandler {
 
 	public HttpNingHandler(Serializer serializer) {
 		super(serializer);
-//		this.client = Instances.fetch(new Instances.Instantiator<AsyncHttpClient>() {
+//		this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
 //			@Override
 //			public AsyncHttpClient create() {
 //				return new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
