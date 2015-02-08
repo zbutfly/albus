@@ -1,5 +1,6 @@
 package net.butfly.bus.serialize;
 
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ public final class Serializers extends Utils {
 			public Map<String, Class<? extends Serializer>> call() {
 				Map<String, Class<? extends Serializer>> map = new HashMap<String, Class<? extends Serializer>>();
 				for (Class<? extends Serializer> subClass : Reflections.getSubClasses(Serializer.class)) {
+					if (Modifier.isAbstract(subClass.getModifiers())) continue;
 					Serializer def = Instances.fetch(subClass, Serializers.DEFAULT_CHARSET);
 					for (String mime : def.supportedMimeTypes())
 						map.put(mime, subClass);
