@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bus id="bus-console" side="server">
-	<filter title="logger-filter" class="net.butfly.bus.filter.LoggerFilter" enabled="true" />
-	<router type="net.butfly.bus.policy.SimpleRouter" />
-	<invoker id="albus-test-comet" tx="TST_CMT-*" type="net.butfly.bus.demo.invoker.BeanFactoryInvoker" />
-</bus>
