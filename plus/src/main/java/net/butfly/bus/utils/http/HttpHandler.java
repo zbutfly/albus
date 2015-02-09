@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.butfly.albacore.exception.NotImplementedException;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -30,29 +31,22 @@ import org.slf4j.LoggerFactory;
 import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
-public abstract class HttpHandler {
+public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
-	protected int connTimeout;
-	protected int readTimeout;
 	protected Serializer serializer;
 
 	public HttpHandler(Serializer serializer) {
-		this(serializer, 0, 0);
-	}
-
-	public HttpHandler(Serializer serializer, int connTimeout, int readTimeout) {
 		this.serializer = serializer;
-		this.connTimeout = connTimeout > 0 ? connTimeout : 0;
-		this.readTimeout = readTimeout > 0 ? readTimeout : 0;
 	}
 
-	public abstract ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
-			throws IOException;
+	public ResponseHandler post(final BusHttpRequest httpRequest) throws IOException {
+		throw new NotImplementedException();
+	}
 
-	public Future<Void> post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
-			final Task.Callback<Map<String, String>> contextCallback, final Task.Callback<Response> responseCallback,
-			final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
-		ResponseHandler resp = this.post(url, headers, data, mimeType, charset);
+	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
+			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception)
+			throws IOException {
+		ResponseHandler resp = this.post(httpRequest);
 		contextCallback.callback(resp.context());
 		responseCallback.callback(resp.response());
 		return null;
@@ -66,7 +60,7 @@ public abstract class HttpHandler {
 		}
 	}
 
-	public Map<String, String> headers(final HttpServletRequest request) {
+	public final Map<String, String> headers(final HttpServletRequest request) {
 		Map<String, String> busHeaders = new HashMap<String, String>();
 		Enumeration<String> en = request.getHeaderNames();
 		while (en.hasMoreElements()) {

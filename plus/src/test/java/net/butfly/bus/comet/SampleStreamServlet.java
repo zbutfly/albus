@@ -78,7 +78,7 @@ public class SampleStreamServlet extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 
 		// Id
-		final String id = Keys.objectId();
+		final String id = Keys.key(String.class);
 		writer.print(id);
 		writer.print(';');
 

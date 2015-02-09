@@ -2,7 +2,6 @@ package net.butfly.bus.impl;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
-import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.config.Configuration;
@@ -17,16 +16,8 @@ import net.butfly.bus.utils.Constants;
 public final class BusFactory {
 	private BusFactory() {}
 
-	public static Bus client() {
-		return create(Mode.CLIENT, null);
-	}
-
 	public static Bus client(String conf) {
 		return create(Mode.CLIENT, conf);
-	}
-
-	public static Bus server() {
-		return create(Mode.SERVER, null);
 	}
 
 	public static Bus server(String conf) {
@@ -59,16 +50,6 @@ public final class BusFactory {
 		} catch (Exception e) {
 			throw Exceptions.wrap(e);
 		}
-	}
-
-	static Cluster serverCluster(String routerClassName, String... config) {
-		Class<? extends Router> cl = Reflections.forClassName(routerClassName);
-		return cluster(Mode.SERVER, cl, config);
-	}
-
-	static Cluster clientCluster(String routerClassName, String... config) throws ClassNotFoundException {
-		Class<? extends Router> cl = Reflections.forClassName(routerClassName);
-		return cluster(Mode.SERVER, cl, config);
 	}
 
 	static Configuration createConfiguration(String configLocation, Mode mode) {

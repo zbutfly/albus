@@ -40,9 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JettyStarter implements Runnable {
-	protected final static Logger logger = LoggerFactory.getLogger(JettyStarter.class);
-	protected final int BUF_SIZE = 8 * 1024;
-	private static final long DEFAULT_IDLE = 60000;
+	protected static final Logger logger = LoggerFactory.getLogger(JettyStarter.class);
+	protected static final int BUF_SIZE = 8 * 1024;
+	protected static final long DEFAULT_IDLE = 60000;
 	protected final Server server;
 	protected final ServletContextHandler handler;
 	protected boolean running = false;

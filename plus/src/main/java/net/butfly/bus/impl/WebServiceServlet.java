@@ -1,8 +1,6 @@
 package net.butfly.bus.impl;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -11,16 +9,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.policy.Router;
 import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
-import net.butfly.bus.utils.http.HttpNingHandler;
 import net.butfly.bus.utils.http.MoreOpts;
 
 import org.apache.commons.io.IOUtils;
@@ -32,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
 	protected static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
-	private Class<? extends HttpHandler> handlerClass;
+
 	protected Cluster cluster;
 	protected Opts opts;
 
@@ -41,15 +40,8 @@ public class WebServiceServlet extends BusServlet {
 		super.init(config);
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
-		this.cluster = BusFactory.serverCluster(this.getInitParameter("router"), null == paramConfig ? new String[0]
-				: paramConfig.split(","));
-		String handlerConfig = this.getInitParameter("http-handler");
-		try {
-			this.handlerClass = Reflections.forClassName(handlerConfig);
-			if (this.handlerClass == null) this.handlerClass = HttpNingHandler.class;
-		} catch (Exception e) {
-			throw new ServletException("Http handler configuration (http-handler) invalid", e);
-		}
+		Class<? extends Router> routerClass = Reflections.forClassName(this.getInitParameter("router"));
+		this.cluster = BusFactory.serverCluster(routerClass, null == paramConfig ? new String[0] : paramConfig.split(","));
 		this.opts = new MoreOpts();
 		// FOR debug
 		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
@@ -86,17 +78,6 @@ public class WebServiceServlet extends BusServlet {
 		}
 	}
 
-	private static final Map<Serializer, HttpHandler> pool = new HashMap<Serializer, HttpHandler>();
-
-	protected HttpHandler handler(Serializer serializer) {
-		HttpHandler h = pool.get(serializer);
-		if (null == h) {
-			h = Reflections.construct(this.handlerClass, Reflections.parameter(serializer, Serializer.class));
-			pool.put(serializer, h);
-		}
-		return h;
-	}
-
 	protected ServiceContext prepare(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException {
 		// XXX: goof off
@@ -110,14 +91,11 @@ public class WebServiceServlet extends BusServlet {
 			context.reqContentType = context.reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
 		if (context.reqContentType.getMimeType() == null)
 			context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, context.reqContentType.getCharset());
-		final Serializer serializer = Serializers.serializer(context.reqContentType.getMimeType(),
+		final Serializer serializer = Serializers.serializer(Serializers.serializerClass(context.reqContentType.getMimeType()),
 				context.reqContentType.getCharset());
-		if (serializer == null
-				|| Arrays.binarySearch(serializer.supportedMimeTypes(), context.reqContentType.getMimeType()) < 0)
-			throw new ServletException("Unsupported content type: " + context.reqContentType.getMimeType());
+		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.defaultMimeType(), context.reqContentType.getCharset());
-
-		context.handler = this.handler(serializer);
+		context.handler = Instances.fetch(HttpHandler.class, serializer);
 
 		// prepare invoke
 		context.invoking = new Invoking();

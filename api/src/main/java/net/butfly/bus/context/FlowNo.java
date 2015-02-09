@@ -22,7 +22,7 @@ public final class FlowNo implements Serializable, Cloneable {
 		String fn = request.context(Key.FlowNo.name());
 		FlowNo existed = null == fn ? Context.flowNo() : new FlowNo(fn);
 		if (null == existed) {
-			this.serial = Keys.objectId();
+			this.serial = Keys.key(String.class);
 			this.sequence = 1;
 			this.timestamp = new Date().getTime();
 		} else {

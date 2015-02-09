@@ -1,8 +1,6 @@
 package net.butfly.bus.utils.http;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -20,7 +18,6 @@ import com.ning.http.client.AsyncHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.AsyncHttpClientConfig.Builder;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
@@ -28,31 +25,24 @@ import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 
 public class HttpNingHandler extends HttpHandler {
-	private static final Map<String, AsyncHttpClient> CLIENT_POOL = new HashMap<String, AsyncHttpClient>();
-	private AsyncHttpClient client;
+	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(
+			new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
 
 	public HttpNingHandler(Serializer serializer) {
-		this(serializer, 0, 0);
-	}
-
-	public HttpNingHandler(Serializer serializer, int connTimeout, int readTimeout) {
-		super(serializer, connTimeout, readTimeout);
-		readTimeout = readTimeout > 0 ? readTimeout : Integer.MAX_VALUE; // FOR debug
-		connTimeout = connTimeout > 0 ? connTimeout : 0;
-		String key = readTimeout + ":" + connTimeout;
-		this.client = CLIENT_POOL.get(key);
-		if (this.client == null) {
-			Builder b = new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE);
-			if (readTimeout > 0) b.setReadTimeout(readTimeout);
-			if (connTimeout > 0) b.setConnectTimeout(connTimeout);
-			this.client = new AsyncHttpClient(new NettyAsyncHttpProvider(b.build()));
-		}
+		super(serializer);
+//		this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
+//			@Override
+//			public AsyncHttpClient create() {
+//				return new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
+//						.setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
+//			}
+//		});
 	}
 
 	@Override
-	public ResponseHandler post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset)
-			throws IOException {
-		BoundRequestBuilder req = this.prepare(url, headers, data, mimeType, charset);
+	public ResponseHandler post(BusHttpRequest httpRequest) throws IOException {
+		BoundRequestBuilder req = this.prepare(httpRequest);
+		req.setRequestTimeout(httpRequest.timeout);
 		Response resp;
 		try {
 			resp = req.execute().get();
@@ -65,10 +55,10 @@ public class HttpNingHandler extends HttpHandler {
 	}
 
 	@Override
-	public Future<Void> post(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset,
-			final Callback<Map<String, String>> contextCallback, final Callback<net.butfly.bus.Response> responseCallback,
-			final ExceptionHandler<ResponseHandler> exception) throws IOException {
-		BoundRequestBuilder req = this.prepare(url, headers, data, mimeType, charset);
+	public Future<Void> post(BusHttpRequest httpRequest, final Callback<Map<String, String>> contextCallback,
+			final Callback<net.butfly.bus.Response> responseCallback, final ExceptionHandler<ResponseHandler> exception)
+			throws IOException {
+		BoundRequestBuilder req = this.prepare(httpRequest);
 		return req.execute(new AsyncHandler<Void>() {
 			@Override
 			public void onThrowable(Throwable t) {
@@ -107,15 +97,15 @@ public class HttpNingHandler extends HttpHandler {
 		});
 	}
 
-	private BoundRequestBuilder prepare(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset) {
-		logRequest(url, headers, data, charset);
+	private BoundRequestBuilder prepare(BusHttpRequest httpRequest) {
+		httpRequest.logRequest(logger);
 
-		BoundRequestBuilder req = this.client.preparePost(url);
-		for (String name : headers.keySet())
-			req.setHeader(name, headers.get(name));
-		req.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.create(mimeType, charset).toString());
+		BoundRequestBuilder req = client.preparePost(httpRequest.url);
+		for (String name : httpRequest.headers.keySet())
+			req.setHeader(name, httpRequest.headers.get(name));
+		req.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.create(httpRequest.mimeType, httpRequest.charset).toString());
 		req.setHeader(HttpHeaders.ACCEPT_ENCODING, "deflate");
-		req.setBody(data);
+		req.setBody(httpRequest.data);
 		return req;
 	}
 

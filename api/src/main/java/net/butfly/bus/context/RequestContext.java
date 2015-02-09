@@ -14,7 +14,7 @@ class RequestContext extends WrappedContext {
 	protected void load(Map<String, Object> original) {
 		if (null == original) original = new HashMap<String, Object>();
 		// emulate request id for local testing.
-		if (!original.containsKey(Key.RequestID.name())) original.put(Key.RequestID.name(), Keys.objectId());
+		if (!original.containsKey(Key.RequestID.name())) original.put(Key.RequestID.name(), Keys.key(String.class));
 		KEY_LOCAL.set((String) original.get(Key.RequestID.name()));
 		super.load(original);
 	}
