@@ -50,11 +50,11 @@ public class ResponseHandler {
 			Error detail = serializer.deserialize(data, Error.class);
 			response.error(detail);
 		} else {
-			String className = header(BusHeaders.HEADER_CLASS);
-			Class<?> resultClass = Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT)) ? Reflections
-					.forClassName(className) : null;
-			Object result = serializer.deserialize(data, resultClass);
-			response.result(result);
+			if (Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT))) response.result(serializer.deserialize(data));
+			else {
+				Class<?> clazz = Reflections.forClassName(header(BusHeaders.HEADER_CLASS));
+				response.result(null != clazz ? serializer.deserialize(data, clazz) : serializer.deserialize(data));
+			}
 		}
 		return ((ResponseWrapper) response).unwrap();
 	}

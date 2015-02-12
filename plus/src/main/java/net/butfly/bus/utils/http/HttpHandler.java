@@ -143,11 +143,11 @@ public class HttpHandler {
 		if (supportClass) response.setHeader(BusHeaders.HEADER_CLASS_SUPPORT, Boolean.toString(true));
 		byte[] sent;
 		if (error) {
-			if (supportClass) response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
+			if (!supportClass) response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
 			response.setHeader(BusHeaders.HEADER_ERROR, Boolean.toString(true));
 			sent = serializer.serialize(resp.error());
 		} else {
-			if (supportClass && resp.result() != null)
+			if (!supportClass && resp.result() != null)
 				response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
 			sent = serializer.serialize(resp.result());
 		}
