@@ -37,7 +37,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		this.timeout = to == null ? 0 : Integer.parseInt(to);
 		try {
 			Class<? extends Serializer> cl = Reflections.forClassName(config.param("serializer"));
-			this.serializer = Serializers.serializer(cl, Serializers.DEFAULT_CHARSET);
+			this.serializer = Serializers.serializer(null == cl ? Serializers.DEFAULT_SERIALIZER_CLASS : cl,
+					Serializers.DEFAULT_CHARSET);
 		} catch (Exception e) {
 			logger.error("Invoker initialization failure, Serializer could not be created.", e);
 			throw Exceptions.wrap(e);
