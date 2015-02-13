@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BusTest {
 	protected enum Mode {
-		LOCAL, REMOTE, CLIENT
+		LOCAL, REMOTE, CLIENT, SERVER
 	}
 
 	protected static final Logger logger = LoggerFactory.getLogger(BusTest.class);
@@ -22,13 +22,15 @@ public abstract class BusTest {
 
 	protected BusTest(Mode mode) throws Exception {
 		this.mode = mode;
-		if (mode == Mode.REMOTE) {
+		if (mode == Mode.REMOTE || mode == Mode.SERVER) {
 			System.setProperty("bus.server.waiting", "true");
 			logger.info(mode.name() + " test: bus server starting.");
 			JettyStarter.main(getServerMainArguments());
 		}
-		logger.info(mode.name() + " test: bus client starting.");
-		client = BusFactory.client(this.getClientConfigurationForType(this.isRemote()));
+		if (mode != Mode.SERVER) {
+			logger.info(mode.name() + " test: bus client starting.");
+			client = BusFactory.client(this.getClientConfigurationForType(this.isRemote()));
+		}
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
@@ -57,7 +59,7 @@ public abstract class BusTest {
 	}
 
 	protected boolean isRemote() {
-		return mode != Mode.LOCAL;
+		return mode != Mode.LOCAL && mode != Mode.SERVER;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -70,13 +72,23 @@ public abstract class BusTest {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e1) {}
-		logger.info("==========================");
-		logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test starting.");
-		logger.info("==========================");
-		doAllTest();
-		logger.info("==========================");
-		logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test finished.");
-		logger.info("==========================");
+		if (this.mode == Mode.SERVER) {
+			logger.info("==========================");
+			logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: server ready, waiting for client...");
+			logger.info("==========================");
+			while (true)
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {}
+		} else {
+			logger.info("==========================");
+			logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test starting.");
+			logger.info("==========================");
+			doAllTest();
+			logger.info("==========================");
+			logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test finished.");
+			logger.info("==========================");
+		}
 	}
 
 	protected static final void waiting() {
