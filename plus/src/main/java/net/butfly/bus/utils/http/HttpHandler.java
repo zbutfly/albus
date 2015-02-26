@@ -172,4 +172,14 @@ public class HttpHandler {
 		if (null != options && options.length > 0) headers.put(BusHeaders.HEADER_OPTIONS, this.opts.format(options));
 		return headers;
 	}
+
+	public String source(HttpServletRequest request) {
+		String ip = request.getHeader("X-FORWARDED-FOR");
+		if (ip != null && ip.length() > 0 && !"unknown".equalsIgnoreCase(ip.trim())) return ip.split(",")[0].trim();
+		ip = request.getHeader("Proxy-Client-IP");
+		if (ip != null && ip.length() > 0 && !"unknown".equalsIgnoreCase(ip.trim())) return ip;
+		ip = request.getHeader("WL-Proxy-Client-IP");
+		if (ip != null && ip.length() > 0 && !"unknown".equalsIgnoreCase(ip.trim())) return ip;
+		return request.getRemoteAddr();
+	}
 }
