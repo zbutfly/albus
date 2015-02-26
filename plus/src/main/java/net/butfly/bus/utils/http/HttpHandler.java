@@ -174,7 +174,7 @@ public class HttpHandler {
 	}
 
 	public String source(HttpServletRequest request) {
-		String ip = request.getHeader("X-FORWARDED-FOR");
+		String ip = request.getHeader(HttpHeaders.X_FORWARDED_FOR);
 		if (ip != null && ip.length() > 0 && !"unknown".equalsIgnoreCase(ip.trim())) return ip.split(",")[0].trim();
 		ip = request.getHeader("Proxy-Client-IP");
 		if (ip != null && ip.length() > 0 && !"unknown".equalsIgnoreCase(ip.trim())) return ip;
