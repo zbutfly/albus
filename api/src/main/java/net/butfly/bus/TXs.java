@@ -91,10 +91,10 @@ public class TXs extends Utils {
 
 	public static final int matching(String code, String... parttern) {
 		for (int i = 0; i < parttern.length; i++) {
-			String pattern = parttern[i];
-			if (pattern.equals("*")) return i;
-			if (pattern.equalsIgnoreCase(code)) return i;
-			if (pattern.endsWith("*") && code.startsWith(pattern.substring(0, pattern.indexOf("*")))) return i;
+			String ptn = parttern[i];
+			if (ptn.equals("*")) return i;
+			if (ptn.equalsIgnoreCase(code)) return i;
+			if (ptn.endsWith("*") && code.startsWith(ptn.substring(0, ptn.indexOf("*")))) return i;
 		}
 		return -1;
 	}

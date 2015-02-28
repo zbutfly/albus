@@ -117,5 +117,4 @@ public class HttpNingHandler extends HttpHandler {
 		byte[] recv = resp.getResponseBodyAsBytes();
 		return new ResponseHandler(serializer, recvHeaders, recv);
 	}
-
 }
