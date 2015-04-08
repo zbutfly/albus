@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>net.butfly.parent</groupId>
 		<artifactId>parent</artifactId>
-		<version>2.0.3-SNAPSHOT</version>
+		<version>2.0.3</version>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
@@ -20,7 +20,7 @@
 		<module>api</module>
 		<module>core</module>
 		<module>plus</module>
-		<module>async</module>
+		<!--<module>async</module>-->
 		<!--<module>demo</module>-->
 		<!--<module>console</module> -->
 	</modules>
