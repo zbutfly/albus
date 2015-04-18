@@ -28,7 +28,7 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 		return null;
 	}
 
-	public static class EnumSerializer implements Serializer {
+	public static class EnumSerializer<E extends Enum<E>> implements Serializer {
 		private static EnumSerializer INSTANCE = new EnumSerializer();
 
 		public static EnumSerializer instance() {
@@ -41,10 +41,10 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 		}
 	}
 
-	public static class EnumDeserializer extends AbstractDeserializer implements Deserializer {
-		private Class<Enum<? extends Enum>> clazz;
+	public static class EnumDeserializer<E extends Enum<E>> extends AbstractDeserializer implements Deserializer {
+		private Class<E> clazz;
 
-		public EnumDeserializer(Class<Enum<? extends Enum>> clazz) {
+		public EnumDeserializer(Class<E> clazz) {
 			// hessian/33b[34], hessian/3bb[78]
 			this.clazz = clazz;
 		}
@@ -91,10 +91,8 @@ public class HessianEnumFactory extends AbstractSerializerFactory {
 			return data;
 		}
 
-		private <E extends Enum<E>> E readEnum(AbstractHessianInput in) throws IOException {
-			Class<E> clazz = (Class<E>) this.clazz;
-			E e = Enums.parse(clazz, (byte) in.readInt());
-			return e;
+		private E readEnum(AbstractHessianInput in) throws IOException {
+			return Enums.parse(clazz, (byte) in.readInt());
 		}
 	}
 }
