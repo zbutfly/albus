@@ -30,5 +30,5 @@ public abstract class RouterBase implements Router {
 		return (T) this.route(target);
 	}
 
-	protected abstract <T> T route(T... filted);
+	protected abstract Routeable route(Routeable... filted);
 }

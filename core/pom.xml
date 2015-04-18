@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>net.butfly.bus</groupId>
 		<artifactId>albus</artifactId>
-		<version>2.0.3-SNAPSHOT</version>
+		<version>2.0.3</version>
 	</parent>
 	<artifactId>albus-core</artifactId>
 	<name>albus-core</name>
