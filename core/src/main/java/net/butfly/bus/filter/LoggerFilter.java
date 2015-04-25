@@ -1,16 +1,12 @@
 package net.butfly.bus.filter;
 
-import java.lang.reflect.Array;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import net.butfly.albacore.utils.Objects;
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
 import net.butfly.bus.service.LogService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LoggerFilter extends FilterBase implements Filter {
 	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
@@ -20,8 +16,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 		String prefix = null;
 		long now = System.currentTimeMillis();
 		if (logger.isInfoEnabled() || logger.isTraceEnabled()) {
-			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":")
-					.append(request.version()).append("]");
+			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":").append(request.version())
+					.append("]");
 			FlowNo fn = Context.flowNo();
 			if (null != fn) sb.append("[").append(fn.toString()).append("]");
 			sb.append(":");
@@ -67,31 +63,17 @@ public class LoggerFilter extends FilterBase implements Filter {
 	private void printObject(StringBuilder sb, Object obj) {
 		if (null == obj) sb.append("[NULL]");
 		else {
-			Map<String, Object> map = Objects.toMap(obj);
-			shrink(map);
-			sb.append("[").append(obj.getClass().getName()).append("]").append(":").append(map.toString());
+			sb.append("[").append(obj.getClass().getName()).append("]").append(":").append(shrink(obj));
 		}
 	}
 
-	private static int MAX_ARRAY_LENGTH = 10;
-	private static int MAX_STRING_LENGTH = 50;
-
-	private void shrink(Map<String, Object> map) {
-		for (Map.Entry<String, Object> entry : map.entrySet()) {
-			Object v = entry.getValue();
-			if (v == null) continue;
-			Class<? extends Object> vc = v.getClass();
-			if (String.class.isAssignableFrom(vc) && ((String) v).length() > MAX_STRING_LENGTH)
-				map.put(entry.getKey(), ((String) v).substring(0, MAX_STRING_LENGTH));
-			if (vc.isArray() && Array.getLength(v) > MAX_ARRAY_LENGTH) {
-				Class<?> vt = vc.getComponentType();
-				if (vt.isPrimitive() || String.class.isAssignableFrom(vt) || Number.class.isAssignableFrom(vt)
-						|| Boolean.class.isAssignableFrom(vt) || Character.class.isAssignableFrom(vt)) {
-					Object newv = Array.newInstance(vt, MAX_ARRAY_LENGTH);
-					System.arraycopy(v, 0, newv, 0, MAX_ARRAY_LENGTH);
-					map.put(entry.getKey(), newv);
-				}
-			}
-		}
+	public static String shrink(Object obj) {
+		if (obj instanceof String) return ((String) obj).length() > MAX_STRING_LENGTH
+				? ((String) obj).substring(0, MAX_STRING_LENGTH).replaceAll("\n", "") + "...[eliminated]" : ((String) obj);
+		if (obj instanceof Number || obj instanceof Character || obj instanceof Boolean) return obj.toString();
+		else return "[too long object eliminated: " + obj.getClass() + "]";
 	}
+
+	static int MAX_ARRAY_LENGTH = 10;
+	private static int MAX_STRING_LENGTH = 250;
 }

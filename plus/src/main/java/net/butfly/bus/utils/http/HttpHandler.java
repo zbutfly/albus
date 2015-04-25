@@ -23,6 +23,7 @@ import net.butfly.bus.Error;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.TXs;
+import net.butfly.bus.filter.LoggerFilter;
 import net.butfly.bus.serialize.Serializer;
 
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class HttpHandler {
 
 	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
 			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception)
-			throws IOException {
+					throws IOException {
 		ResponseHandler resp = this.post(httpRequest);
 		contextCallback.callback(resp.context());
 		responseCallback.callback(resp.response());
@@ -66,7 +67,7 @@ public class HttpHandler {
 		while (en.hasMoreElements()) {
 			String name = en.nextElement();
 			if (name != null && name.startsWith(BusHeaders.HEADER_PREFIX))
-			// XXX: multiple values header?
+				// XXX: multiple values header?
 				busHeaders.put(name, request.getHeader(name));
 		}
 		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== HEADER: " + busHeaders);
@@ -153,7 +154,8 @@ public class HttpHandler {
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("HTTP Response SEND ==> HEADER: " + headers(response));
-			logger.trace("HTTP Response SEND ==> CONTENT[" + sent.length + "]: " + new String(sent, charset));
+			logger.trace(
+					"HTTP Response SEND ==> CONTENT[" + sent.length + "]: " + LoggerFilter.shrink(new String(sent, charset)));
 		}
 		return sent;
 	}
