@@ -1,12 +1,12 @@
 package net.butfly.bus.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.FlowNo;
 import net.butfly.bus.service.LogService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LoggerFilter extends FilterBase implements Filter {
 	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
@@ -16,8 +16,8 @@ public class LoggerFilter extends FilterBase implements Filter {
 		String prefix = null;
 		long now = System.currentTimeMillis();
 		if (logger.isInfoEnabled() || logger.isTraceEnabled()) {
-			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":")
-					.append(request.version()).append("]");
+			StringBuilder sb = new StringBuilder("BUS").append("[").append(request.code()).append(":").append(request.version())
+					.append("]");
 			FlowNo fn = Context.flowNo();
 			if (null != fn) sb.append("[").append(fn.toString()).append("]");
 			sb.append(":");
@@ -61,7 +61,19 @@ public class LoggerFilter extends FilterBase implements Filter {
 	}
 
 	private void printObject(StringBuilder sb, Object obj) {
-		if (null != obj) sb.append("[").append(obj.getClass().getName()).append("]").append(":").append(obj.toString());
-		else sb.append("[NULL]");
+		if (null == obj) sb.append("[NULL]");
+		else {
+			sb.append("[").append(obj.getClass().getName()).append("]").append(":").append(shrink(obj));
+		}
 	}
+
+	public static String shrink(Object obj) {
+		if (obj instanceof String) return ((String) obj).length() > MAX_STRING_LENGTH
+				? ((String) obj).substring(0, MAX_STRING_LENGTH).replaceAll("\n", "") + "...[eliminated]" : ((String) obj);
+		if (obj instanceof Number || obj instanceof Character || obj instanceof Boolean) return obj.toString();
+		else return "[too long object eliminated: " + obj.getClass() + "]";
+	}
+
+	static int MAX_ARRAY_LENGTH = 10;
+	private static int MAX_STRING_LENGTH = 250;
 }
