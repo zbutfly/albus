@@ -18,8 +18,8 @@
 		<url>https://github.com/zbutfly/albus</url>
 	</scm>
 	<properties>
-	    <deps.version.albacore>2.0.4-SNAPSHOT</deps.version.albacore>
-	    <deps.version.albus>2.0.4-SNAPSHOT</deps.version.albus>
+		<deps.version.albacore>2.0.4-SNAPSHOT</deps.version.albacore>
+		<deps.version.albus>2.0.4-SNAPSHOT</deps.version.albus>
 	</properties>
 	<modules>
 		<module>api</module>
