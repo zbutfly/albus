@@ -68,6 +68,7 @@ public class LoggerFilter extends FilterBase implements Filter {
 	}
 
 	public static String shrink(Object obj) {
+		if (Context.debug()) return obj.toString();
 		if (obj instanceof String) return ((String) obj).length() > MAX_STRING_LENGTH
 				? ((String) obj).substring(0, MAX_STRING_LENGTH).replaceAll("\n", "") + "...[eliminated]" : ((String) obj);
 		if (obj instanceof Number || obj instanceof Character || obj instanceof Boolean) return obj.toString();
