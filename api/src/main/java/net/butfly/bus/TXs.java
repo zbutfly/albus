@@ -11,14 +11,10 @@ public class TXs extends Utils {
 		case 0:
 			return null;
 		case 1:
-			return doimpl(tx[0], TX.ALL_VERSION);
+			return new TXImpl(tx[0], TX.ALL_VERSION);
 		default:
-			return doimpl(tx[0], null == tx[1] ? TX.ALL_VERSION : tx[1]);
+			return new TXImpl(tx[0], null == tx[1] ? TX.ALL_VERSION : tx[1]);
 		}
-	}
-
-	private static TX doimpl(final String code, final String version) {
-		return new TXImpl(code, version);
 	}
 
 	@SuppressWarnings("all")

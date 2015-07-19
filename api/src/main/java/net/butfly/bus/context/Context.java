@@ -154,9 +154,7 @@ public abstract class Context implements Map<String, Object> {
 				dst.put(key.name(), new FlowNo(src.get(key.name())));
 				continue;
 			case TXInfo:
-				Object tx = src.get(key.name());
-				if (tx instanceof TX) dst.put(key.name(), (TX) tx);
-				else dst.put(key.name(), TXs.impl(tx.toString().split(":")));
+				dst.put(key.name(), TXs.impl(src.get(key.name())));
 				continue;
 			default:
 				dst.put(key.name(), src.get(key.name()).toString());
