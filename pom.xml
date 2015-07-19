@@ -8,6 +8,7 @@
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
+	<version>2.0.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>albus</name>
 	<scm>
@@ -16,6 +17,10 @@
 		<tag>MASTER</tag>
 		<url>https://github.com/zbutfly/albus</url>
 	</scm>
+	<properties>
+	    <deps.version.albacore>2.0.4-SNAPSHOT</deps.version.albacore>
+	    <deps.version.albus>2.0.4-SNAPSHOT</deps.version.albus>
+	</properties>
 	<modules>
 		<module>api</module>
 		<module>core</module>

@@ -1,6 +1,7 @@
 package net.butfly.bus.filter;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Bus.Mode;
@@ -44,8 +45,9 @@ public final class FilterChain {
 		try {
 			filter.execute(context);
 		} catch (Exception ex) {
-			if (context.mode() != Mode.SERVER) throw ex;
-			context.response(new Response(context.request()).error(new Error(ex, Context.debug())));
+			Exception exx = Exceptions.unwrap(ex);
+			if (context.mode() != Mode.SERVER) throw exx;
+			context.response(new Response(context.request()).error(new Error(exx, Context.debug())));
 		}
 	}
 
