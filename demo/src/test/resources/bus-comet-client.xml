@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus side="client">
+	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter" enabled="true" />
+	<invoker id="albus-test-comet" tx="TST_CMT-*" class="net.butfly.bus.invoker.WebServiceInvoker">
+		<path>http://127.0.0.1:19080/bus</path>
+		<!-- <serializer>net.butfly.bus.serialize.HessianSerializer</serializer> -->
+		<typeTranslators>net.butfly.bus.serialize.converter.HessianEnumConverter</typeTranslators>
+		<auth username="user" password="pass" />
+	</invoker>
+</bus>
