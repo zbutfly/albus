@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>net.butfly.bus</groupId>
 		<artifactId>albus</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>2.0.4-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-plus</artifactId>
 	<name>albus-plus</name>
@@ -12,7 +12,7 @@
 		<finalName>albus-plus</finalName>
 	</build>
 	<properties>
-		<deps.version.jetty>9.3.1.v20150714</deps.version.jetty>
+		<deps.version.jetty>9.3.0.M1</deps.version.jetty><!-- 9.2.3.v20140905 -->
 	</properties>
 	<dependencies>
 		<dependency>
@@ -36,12 +36,12 @@
 			<artifactId>async-http-client</artifactId>
 			<version>1.9.15</version>
 		</dependency>
+		<!-- jetty dependencies. -->
 		<dependency>
 			<groupId>commons-cli</groupId>
 			<artifactId>commons-cli</artifactId>
 			<version>1.2</version>
 		</dependency>
-		<!-- jetty dependencies. -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
