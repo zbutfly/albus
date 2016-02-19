@@ -19,5 +19,11 @@
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-json</artifactId>
+			<version>${deps.version.albus}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

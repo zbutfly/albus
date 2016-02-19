@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>net.butfly.parent</groupId>
 		<artifactId>parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
@@ -17,15 +17,11 @@
 		<tag>MASTER</tag>
 		<url>https://github.com/zbutfly/albus</url>
 	</scm>
-	<properties>
-		<deps.version.albacore>3.0.0-SNAPSHOT</deps.version.albacore>
-		<deps.version.albus>3.0.0-SNAPSHOT</deps.version.albus>
-	</properties>
 	<modules>
 		<module>api</module>
 		<module>core</module>
-		<module>plus</module>
-		<!--<module>async</module>-->
+		<module>http</module>
+		<module>async</module>
 		<!--<module>demo</module>-->
 		<!--<module>console</module> -->
 	</modules>
