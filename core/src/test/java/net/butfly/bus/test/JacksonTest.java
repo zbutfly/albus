@@ -1,4 +1,4 @@
-package net.butfly.bus.comet;
+package net.butfly.bus.test;
 
 import java.io.IOException;
 import java.io.Serializable;
