@@ -1,4 +1,4 @@
-package net.butfly.bus.comet;
+package net.butfly.albacore.utils.async;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -142,5 +142,4 @@ public class SampleStreamServlet extends HttpServlet {
 		asyncContexts.clear();
 		notifier.interrupt();
 	}
-
 }
