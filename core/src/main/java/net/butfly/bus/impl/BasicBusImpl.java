@@ -8,6 +8,8 @@ import net.butfly.albacore.utils.Keys;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
+import net.butfly.bus.Buses;
+import net.butfly.bus.Mode;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -15,7 +17,7 @@ import net.butfly.bus.TXs;
 import net.butfly.bus.config.Configuration;
 import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.context.Context;
-import net.butfly.bus.context.FlowNo;
+import net.butfly.bus.context.Contexts;
 import net.butfly.bus.filter.FilterChain;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
@@ -31,7 +33,7 @@ abstract class BasicBusImpl implements Bus {
 	protected Mode mode;
 
 	public BasicBusImpl(Mode mode, String conf) {
-		Context.initialize(null);
+		Contexts.initialize(null);
 		this.mode = mode;
 		this.config = BusFactory.createConfiguration(conf, mode);
 		this.router = BusFactory.createRouter(this.config);
@@ -68,10 +70,10 @@ abstract class BasicBusImpl implements Bus {
 		public Object invoke(Object obj, Method method, Object[] args) throws Exception {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
-				Request request = new Request(tx.value(), tx.version(), args);
+				Request request = Buses.request(tx.value(), tx.version(), args);
 				return this.invoke(request);
-			} else throw new SystemException(Constants.UserError.TX_NOT_EXIST, "Request tx code not found on method ["
-					+ method.toString() + "].");
+			} else throw new SystemException(Constants.UserError.TX_NOT_EXIST,
+					"Request tx code not found on method [" + method.toString() + "].");
 		}
 
 		protected abstract T invoke(Request request) throws Exception;
@@ -83,7 +85,7 @@ abstract class BasicBusImpl implements Bus {
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
 		if (request.version() == null)
 			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
-		new FlowNo(request);
+		Contexts.flowNo(request);
 		Context.txInfo(TXs.impl(request.code(), request.version()));
 	}
 

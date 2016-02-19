@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.context.Contexts;
 
 public class BusTask<T> extends Task<T> {
 	private final Map<String, Object> context = new ConcurrentHashMap<String, Object>();
@@ -15,7 +16,7 @@ public class BusTask<T> extends Task<T> {
 			@Override
 			public T call() throws Exception {
 				// TODO: optimizing...
-				Context.initialize(context);
+				Contexts.initialize(context);
 				try {
 					return task.call().call();
 				} finally {
@@ -27,7 +28,7 @@ public class BusTask<T> extends Task<T> {
 			@Override
 			public void callback(T result) {
 				// TODO: optimizing...
-				Context.initialize(context);
+				Contexts.initialize(context);
 				try {
 					task.back().callback(result);
 				} finally {

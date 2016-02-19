@@ -5,6 +5,8 @@ import java.lang.reflect.Proxy;
 import net.butfly.albacore.facade.Facade;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.bus.Buses;
+import net.butfly.bus.Mode;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -41,7 +43,7 @@ class BusImpl extends StandardBusImpl {
 
 	@Override
 	public <T> void invoke(TX tx, Object[] arguments, final Task.Callback<T> callback, Options... options) throws Exception {
-		this.invoke(new Request(tx, arguments), new Task.Callback<Response>() {
+		this.invoke(Buses.request(tx, arguments), new Task.Callback<Response>() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void callback(Response result) {

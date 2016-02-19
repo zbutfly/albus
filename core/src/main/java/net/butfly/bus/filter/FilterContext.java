@@ -2,7 +2,7 @@ package net.butfly.bus.filter;
 
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.Bus.Mode;
+import net.butfly.bus.Mode;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.invoker.Invoker;

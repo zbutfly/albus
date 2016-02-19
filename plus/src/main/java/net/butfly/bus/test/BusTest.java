@@ -1,14 +1,14 @@
 package net.butfly.bus.test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.Texts;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
 import net.butfly.bus.start.JettyStarter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BusTest {
 	protected enum Mode {

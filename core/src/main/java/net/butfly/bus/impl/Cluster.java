@@ -3,16 +3,17 @@ package net.butfly.bus.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.Bus;
-import net.butfly.bus.Bus.Mode;
-import net.butfly.bus.Request;
-import net.butfly.bus.Response;
-import net.butfly.bus.context.Context;
-import net.butfly.bus.policy.Router;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.bus.Bus;
+import net.butfly.bus.Buses;
+import net.butfly.bus.Mode;
+import net.butfly.bus.Request;
+import net.butfly.bus.Response;
+import net.butfly.bus.context.Contexts;
+import net.butfly.bus.policy.Router;
 
 final class Cluster {
 	protected static Logger logger = LoggerFactory.getLogger(Cluster.class);
@@ -45,8 +46,8 @@ final class Cluster {
 	}
 
 	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) throws Exception {
-		Context.initialize(Context.deserialize(invoking.context));
-		Request req = new Request(invoking.tx, invoking.context, invoking.parameters);
+		Contexts.initialize(Contexts.deserialize(invoking.context));
+		Request req = Buses.request(invoking.tx, invoking.context, invoking.parameters);
 		((BusImpl) invoking.bus).invoke(req, callback, invoking.options);
 	}
 }

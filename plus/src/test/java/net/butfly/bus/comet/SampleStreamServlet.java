@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.butfly.albacore.utils.Keys;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.google.gson.Gson;
+import net.butfly.albacore.utils.Keys;
 
 @WebServlet(urlPatterns = "/chat", asyncSupported = true)
 public class SampleStreamServlet extends HttpServlet {
@@ -130,7 +130,7 @@ public class SampleStreamServlet extends HttpServlet {
 		data.put("message", request.getParameter("message"));
 
 		try {
-			messages.put(new Gson().toJson(data));
+			messages.put(new ObjectMapper().writeValueAsString(data));
 		} catch (InterruptedException e) {
 			throw new IOException(e);
 		}

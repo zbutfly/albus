@@ -4,78 +4,22 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.butfly.albacore.utils.Keys;
-import net.butfly.bus.context.Context.Key;
-
-public class Request implements Serializable {
+public final class Request implements Serializable {
 	private static final long serialVersionUID = -3216119686409193334L;
-	protected String id;
-	private String code;
-	private String version;
-	private Object[] arguments;
-	private Map<String, String> context;
+	String id;
+	String code;
+	String version;
+	Object[] arguments;
+	Map<String, String> context;
 
-	protected Request() {}
+	Request() {}
 
-	public Request(String code) {
-		this(code, TX.ALL_VERSION, new HashMap<String, String>(), new Object[0]);
-	}
-
-	public Request(String code, Object... arguments) {
-		this(code, TX.ALL_VERSION, new HashMap<String, String>(), arguments);
-	}
-
-	public Request(String code, Map<String, String> context) {
-		this(code, TX.ALL_VERSION, context, new Object[0]);
-	}
-
-	public Request(String code, Map<String, String> context, Object... arguments) {
-		this(code, TX.ALL_VERSION, context, arguments);
-	}
-
-	public Request(String code, String version) {
-		this(code, version, new HashMap<String, String>(), new Object[0]);
-	}
-
-	public Request(String code, String version, Object... arguments) {
-		this(code, version, new HashMap<String, String>(), arguments);
-	}
-
-	public Request(String code, String version, Map<String, String> context) {
-		this(code, version, context, new Object[0]);
-	}
-
-	public Request(TX tx) {
-		this(tx.value(), tx.version());
-	}
-
-	public Request(TX tx, Map<String, String> context) {
-		this(tx.value(), tx.version(), context);
-	}
-
-	public Request(TX tx, Object... arguments) {
-		this(tx.value(), tx.version(), arguments);
-	}
-
-	public Request(TX tx, Map<String, String> context, Object... arguments) {
-		this(tx.value(), tx.version(), context, arguments);
-	}
-
-	protected Request(String id, String code, String version, Map<String, String> context, Object[] arguments) {
+	Request(String id, String code, String version, Map<String, String> context, Object[] arguments) {
 		this.id = id;
 		this.code = code;
 		this.version = version;
 		this.arguments = null == arguments ? new Object[0] : arguments;
 		this.context = null == context ? new HashMap<String, String>() : context;
-	}
-
-	public Request(String code, String version, Map<String, String> context, Object... arguments) {
-		this.id = Keys.key(String.class);
-		this.code = code;
-		this.version = version;
-		this.arguments = null == arguments ? new Object[0] : arguments;
-		this.context = null == context ? new HashMap<String, String>() : context;
-		this.context.put(Key.RequestID.name(), this.id);
 	}
 
 	public String id() {

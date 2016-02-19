@@ -28,11 +28,22 @@ public class BurlapSerializer extends HessianSupport {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T read(InputStream is, Type... types) throws IOException {
+	public <T> T read(InputStream is, Type types) throws IOException {
 		BurlapInput hi = new BurlapInput(is);
 		if (null != factory) hi.setSerializerFactory(factory);
 		try {
 			return (T) hi.readObject();
+		} finally {
+			hi.close();
+		}
+	}
+
+	@Override
+	public Object[] read(InputStream is, Type[] types) throws IOException {
+		BurlapInput hi = new BurlapInput(is);
+		if (null != factory) hi.setSerializerFactory(factory);
+		try {
+			return (Object[]) hi.readObject();
 		} finally {
 			hi.close();
 		}

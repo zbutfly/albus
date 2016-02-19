@@ -30,11 +30,22 @@ public class HessianSerializer extends HessianSupport {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T read(InputStream is, Type... types) throws IOException {
+	public <T> T read(InputStream is, Type types) throws IOException {
 		Hessian2StreamingInput hi = new Hessian2StreamingInput(is);
 		if (null != factory) hi.setSerializerFactory(factory);
 		try {
 			return (T) hi.readObject();
+		} finally {
+			hi.close();
+		}
+	}
+
+	@Override
+	public Object[] read(InputStream is, Type[] types) throws IOException {
+		Hessian2StreamingInput hi = new Hessian2StreamingInput(is);
+		if (null != factory) hi.setSerializerFactory(factory);
+		try {
+			return (Object[]) hi.readObject();
 		} finally {
 			hi.close();
 		}
