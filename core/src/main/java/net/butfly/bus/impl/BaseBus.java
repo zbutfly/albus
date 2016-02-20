@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Keys;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Buses;
 import net.butfly.bus.Mode;
@@ -24,7 +23,7 @@ import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
 
-abstract class BasicBusImpl implements Bus {
+abstract class BaseBus implements Bus {
 	private final String id;
 	protected Configuration config;
 	protected Router router;
@@ -32,7 +31,7 @@ abstract class BasicBusImpl implements Bus {
 
 	protected Mode mode;
 
-	public BasicBusImpl(Mode mode, String conf) {
+	public BaseBus(Mode mode, String conf) {
 		Contexts.initialize(null);
 		this.mode = mode;
 		this.config = BusFactory.createConfiguration(conf, mode);
@@ -90,8 +89,6 @@ abstract class BasicBusImpl implements Bus {
 	}
 
 	abstract Response invoke(Request request, Options... options) throws Exception;
-
-	abstract void invoke(Request request, Callback<Response> callback, Options... options) throws Exception;
 
 	protected Invoker find(String tx) {
 		// TODO: handle route failure null exception

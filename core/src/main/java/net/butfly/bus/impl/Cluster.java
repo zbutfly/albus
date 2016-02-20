@@ -6,7 +6,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Buses;
 import net.butfly.bus.Mode;
@@ -15,7 +14,7 @@ import net.butfly.bus.Response;
 import net.butfly.bus.context.Contexts;
 import net.butfly.bus.policy.Router;
 
-final class Cluster {
+class Cluster {
 	protected static Logger logger = LoggerFactory.getLogger(Cluster.class);
 	private final Map<String, Bus> nodes = new HashMap<String, Bus>();
 	final private Mode mode;
@@ -42,12 +41,12 @@ final class Cluster {
 		invoking.bus = router.route(invoking.tx.value(), servers());
 		if (null == invoking.bus)
 			throw new RuntimeException("Server routing failure, no node found for [" + invoking.tx.value() + "].");
-		invoking.parameterClasses = ((BasicBusImpl) invoking.bus).invokingMethod(invoking.tx).getParameterTypes();
+		invoking.parameterClasses = ((BaseBus) invoking.bus).invokingMethod(invoking.tx).getParameterTypes();
 	}
 
-	public final void invoke(final Invoking invoking, Task.Callback<Response> callback) throws Exception {
+	public final Response invoke(final Invoking invoking) throws Exception {
 		Contexts.initialize(Contexts.deserialize(invoking.context));
 		Request req = Buses.request(invoking.tx, invoking.context, invoking.parameters);
-		((BusImpl) invoking.bus).invoke(req, callback, invoking.options);
+		return ((BusImpl) invoking.bus).invoke(req, invoking.options);
 	}
 }

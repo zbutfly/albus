@@ -1,10 +1,8 @@
-package net.butfly.bus;
+package net.butfly.bus.context;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.butfly.bus.context.Context;
 
 public final class Token implements Serializable {
 	private static final long serialVersionUID = 372303536302553583L;

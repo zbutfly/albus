@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.butfly.bus.context.Token;
+
 public final class Request implements Serializable {
 	private static final long serialVersionUID = -3216119686409193334L;
 	String id;

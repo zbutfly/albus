@@ -13,6 +13,7 @@ import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.policy.Router;
@@ -34,6 +35,7 @@ public class WebServiceServlet extends BusServlet {
 
 	protected Cluster cluster;
 	protected Opts opts;
+	protected boolean internalAsync;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
@@ -41,12 +43,11 @@ public class WebServiceServlet extends BusServlet {
 		String paramConfig = this.getInitParameter("config");
 		logger.info("Servlet [" + paramConfig + "] starting...");
 		Class<? extends Router> routerClass = Reflections.forClassName(this.getInitParameter("router"));
-		this.cluster = BusFactory.serverCluster(routerClass,
-				null == paramConfig ? new String[0] : paramConfig.split(","));
+		this.cluster = BusFactory.serverCluster(routerClass, null == paramConfig ? new String[0] : paramConfig.split(","));
+		this.internalAsync = AsyncCluster.class.isAssignableFrom(this.cluster.getClass());
 		this.opts = new MoreOpts();
 		// FOR debug
-		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting")))
-			System.setProperty("bus.server.waiting", "false");
+		if (Boolean.parseBoolean(System.getProperty("bus.server.waiting"))) System.setProperty("bus.server.waiting", "false");
 		logger.info("Servlet [" + paramConfig + "] started.");
 	}
 
@@ -60,21 +61,22 @@ public class WebServiceServlet extends BusServlet {
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
 		final ServiceContext context = this.prepare(request, response);
-		try {
-			cluster.invoke(context.invoking, new Task.Callback<Response>() {
-				@Override
-				public void callback(Response resp) {
-					try {
-						response.getOutputStream().write(
-								context.handler.response(resp, response, context.invoking.supportClass,
-										context.respContentType.getCharset()));
-						response.getOutputStream().flush();
-						response.flushBuffer();
-					} catch (IOException ex) {
-						logger.error("Response writing I/O failure", ex);
-					}
+		Callback<Response> cb = new Task.Callback<Response>() {
+			@Override
+			public void callback(Response resp) {
+				try {
+					response.getOutputStream().write(context.handler.response(resp, response, context.invoking.supportClass,
+							context.respContentType.getCharset()));
+					response.getOutputStream().flush();
+					response.flushBuffer();
+				} catch (IOException ex) {
+					logger.error("Response writing I/O failure", ex);
 				}
-			});
+			}
+		};
+		try {
+			if (this.internalAsync) ((AsyncCluster) cluster).invoke(context.invoking, cb);
+			else cb.callback(cluster.invoke(context.invoking));
 		} catch (Exception ex) {
 			throw Exceptions.wrap(ex, ServletException.class);
 		}
@@ -92,10 +94,9 @@ public class WebServiceServlet extends BusServlet {
 		if (context.reqContentType.getCharset() == null)
 			context.reqContentType = context.reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
 		if (context.reqContentType.getMimeType() == null)
-			context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE,
-					context.reqContentType.getCharset());
-		final Serializer serializer = Serializers.serializer(
-				Serializers.serializerClass(context.reqContentType.getMimeType()), context.reqContentType.getCharset());
+			context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, context.reqContentType.getCharset());
+		final Serializer serializer = Serializers.serializer(Serializers.serializerClass(context.reqContentType.getMimeType()),
+				context.reqContentType.getCharset());
 		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.defaultMimeType(), context.reqContentType.getCharset());
 		context.handler = Instances.fetch(HttpHandler.class, serializer);
@@ -106,8 +107,8 @@ public class WebServiceServlet extends BusServlet {
 		context.invoking.context = context.handler.context(busHeaders);
 		context.invoking.context.put(Context.Key.SourceHost.name(), context.handler.source(request));
 		context.invoking.tx = context.handler.tx(request.getPathInfo(), busHeaders);
-		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS) ? this.opts.parses(busHeaders
-				.get(BusHeaders.HEADER_OPTIONS)) : null;
+		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS)
+				? this.opts.parses(busHeaders.get(BusHeaders.HEADER_OPTIONS)) : null;
 
 		context.invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHeaders.HEADER_CLASS_SUPPORT));
 		cluster.invoking(context.invoking);

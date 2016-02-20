@@ -4,9 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.butfly.albacore.utils.Keys;
-import net.butfly.bus.Token;
 import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.context.Token;
 
 public abstract class AbstractInvoker implements Invoker {
 	protected static Logger logger = LoggerFactory.getLogger(Invoker.class);

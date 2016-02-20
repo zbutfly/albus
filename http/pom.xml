@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
-			<artifactId>albus-core</artifactId>
+			<artifactId>albus-async</artifactId>
 			<version>${deps.version.albus}</version>
 		</dependency>
 		<dependency>

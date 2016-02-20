@@ -2,6 +2,7 @@ package net.butfly.bus.impl;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Mode;
 import net.butfly.bus.config.Configuration;
@@ -52,7 +53,10 @@ public final class BusFactory {
 
 	static Cluster cluster(Mode mode, Class<? extends Router> routerClass, String... configs) {
 		try {
-			return new Cluster(Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance(), configs);
+			Class<? extends Cluster> c = Reflections.forClassName("net.butfly.bus.impl.AsyncCluster");
+			if (null == c) c = Cluster.class;
+			return Reflections.construct(c, Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance(),
+					configs);
 		} catch (Exception e) {
 			throw Exceptions.wrap(e);
 		}
