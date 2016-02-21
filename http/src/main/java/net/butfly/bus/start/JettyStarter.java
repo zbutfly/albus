@@ -6,14 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
-import net.butfly.albacore.utils.Objects;
-import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.Texts;
-import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.more.JNDIUtils;
-import net.butfly.bus.impl.BusServlet;
-import net.butfly.bus.impl.ServletInitParams;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.eclipse.jetty.http.spi.DelegatingThreadPool;
@@ -38,6 +30,15 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
+
+import net.butfly.albacore.utils.Objects;
+import net.butfly.albacore.utils.Reflections;
+import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.more.JNDIUtils;
+import net.butfly.bus.impl.BusServlet;
+import net.butfly.bus.impl.ServletInitParams;
 
 public class JettyStarter implements Runnable {
 	protected static final Logger logger = LoggerFactory.getLogger(JettyStarter.class);
@@ -93,11 +94,11 @@ public class JettyStarter implements Runnable {
 		}
 	}
 
-	public JettyStarter addBusInstances(StarterConfiguration conf) throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException {
+	public JettyStarter addBusInstances(StarterConfiguration conf)
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		for (String contextPath : conf.definitions.keySet())
-			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(), conf.definitions.get(contextPath)
-					.value1().toArray(new String[0]));
+			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(),
+					conf.definitions.get(contextPath).value1().toArray(new String[0]));
 		new RuntimeException(
 				"Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
 		return this;
@@ -111,7 +112,7 @@ public class JettyStarter implements Runnable {
 		servlet.setAsyncSupported(true);
 		servlet.setDisplayName("BusServlet[" + contextPath + "@" + servletClass.getName() + "]");
 		servlet.setInitOrder(0);
-		servlet.setInitParameter("config", Texts.join(',', configLocation));
+		servlet.setInitParameter("config", Joiner.on(',').join(configLocation));
 		for (Field f : servletClass.getDeclaredFields()) {
 			Annotation a = f.getAnnotation(ServletInitParams.class);
 			if (null != a && Map.class.isAssignableFrom(f.getType()) && Modifier.isStatic(f.getModifiers())) {
@@ -124,7 +125,7 @@ public class JettyStarter implements Runnable {
 		if (!contextPath.endsWith("/*")) contextPath = contextPath + "/*";
 		this.handler.addServlet(servlet, contextPath);
 		logger.info("Servlet " + servletClass.getName() + " is registeried to \"" + contextPath + "\" with configuration(s): "
-				+ Texts.join(", ", configLocation) + "");
+				+ Joiner.on(',').join(configLocation) + "");
 	}
 
 	protected void createServer(int port) {

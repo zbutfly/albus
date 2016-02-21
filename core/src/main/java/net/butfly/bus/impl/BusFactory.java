@@ -18,10 +18,9 @@ public final class BusFactory {
 	private BusFactory() {}
 
 	static Bus create(Mode mode, String conf) {
-		// TODO: no compilance error, but runtime failure withou impl.
+		// XXX: no compilance error, but runtime failure withou impl.
 		try {
-			Class<?> c = Class.forName("net.butfly.bus.impl.BusImpl");
-			return (Bus) c.getConstructor(Mode.class, String.class).newInstance(mode, conf);
+			return Reflections.construct("net.butfly.bus.impl.BusImpl", mode, conf);
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}

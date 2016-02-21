@@ -2,10 +2,14 @@ package net.butfly.bus.invoker;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
+
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.Texts;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -18,9 +22,6 @@ import net.butfly.bus.utils.http.BusHttpRequest;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpNingHandler;
 import net.butfly.bus.utils.http.ResponseHandler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker {
 	private static Logger logger = LoggerFactory.getLogger(WebServiceInvoker.class);
@@ -48,7 +49,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 			try {
 				((SerializerFactorySupport) this.serializer).addFactoriesByClassName(trs);
 			} catch (Exception e) {
-				logger.error("Serializer factory instance construction failure for class: " + Texts.join(',', trs), e);
+				logger.error("Serializer factory instance construction failure for class: " + Joiner.on(',').join(trs), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 		}
