@@ -6,10 +6,10 @@
 		<artifactId>albus</artifactId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>albus-spring</artifactId>
-	<name>albus-spring</name>
+	<artifactId>albus-test</artifactId>
+	<name>albus-test</name>
 	<build>
-		<finalName>albus-spring</finalName>
+		<finalName>albus-test</finalName>
 	</build>
 	<dependencies>
 		<dependency>

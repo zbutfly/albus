@@ -20,8 +20,12 @@
 	<modules>
 		<module>api</module>
 		<module>core</module>
-		<module>http</module>
 		<module>async</module>
+		<module>hessian</module>
+		<module>json</module>
+		<module>spring</module>
+		<module>http</module>
+		<module>test</module>
 		<!--<module>demo</module>-->
 		<!--<module>console</module> -->
 	</modules>
