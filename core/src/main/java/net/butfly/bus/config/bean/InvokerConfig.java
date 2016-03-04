@@ -5,7 +5,7 @@ import java.util.Map;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.TXs;
-import net.butfly.bus.Token;
+import net.butfly.bus.context.Token;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Routeable;

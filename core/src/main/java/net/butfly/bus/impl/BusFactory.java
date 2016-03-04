@@ -2,8 +2,9 @@ package net.butfly.bus.impl;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.Bus;
-import net.butfly.bus.Bus.Mode;
+import net.butfly.bus.Mode;
 import net.butfly.bus.config.Configuration;
 import net.butfly.bus.config.loader.ClasspathLoader;
 import net.butfly.bus.config.loader.Loader;
@@ -16,16 +17,21 @@ import net.butfly.bus.utils.Constants;
 public final class BusFactory {
 	private BusFactory() {}
 
+	static Bus create(Mode mode, String conf) {
+		// XXX: no compilance error, but runtime failure withou impl.
+		try {
+			return Reflections.construct("net.butfly.bus.impl.BusImpl", mode, conf);
+		} catch (Exception e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
 	public static Bus client(String conf) {
 		return create(Mode.CLIENT, conf);
 	}
 
 	public static Bus server(String conf) {
-		return create(Mode.SERVER, conf);
-	}
-
-	static Bus create(Mode mode, String conf) {
-		return new BusImpl(mode, conf);
+		return (Bus) create(Mode.SERVER, conf);
 	}
 
 	public static Cluster serverCluster(String... config) {
@@ -46,7 +52,10 @@ public final class BusFactory {
 
 	static Cluster cluster(Mode mode, Class<? extends Router> routerClass, String... configs) {
 		try {
-			return new Cluster(Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance(), configs);
+			Class<? extends Cluster> c = Reflections.forClassName("net.butfly.bus.impl.AsyncCluster");
+			if (null == c) c = Cluster.class;
+			return Reflections.construct(c, Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance(),
+					configs);
 		} catch (Exception e) {
 			throw Exceptions.wrap(e);
 		}

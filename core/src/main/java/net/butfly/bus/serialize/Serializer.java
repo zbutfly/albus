@@ -9,17 +9,25 @@ import java.nio.charset.Charset;
 public interface Serializer {
 	byte[] serialize(Object obj);
 
-	<T> T deserialize(byte[] data, Type... types);
+	Object[] deserialize(byte[] data, Type[] types);
+
+	<T> T deserialize(byte[] data, Type type);
+
+	Object[] deserialize(byte[] data);
 
 	void write(OutputStream os, Object obj) throws IOException;
 
-	<T> T read(InputStream is, Type... types) throws IOException;
+	<T> T read(InputStream is, Type types) throws IOException;
+
+	Object[] read(InputStream is, Type[] types) throws IOException;
 
 	void readThenWrite(InputStream is, OutputStream os, Type... type) throws IOException;
 
 	boolean supportClass();
 
-	<T> T fromString(String str, Type... types);
+	<T> T fromString(String str, Type type);
+
+	Object[] fromString(String str, Type[] types);
 
 	String asString(Object obj);
 
@@ -28,4 +36,5 @@ public interface Serializer {
 	String defaultMimeType();
 
 	Charset charset();
+
 }

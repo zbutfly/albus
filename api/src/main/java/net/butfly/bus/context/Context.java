@@ -6,11 +6,9 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.bus.TX;
-import net.butfly.bus.TXs;
-import net.butfly.bus.Token;
 
 public abstract class Context implements Map<String, Object> {
-	private static Context CURRENT = null;
+	static Context CURRENT = null;
 
 	public enum Key {
 		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
@@ -19,16 +17,6 @@ public abstract class Context implements Map<String, Object> {
 
 	public static String string() {
 		return CURRENT.toString();
-	}
-
-	public static void initialize(Map<String, Object> original) {
-		if (CURRENT == null) CURRENT = new RequestContext();
-		CURRENT.load(original);
-	}
-
-	public static void clean(Map<String, Object> original) {
-		if (CURRENT == null) CURRENT = new RequestContext();
-		CURRENT.load(original);
 	}
 
 	// ***********************************************************************/
@@ -143,24 +131,6 @@ public abstract class Context implements Map<String, Object> {
 		Map<String, String> dst = new HashMap<String, String>();
 		for (Key key : Key.values())
 			if (src.containsKey(key.name())) dst.put(key.name(), src.get(key.name()).toString());
-		return dst;
-	}
-
-	public static Map<String, Object> deserialize(Map<String, String> src) {
-		Map<String, Object> dst = new HashMap<String, Object>();
-		for (Key key : Key.values()) {
-			if (src.containsKey(key.name())) switch (key) {
-			case FlowNo:
-				dst.put(key.name(), new FlowNo(src.get(key.name())));
-				continue;
-			case TXInfo:
-				dst.put(key.name(), TXs.impl(src.get(key.name())));
-				continue;
-			default:
-				dst.put(key.name(), src.get(key.name()).toString());
-				continue;
-			}
-		}
 		return dst;
 	}
 
