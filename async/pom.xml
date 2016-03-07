@@ -4,7 +4,11 @@
 	<parent>
 		<groupId>net.butfly.bus</groupId>
 		<artifactId>albus</artifactId>
+<<<<<<< HEAD
 		<version>3.0.0-SNAPSHOT</version>
+=======
+		<version>2.0.4-SNAPSHOT</version>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	</parent>
 	<artifactId>albus-async</artifactId>
 	<name>albus-async</name>
@@ -19,11 +23,14 @@
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
 		</dependency>
+<<<<<<< HEAD
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-json</artifactId>
 			<version>${deps.version.albus}</version>
 			<scope>test</scope>
 		</dependency>
+=======
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	</dependencies>
 </project>

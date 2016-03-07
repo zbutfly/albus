@@ -4,7 +4,11 @@
 	<parent>
 		<groupId>net.butfly.bus</groupId>
 		<artifactId>albus</artifactId>
+<<<<<<< HEAD
 		<version>3.0.0-SNAPSHOT</version>
+=======
+		<version>2.0.4-SNAPSHOT</version>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	</parent>
 	<artifactId>albus-core</artifactId>
 	<name>albus-core</name>
@@ -19,7 +23,11 @@
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
+<<<<<<< HEAD
 			<artifactId>albacore-utils</artifactId>
+=======
+			<artifactId>albacore-core</artifactId>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 			<version>${deps.version.albacore}</version>
 			<exclusions>
 				<exclusion>
@@ -29,21 +37,31 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+<<<<<<< HEAD
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>19.0</version>
 		</dependency>
 		<!-- commons -->
+=======
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-frame</artifactId>
+			<version>${deps.version.albacore}</version>
+		</dependency>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.2</version>
 		</dependency>
+<<<<<<< HEAD
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
 			<version>4.4</version>
 		</dependency>
 
+=======
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	</dependencies>
 </project>

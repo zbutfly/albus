@@ -1,5 +1,6 @@
 package net.butfly.bus.invoker;
 
+<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +8,15 @@ import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.Token;
+=======
+import net.butfly.albacore.utils.Keys;
+import net.butfly.bus.Token;
+import net.butfly.bus.config.bean.InvokerConfig;
+import net.butfly.bus.context.Context;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 
 public abstract class AbstractInvoker implements Invoker {
 	protected static Logger logger = LoggerFactory.getLogger(Invoker.class);

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<< HEAD
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -14,16 +15,33 @@ import org.dom4j.io.SAXReader;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.more.XMLUtils;
+=======
+import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.utils.Reflections;
+import net.butfly.albacore.utils.more.XMLUtils;
+import net.butfly.bus.Token;
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 import net.butfly.bus.config.Configuration;
 import net.butfly.bus.config.bean.FilterConfig;
 import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.config.bean.RouterConfig;
+<<<<<<< HEAD
 import net.butfly.bus.context.Token;
+=======
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 import net.butfly.bus.filter.Filter;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
 
+<<<<<<< HEAD
+=======
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 public class XMLParser extends Parser {
 	protected Document document;
 	protected Element root;

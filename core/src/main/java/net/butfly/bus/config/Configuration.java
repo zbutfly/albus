@@ -4,13 +4,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+=======
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 import net.butfly.bus.config.bean.FilterConfig;
 import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.config.bean.RouterConfig;
 
+<<<<<<< HEAD
+=======
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 public class Configuration {
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private boolean debug;

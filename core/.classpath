@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+<<<<<<< HEAD
 	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
+=======
+	<classpathentry kind="src" output="target/classes" path="src/main/java">
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<attributes>
 			<attribute name="optional" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+<<<<<<< HEAD
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>
@@ -13,12 +18,24 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+=======
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<attributes>
 			<attribute name="optional" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+<<<<<<< HEAD
 	<classpathentry kind="src" output="target/classes" path="src/main/java">
+=======
+	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
@@ -28,7 +45,11 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+<<<<<<< HEAD
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+=======
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6">
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>

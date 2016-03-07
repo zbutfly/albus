@@ -10,7 +10,10 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.service.Service;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Options;
+<<<<<<< HEAD
 import net.butfly.bus.Buses;
+=======
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
 import net.butfly.bus.TX;
@@ -34,10 +37,14 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 			Class<?>[] awaredServiceClasses = Reflections.getClassesAnnotatedWith(AwareService.class);
 			for (Object bean : beans) {
 				Class<?> implClass = bean.getClass();
+<<<<<<< HEAD
 				/*
 				 * DO not scan tx on implementation of
 				 * facade.scanMethodsForTX(implClass, bean);
 				 */
+=======
+				/* DO not scan tx on implementation of facade.scanMethodsForTX(implClass, bean); */
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 				for (Class<?> clazz : implClass.getInterfaces())
 					scanMethodsForTX(clazz, bean);
 				for (Class<?> cl : awaredServiceClasses)
@@ -59,17 +66,31 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 
 	public Method getMethod(String code, String version) {
 		String key = key(code, version);
+<<<<<<< HEAD
 		if (null == key) throw new SystemException(Constants.BusinessError.CONFIG_ERROR,
 				"TX [" + key + "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
+=======
+		if (null == key)
+			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
+					+ METHOD_POOL.keySet().toString() + "].");
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		return METHOD_POOL.get(key);
 	}
 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
+<<<<<<< HEAD
 		Response resp = Buses.response(request);
 		String key = key(request.code(), request.version());
 		if (null == key) throw new SystemException(Constants.BusinessError.CONFIG_ERROR,
 				"TX [" + key + "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
+=======
+		Response resp = new Response(request);
+		String key = key(request.code(), request.version());
+		if (null == key)
+			throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
+					+ METHOD_POOL.keySet().toString() + "].");
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 
 		Method method = METHOD_POOL.get(key);
 		Object bean = INSTANCE_POOL.get(key);

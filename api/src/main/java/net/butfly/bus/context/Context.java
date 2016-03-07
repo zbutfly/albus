@@ -6,9 +6,17 @@ import java.util.Map;
 import java.util.Set;
 
 import net.butfly.bus.TX;
+<<<<<<< HEAD
 
 public abstract class Context implements Map<String, Object> {
 	static Context CURRENT = null;
+=======
+import net.butfly.bus.TXs;
+import net.butfly.bus.Token;
+
+public abstract class Context implements Map<String, Object> {
+	private static Context CURRENT = null;
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 
 	public enum Key {
 		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
@@ -19,6 +27,19 @@ public abstract class Context implements Map<String, Object> {
 		return CURRENT.toString();
 	}
 
+<<<<<<< HEAD
+=======
+	public static void initialize(Map<String, Object> original) {
+		if (CURRENT == null) CURRENT = new RequestContext();
+		CURRENT.load(original);
+	}
+
+	public static void clean(Map<String, Object> original) {
+		if (CURRENT == null) CURRENT = new RequestContext();
+		CURRENT.load(original);
+	}
+
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	// ***********************************************************************/
 	public static void untoken() {
 		CURRENT.remove(Key.TOKEN.name());
@@ -134,6 +155,29 @@ public abstract class Context implements Map<String, Object> {
 		return dst;
 	}
 
+<<<<<<< HEAD
+=======
+	public static Map<String, Object> deserialize(Map<String, String> src) {
+		Map<String, Object> dst = new HashMap<String, Object>();
+		for (Key key : Key.values()) {
+			if (src.containsKey(key.name())) switch (key) {
+			case FlowNo:
+				dst.put(key.name(), new FlowNo(src.get(key.name())));
+				continue;
+			case TXInfo:
+				Object tx = src.get(key.name());
+				if (tx instanceof TX) dst.put(key.name(), (TX) tx);
+				else dst.put(key.name(), TXs.impl(tx.toString().split(":")));
+				continue;
+			default:
+				dst.put(key.name(), src.get(key.name()).toString());
+				continue;
+			}
+		}
+		return dst;
+	}
+
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	/*********************************************************/
 	@Override
 	public String toString() {

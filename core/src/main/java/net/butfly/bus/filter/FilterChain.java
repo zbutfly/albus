@@ -4,6 +4,7 @@ import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Bus;
+<<<<<<< HEAD
 import net.butfly.bus.Buses;
 import net.butfly.bus.Mode;
 import net.butfly.bus.Response;
@@ -11,6 +12,13 @@ import net.butfly.bus.config.bean.FilterConfig;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.context.Contexts;
 import net.butfly.bus.impl.ErrorImpl;
+=======
+import net.butfly.bus.Bus.Mode;
+import net.butfly.bus.Error;
+import net.butfly.bus.Response;
+import net.butfly.bus.config.bean.FilterConfig;
+import net.butfly.bus.context.Context;
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 import net.butfly.bus.utils.Constants;
 
 public final class FilterChain {
@@ -49,7 +57,11 @@ public final class FilterChain {
 		} catch (Exception ex) {
 			Exception exx = Exceptions.unwrap(ex);
 			if (context.mode() != Mode.SERVER) throw exx;
+<<<<<<< HEAD
 			context.response(Buses.response(context.request()).error(new ErrorImpl(exx, Context.debug())));
+=======
+			context.response(new Response(context.request()).error(new Error(exx, Context.debug())));
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		}
 	}
 
@@ -94,13 +106,21 @@ public final class FilterChain {
 					super.execute(context);
 				} finally {
 					if (context.response() != null) {
+<<<<<<< HEAD
 						Context.merge(Contexts.deserialize(context.response().context()));
+=======
+						Context.merge(Context.deserialize(context.response().context()));
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 						if (null != context.response().error()) throw context.response().error().toException();
 					}
 				}
 				break;
 			case SERVER:
+<<<<<<< HEAD
 				Context.merge(Contexts.deserialize(context.request().context()));
+=======
+				Context.merge(Context.deserialize(context.request().context()));
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 				try {
 					super.execute(context);
 				} finally {

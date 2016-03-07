@@ -5,13 +5,21 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+<<<<<<< HEAD
 import com.google.common.base.Charsets;
 
+=======
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.Utils;
 import net.butfly.albacore.utils.async.Task;
 
+<<<<<<< HEAD
+=======
+import com.google.common.base.Charsets;
+
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 public final class Serializers extends Utils {
 	public static final String DEFAULT_MIME_TYPE = "text/plain";
 	public static final Charset DEFAULT_CHARSET = Charsets.UTF_8;
