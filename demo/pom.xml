@@ -1,4 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<<<<<<< HEAD
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
@@ -69,4 +70,30 @@
 			<url>http://mandubian-mvn.googlecode.com/svn/trunk/mandubian-mvn/repository</url>
 		</repository>
 	</repositories>
+=======
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>net.butfly.bus</groupId>
+		<artifactId>albus</artifactId>
+		<version>2.0.4-SNAPSHOT</version>
+	</parent>
+	<artifactId>albus-demo</artifactId>
+	<name>albus-demo</name>
+	<build>
+		<finalName>albus-demo</finalName>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-plus</artifactId>
+			<version>${deps.version.albus}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-async</artifactId>
+			<version>${deps.version.albus}</version>
+		</dependency>
+	</dependencies>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 </project>

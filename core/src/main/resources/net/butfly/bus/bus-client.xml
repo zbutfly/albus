@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus>
+	<router type="net.butfly.bus.policy.SingleRouter" />
+	<filter title="exception-logger-filter" class="net.butfly.bus.filter.LoggerFilter" />
+	<invoker class="net.butfly.bus.invoker.SpringInvoker" tx="*">
+		<files>beans.xml</files>
+		<!-- <auth username="user" password="pass" /> -->
+		<!-- <auth token="token" /> -->
+		<!-- <auth file="classpath:/keyfile" /> -->
+	</invoker>
+</bus>

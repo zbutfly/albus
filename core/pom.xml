@@ -2,6 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
+<<<<<<< HEAD
 		<groupId>net.butfly.albacore</groupId>
 		<artifactId>albacore</artifactId>
 		<version>3.0.0-SNAPSHOT</version>
@@ -70,3 +71,43 @@
 		</dependency>
 	</dependencies>
 </project>
+=======
+		<groupId>net.butfly.bus</groupId>
+		<artifactId>albus</artifactId>
+		<version>2.0.4-SNAPSHOT</version>
+	</parent>
+	<artifactId>albus-core</artifactId>
+	<name>albus-core</name>
+	<build>
+		<finalName>albus-core</finalName>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-api</artifactId>
+			<version>${deps.version.albus}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-core</artifactId>
+			<version>${deps.version.albacore}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-context</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-frame</artifactId>
+			<version>${deps.version.albacore}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.2</version>
+		</dependency>
+	</dependencies>
+</project>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491

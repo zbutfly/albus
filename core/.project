@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
+<<<<<<< HEAD
 	<name>albacore-core</name>
+=======
+	<name>albus-core</name>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	<comment></comment>
 	<projects>
 	</projects>
