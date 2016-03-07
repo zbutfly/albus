@@ -7,9 +7,35 @@
 <<<<<<< HEAD
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
+<<<<<<< HEAD
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
+=======
+	<groupId>net.butfly.albacore</groupId>
+	<artifactId>albacore</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>albacore</name>
+	<scm>
+		<connection>git@github.com:zbutfly/albacore.git</connection>
+		<developerConnection>git@github.com:zbutfly/albacore.git</developerConnection>
+		<tag>MASTER</tag>
+		<url>https://github.com/zbutfly/albacore</url>
+	</scm>
+	<modules>
+		<module>core</module>
+		<module>serializer</module>
+		<module>async</module>
+		<module>frame</module>
+		<module>orm</module>
+		<module>utils</module>
+		<module>calc</module>
+		<!--<module>extra</module>-->
+		<module>cache</module>
+		<module>test</module>
+		<module>demo</module>
+>>>>>>> e3fc5a241ee3020e8f1a6e0190e781c8c7b81ff7
 =======
 		<version>2.0.3</version>
 	</parent>
@@ -48,5 +74,6 @@
 >>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<!--<module>demo</module>-->
 		<!--<module>console</module> -->
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 	</modules>
 </project>

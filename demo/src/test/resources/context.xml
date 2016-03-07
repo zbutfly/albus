@@ -1,5 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Context>
+<<<<<<< HEAD
+	<Resource name="jdbc/neo4j" poolName="hikari-dataggr-pool"
+		username="aggr" password="aggr123456"
+		jdbcUrl="jdbc:neo4j://localhost:7474/"
+		minimumIdle="5"
+		maximumPoolSize="10"
+		connectionTimeout="300000" />
+<!-- 		factory="com.zaxxer.hikari.HikariJNDIFactory" -->
+<!-- 		type="javax.sql.DataSource" -->
+</Context>
+=======
     <Resource name="jdbc/albus-console-db" user="sa" password="123456"
                 type="com.mchange.v2.c3p0.ComboPooledDataSource"
                 factory="org.apache.naming.factory.BeanFactory"
@@ -16,3 +27,4 @@
                 maxStatementsPerConnection="50"
                 numHelperThreads="5" />
 </Context>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491

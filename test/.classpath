@@ -21,6 +21,10 @@
 	<classpathentry kind="src" output="target/classes" path="src/main/java">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
+<<<<<<< HEAD
+=======
+			<attribute name="optional" value="true"/>
+>>>>>>> e3fc5a241ee3020e8f1a6e0190e781c8c7b81ff7
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">

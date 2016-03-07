@@ -33,11 +33,18 @@
 	</classpathentry>
 <<<<<<< HEAD
 	<classpathentry kind="src" output="target/classes" path="src/main/java">
+<<<<<<< HEAD
+=======
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+>>>>>>> e3fc5a241ee3020e8f1a6e0190e781c8c7b81ff7
 =======
 	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
 >>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
+>>>>>>> d6bdd690b57180f9538f7a61e655f27501aa8491
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
