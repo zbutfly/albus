@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>demo</name>
+	<name>albus-demo</name>
 	<comment></comment>
 	<projects>
-		<project>core</project>
-		<project>orm</project>
-		<project>frame</project>
-		<project>utils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

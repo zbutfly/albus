@@ -6,28 +6,27 @@
 		<artifactId>parent</artifactId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
-	<groupId>net.butfly.albacore</groupId>
-	<artifactId>albacore</artifactId>
+	<groupId>net.butfly.bus</groupId>
+	<artifactId>albus</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>albacore</name>
+	<name>albus</name>
 	<scm>
-		<connection>git@github.com:zbutfly/albacore.git</connection>
-		<developerConnection>git@github.com:zbutfly/albacore.git</developerConnection>
+		<connection>git@github.com:zbutfly/albus.git</connection>
+		<developerConnection>git@github.com:zbutfly/albus.git</developerConnection>
 		<tag>MASTER</tag>
-		<url>https://github.com/zbutfly/albacore</url>
+		<url>https://github.com/zbutfly/albus</url>
 	</scm>
 	<modules>
+		<module>api</module>
 		<module>core</module>
-		<module>serializer</module>
 		<module>async</module>
-		<module>frame</module>
-		<module>orm</module>
-		<module>utils</module>
-		<module>calc</module>
-		<!--<module>extra</module>-->
-		<module>cache</module>
+		<module>hessian</module>
+		<module>json</module>
+		<module>spring</module>
+		<module>http</module>
 		<module>test</module>
-		<module>demo</module>
+		<!--<module>demo</module>-->
+		<!--<module>console</module> -->
 	</modules>
 </project>
