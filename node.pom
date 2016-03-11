@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>net.butfly.parent</groupId>
 		<artifactId>parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.0-SNAPSHOTS</version>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus-node</artifactId>
@@ -13,7 +13,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.5.3</version>
+				<version>2.6</version>
 				<configuration>
 					<ignoreMissingDescriptor>true</ignoreMissingDescriptor>
 					<descriptors>
