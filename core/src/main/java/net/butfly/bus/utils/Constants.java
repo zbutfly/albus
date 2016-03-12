@@ -1,8 +1,5 @@
 package net.butfly.bus.utils;
 
-import javax.annotation.concurrent.Immutable;
-
-@Immutable
 public interface Constants {
 	public static final String _PREFIX = "BUS_";
 
