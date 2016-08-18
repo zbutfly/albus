@@ -2,11 +2,11 @@ package net.butfly.bus.comet;
 
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.bus.Token;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 import net.butfly.bus.comet.facade.dto.CometEchoRequest;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.context.Token;
 import net.butfly.bus.test.BusTest;
 
 public class StandardTest extends BusTest {
