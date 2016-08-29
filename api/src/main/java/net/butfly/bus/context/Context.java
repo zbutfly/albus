@@ -43,8 +43,8 @@ public abstract class Context implements Map<String, Object> {
 		if (null != token) {
 			if (null != token.getKey()) CURRENT.put(Key.TOKEN.name(), token.getKey());
 			else {
-				CURRENT.put(Key.USERNAME.name(), token.getUsername());
-				CURRENT.put(Key.PASSWORD.name(), token.getPassword());
+				if (null != token.getUsername()) CURRENT.put(Key.USERNAME.name(), token.getUsername());
+				if (null != token.getPassword()) CURRENT.put(Key.PASSWORD.name(), token.getPassword());
 			}
 		}
 	}

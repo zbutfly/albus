@@ -29,6 +29,7 @@ import net.butfly.bus.serialize.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Joiner;
 import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
@@ -45,8 +46,7 @@ public class HttpHandler {
 	}
 
 	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
-			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception)
-					throws IOException {
+			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
 		ResponseHandler resp = this.post(httpRequest);
 		contextCallback.callback(resp.context());
 		responseCallback.callback(resp.response());
@@ -112,8 +112,7 @@ public class HttpHandler {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object[] parameters(byte[] recv, Class<?>[] parameterClasses, Charset charset) {
-		if (logger.isTraceEnabled())
-			logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
+		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
 		Object r = serializer.deserialize(recv, parameterClasses);
 		if (r == null) return new Object[0];
 		else if (r.getClass().isArray()) return (Object[]) r;
@@ -152,10 +151,10 @@ public class HttpHandler {
 				response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
 			sent = serializer.serialize(resp.result());
 		}
+		response.setHeader("Access-Control-Expose-Headers", Joiner.on(',').join(response.getHeaderNames()));
 		if (logger.isTraceEnabled()) {
 			logger.trace("HTTP Response SEND ==> HEADER: " + headers(response));
-			logger.trace(
-					"HTTP Response SEND ==> CONTENT[" + sent.length + "]: " + LoggerFilter.shrink(new String(sent, charset)));
+			logger.trace("HTTP Response SEND ==> CONTENT[" + sent.length + "]: " + LoggerFilter.shrink(new String(sent, charset)));
 		}
 		return sent;
 	}
@@ -163,8 +162,8 @@ public class HttpHandler {
 	private Opts opts = new MoreOpts();
 
 	// for client
-	public Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass,
-			Options... options) throws IOException {
+	public Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass, Options... options)
+			throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHeaders.HEADER_TX_CODE, tx);
 		headers.put(BusHeaders.HEADER_TX_VERSION, version);

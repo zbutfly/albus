@@ -8,6 +8,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.entity.ContentType;
+import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -21,12 +27,6 @@ import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.MoreOpts;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.entity.ContentType;
-import org.eclipse.jetty.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
@@ -50,7 +50,9 @@ public class WebServiceServlet extends BusServlet {
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
-		resp.setHeader("Access-Control-Allow-Headers", req.getHeader("Access-Control-Request-Headers"));
+		String headers = req.getHeader("Access-Control-Request-Headers");
+		resp.setHeader("Access-Control-Allow-Headers", headers);
+		resp.setHeader("Access-Control-Expose-Headers", headers);
 		resp.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
 	}
 
