@@ -13,7 +13,7 @@ public abstract class Context implements Map<String, Object> {
 	private static Context CURRENT = null;
 
 	public enum Key {
-		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
+		FlowNo, TXInfo, SourceAppID, SourceHost, SourceRefer, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
 		private static final String TEMP_PREFIX = "_Inner";
 	}
 
@@ -54,7 +54,7 @@ public abstract class Context implements Map<String, Object> {
 		if (null != key) return new Token(key);
 		String pass = (String) CURRENT.get(Key.PASSWORD.name());
 		String user = (String) CURRENT.get(Key.USERNAME.name());
-		if (null != pass && null != user) return new Token(user, pass);
+		if (null != user) return new Token(user, pass);
 		return null;
 	}
 
@@ -73,6 +73,10 @@ public abstract class Context implements Map<String, Object> {
 
 	public static String sourceHost() {
 		return (String) CURRENT.get(Key.SourceHost.name());
+	}
+
+	public static String sourceRefer() {
+		return (String) CURRENT.get(Key.SourceRefer.name());
 	}
 
 	public static TX txInfo() {
@@ -148,18 +152,10 @@ public abstract class Context implements Map<String, Object> {
 
 	public static Map<String, Object> deserialize(Map<String, String> src) {
 		Map<String, Object> dst = new HashMap<String, Object>();
-		for (Key key : Key.values()) {
-			if (src.containsKey(key.name())) switch (key) {
-			case FlowNo:
-				dst.put(key.name(), new FlowNo(src.get(key.name())));
-				continue;
-			case TXInfo:
-				dst.put(key.name(), TXs.impl(src.get(key.name())));
-				continue;
-			default:
-				dst.put(key.name(), src.get(key.name()).toString());
-				continue;
-			}
+		for (String key : src.keySet()) {
+			if (key.equals(Key.FlowNo.name())) dst.put(key, new FlowNo(src.get(key)));
+			else if (key.equals(Key.TXInfo.name())) dst.put(key, TXs.impl(src.get(key)));
+			else dst.put(key, src.get(key).toString());
 		}
 		return dst;
 	}
