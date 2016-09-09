@@ -8,7 +8,6 @@
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>albus</name>
 	<scm>
