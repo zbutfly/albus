@@ -12,7 +12,7 @@
 		<finalName>albus-http</finalName>
 	</build>
 	<properties>
-		<deps.version.jetty>9.3.1.v20150714</deps.version.jetty>
+		<deps.version.jetty>9.3.0.M1</deps.version.jetty><!-- 9.4.0.M1 -->
 	</properties>
 	<dependencies>
 		<dependency>

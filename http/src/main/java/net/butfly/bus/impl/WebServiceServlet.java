@@ -8,6 +8,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.entity.ContentType;
+import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -22,12 +28,6 @@ import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.MoreOpts;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.entity.ContentType;
-import org.eclipse.jetty.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
@@ -53,13 +53,14 @@ public class WebServiceServlet extends BusServlet {
 
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
-		resp.setHeader("Access-Control-Allow-Headers", req.getHeader("Access-Control-Request-Headers"));
+		String headers = req.getHeader("Access-Control-Request-Headers");
+		resp.setHeader("Access-Control-Allow-Headers", headers);
+		resp.setHeader("Access-Control-Expose-Headers", headers);
 		resp.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final ServiceContext context = this.prepare(request, response);
 		Callback<Response> cb = new Task.Callback<Response>() {
 			@Override
@@ -82,8 +83,7 @@ public class WebServiceServlet extends BusServlet {
 		}
 	}
 
-	protected ServiceContext prepare(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException {
+	protected ServiceContext prepare(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 		// XXX: goof off
 		this.doOptions(request, response);
 		response.setStatus(HttpStatus.OK_200);
@@ -106,6 +106,8 @@ public class WebServiceServlet extends BusServlet {
 		Map<String, String> busHeaders = context.handler.headers(request);
 		context.invoking.context = context.handler.context(busHeaders);
 		context.invoking.context.put(Context.Key.SourceHost.name(), context.handler.source(request));
+		String refer = request.getHeader("Referer");
+		if (null != refer) context.invoking.context.put(Context.Key.SourceRefer.name(), refer);
 		context.invoking.tx = context.handler.tx(request.getPathInfo(), busHeaders);
 		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS)
 				? this.opts.parses(busHeaders.get(BusHeaders.HEADER_OPTIONS)) : null;

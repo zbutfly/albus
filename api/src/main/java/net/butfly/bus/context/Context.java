@@ -11,7 +11,7 @@ public abstract class Context implements Map<String, Object> {
 	static Context CURRENT = null;
 
 	public enum Key {
-		FlowNo, TXInfo, SourceAppID, SourceHost, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
+		FlowNo, TXInfo, SourceAppID, SourceHost, SourceRefer, TOKEN, USERNAME, PASSWORD, RequestID, Debug;
 		private static final String TEMP_PREFIX = "_Inner";
 	}
 
@@ -31,8 +31,8 @@ public abstract class Context implements Map<String, Object> {
 		if (null != token) {
 			if (null != token.getKey()) CURRENT.put(Key.TOKEN.name(), token.getKey());
 			else {
-				CURRENT.put(Key.USERNAME.name(), token.getUsername());
-				CURRENT.put(Key.PASSWORD.name(), token.getPassword());
+				if (null != token.getUsername()) CURRENT.put(Key.USERNAME.name(), token.getUsername());
+				if (null != token.getPassword()) CURRENT.put(Key.PASSWORD.name(), token.getPassword());
 			}
 		}
 	}
@@ -42,7 +42,7 @@ public abstract class Context implements Map<String, Object> {
 		if (null != key) return new Token(key);
 		String pass = (String) CURRENT.get(Key.PASSWORD.name());
 		String user = (String) CURRENT.get(Key.USERNAME.name());
-		if (null != pass && null != user) return new Token(user, pass);
+		if (null != user) return new Token(user, pass);
 		return null;
 	}
 
@@ -61,6 +61,10 @@ public abstract class Context implements Map<String, Object> {
 
 	public static String sourceHost() {
 		return (String) CURRENT.get(Key.SourceHost.name());
+	}
+
+	public static String sourceRefer() {
+		return (String) CURRENT.get(Key.SourceRefer.name());
 	}
 
 	public static TX txInfo() {
@@ -131,6 +135,16 @@ public abstract class Context implements Map<String, Object> {
 		Map<String, String> dst = new HashMap<String, String>();
 		for (Key key : Key.values())
 			if (src.containsKey(key.name())) dst.put(key.name(), src.get(key.name()).toString());
+		return dst;
+	}
+
+	public static Map<String, Object> deserialize(Map<String, String> src) {
+		Map<String, Object> dst = new HashMap<String, Object>();
+		for (String key : src.keySet()) {
+			if (key.equals(Key.FlowNo.name())) dst.put(key, new FlowNo(src.get(key)));
+			else if (key.equals(Key.TXInfo.name())) dst.put(key, TXs.impl(src.get(key)));
+			else dst.put(key, src.get(key).toString());
+		}
 		return dst;
 	}
 
