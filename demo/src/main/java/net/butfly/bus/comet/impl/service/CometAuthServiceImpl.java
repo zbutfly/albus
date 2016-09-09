@@ -1,9 +1,9 @@
 package net.butfly.bus.comet.impl.service;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.Token;
 import net.butfly.bus.comet.service.CometAuthService;
 import net.butfly.bus.context.Context;
+import net.butfly.bus.context.Token;
 import net.butfly.bus.service.AuthServiceImpl;
 import net.butfly.bus.utils.Constants;
 
