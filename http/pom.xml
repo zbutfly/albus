@@ -7,23 +7,24 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-http</artifactId>
-	<name>albus-http</name>
-	<build>
-		<finalName>albus-http</finalName>
-	</build>
 	<properties>
 		<deps.version.jetty>9.3.1.v20150714</deps.version.jetty>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-core</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-async</artifactId>
-			<version>${deps.version.albus}</version>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
 			<artifactId>albacore-utils</artifactId>
-			<version>${deps.version.albacore}</version>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<!-- http transport and container -->
 		<dependency>

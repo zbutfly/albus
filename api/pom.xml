@@ -7,15 +7,11 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-api</artifactId>
-	<name>albus-api</name>
-	<build>
-		<finalName>albus-api</finalName>
-	</build>
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
 			<artifactId>albacore-core</artifactId>
-			<version>${deps.version.albacore}</version>
+			<version>3.0.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>validation-api</artifactId>

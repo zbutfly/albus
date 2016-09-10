@@ -2,20 +2,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>net.butfly.parent</groupId>
+		<groupId>net.butfly</groupId>
 		<artifactId>parent</artifactId>
 		<version>3.0.0-SNAPSHOT</version>
+		<relativePath>../albacore/parent.pom</relativePath>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
 	<packaging>pom</packaging>
-	<name>albus</name>
-	<scm>
-		<connection>git@github.com:zbutfly/albus.git</connection>
-		<developerConnection>git@github.com:zbutfly/albus.git</developerConnection>
-		<tag>MASTER</tag>
-		<url>https://github.com/zbutfly/albus</url>
-	</scm>
 	<modules>
 		<module>api</module>
 		<module>core</module>
@@ -24,8 +18,21 @@
 		<module>json</module>
 		<module>spring</module>
 		<module>http</module>
+		<module>console</module>
 		<module>test</module>
-		<!--<module>demo</module>-->
-		<!--<module>console</module> -->
+		<!--<module>demo</module> -->
 	</modules>
+	<dependencies>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-test</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<scm>
+		<connection>https://bitbucket.org/butfly/albus.git</connection>
+		<developerConnection>https://butfly@bitbucket.org/butfly/albus.git</developerConnection>
+		<url>https://bitbucket.org/butfly/albus</url>
+	</scm>
 </project>

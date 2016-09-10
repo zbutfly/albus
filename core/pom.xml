@@ -7,31 +7,27 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-core</artifactId>
-	<name>albus-core</name>
-	<build>
-		<finalName>albus-core</finalName>
-	</build>
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-api</artifactId>
-			<version>${deps.version.albus}</version>
-		</dependency>
-		<dependency>
-			<groupId>net.butfly.albacore</groupId>
-			<artifactId>albacore-core</artifactId>
-			<version>${deps.version.albacore}</version>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
 			<artifactId>albacore-utils</artifactId>
-			<version>${deps.version.albacore}</version>
+			<version>3.0.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>spring-context</artifactId>
 					<groupId>org.springframework</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-valid</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>

@@ -1,7 +1,6 @@
 package net.butfly.bus.console.facade;
 
 import net.butfly.albacore.facade.FacadeBase;
-import net.butfly.bus.config.Config;
 import net.butfly.bus.console.service.ClientConfigService;
 import net.butfly.bus.console.service.ServerConfigService;
 
@@ -19,10 +18,10 @@ public class ConfigFacadeImpl extends FacadeBase implements ConfigFacade {
 	}
 
 	@Override
-	public Config getConfig(String busId, boolean isServer) {
+	public void getConfig(String busId, boolean isServer) {
 		// TODO
-		if (isServer && null == this.serverConfigService) return null;
-		if (null == this.clientConfigService) return null;
-		return null;
+		if (isServer && null == this.serverConfigService) return;
+		if (null == this.clientConfigService) return;
+		return;
 	}
 }

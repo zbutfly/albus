@@ -7,10 +7,6 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-json</artifactId>
-	<name>albus-json</name>
-	<build>
-		<finalName>albus-json</finalName>
-	</build>
 	<properties>
 		<deps.version.jackson>2.7.1</deps.version.jackson>
 	</properties>
@@ -18,7 +14,7 @@
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-core</artifactId>
-			<version>${deps.version.albus}</version>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<!-- json -->
 		<dependency>
