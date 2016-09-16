@@ -94,13 +94,12 @@ public class JettyStarter implements Runnable {
 		}
 	}
 
-	public JettyStarter addBusInstances(StarterConfiguration conf)
-			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public JettyStarter addBusInstances(StarterConfiguration conf) throws IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException {
 		for (String contextPath : conf.definitions.keySet())
-			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(),
-					conf.definitions.get(contextPath).value1().toArray(new String[0]));
-		new RuntimeException(
-				"Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
+			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(), conf.definitions.get(contextPath).value1().toArray(
+					new String[0]));
+		new RuntimeException("Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
 		return this;
 	}
 
@@ -116,7 +115,7 @@ public class JettyStarter implements Runnable {
 		for (Field f : servletClass.getDeclaredFields()) {
 			Annotation a = f.getAnnotation(ServletInitParams.class);
 			if (null != a && Map.class.isAssignableFrom(f.getType()) && Modifier.isStatic(f.getModifiers())) {
-				Map<String, String> params = Reflections.get(f, null);
+				Map<String, String> params = Reflections.get(null, f);
 				for (String name : params.keySet())
 					servlet.setInitParameter(name, params.get(name));
 			}
@@ -124,8 +123,8 @@ public class JettyStarter implements Runnable {
 		if (!contextPath.startsWith("/")) contextPath = "/" + contextPath;
 		if (!contextPath.endsWith("/*")) contextPath = contextPath + "/*";
 		this.handler.addServlet(servlet, contextPath);
-		logger.info("Servlet " + servletClass.getName() + " is registeried to \"" + contextPath + "\" with configuration(s): "
-				+ Joiner.on(',').join(configLocation) + "");
+		logger.info("Servlet " + servletClass.getName() + " is registeried to \"" + contextPath + "\" with configuration(s): " + Joiner.on(
+				',').join(configLocation) + "");
 	}
 
 	protected void createServer(int port) {
