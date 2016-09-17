@@ -19,10 +19,10 @@ import com.google.common.net.HttpHeaders;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.serializer.Serializers;
-import net.butfly.albacore.serializer.TextSerializer;
+import net.butfly.albacore.serializer.TextArraySerializer;
 
 public class HttpUrlHandler extends HttpHandler {
-	public HttpUrlHandler(TextSerializer serializer, int connTimeout, int readTimeout) {
+	public HttpUrlHandler(TextArraySerializer serializer, int connTimeout, int readTimeout) {
 		super(serializer);
 	}
 

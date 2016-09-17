@@ -93,7 +93,7 @@ public class WebServiceServlet extends BusServlet {
 				Serializers.DEFAULT_CONTENT_TYPE.getCharset());
 		if (context.reqContentType.getMimeType() == null) context.reqContentType = ContentType.create(Serializers.DEFAULT_CONTENT_TYPE
 				.getMimeType(), context.reqContentType.getCharset());
-		final TextSerializer serializer = (TextSerializer) Serializers.serializer(Serializers.serializerClass(context.reqContentType
+		final TextSerializer serializer = (TextSerializer) Serializers.serializer(Serializers.contentSerializers(context.reqContentType
 				.getMimeType()), context.reqContentType.getCharset());
 		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.contentType().getMimeType(), context.reqContentType.getCharset());

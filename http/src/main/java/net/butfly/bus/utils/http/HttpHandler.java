@@ -16,8 +16,14 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.net.HttpHeaders;
+import com.google.common.reflect.TypeToken;
+
 import net.butfly.albacore.exception.NotImplementedException;
-import net.butfly.albacore.serializer.TextSerializer;
+import net.butfly.albacore.serializer.TextArraySerializer;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -27,17 +33,11 @@ import net.butfly.bus.TX;
 import net.butfly.bus.TXs;
 import net.butfly.bus.filter.LoggerFilter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.net.HttpHeaders;
-import com.google.common.reflect.TypeToken;
-
 public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
-	protected TextSerializer serializer;
+	protected TextArraySerializer serializer;
 
-	public HttpHandler(TextSerializer serializer) {
+	public HttpHandler(TextArraySerializer serializer) {
 		this.serializer = serializer;
 	}
 
