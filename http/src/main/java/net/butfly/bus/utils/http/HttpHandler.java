@@ -111,7 +111,7 @@ public class HttpHandler {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Object[] parameters(byte[] recv, Charset charset, Class<?>... parameterClasses) {
+	public Object[] parameters(byte[] recv, Charset charset, Class<? extends Serializable>... parameterClasses) {
 		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
 		Object r = serializer.deserialize(new String(recv, charset), parameterClasses);
 		if (r == null) return new Object[0];

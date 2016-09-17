@@ -14,6 +14,7 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.butfly.albacore.serializer.Serializers;
 import net.butfly.albacore.serializer.TextSerializer;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
@@ -24,7 +25,6 @@ import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.policy.Router;
-import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.MoreOpts;

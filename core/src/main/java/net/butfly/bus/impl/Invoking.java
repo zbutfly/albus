@@ -1,5 +1,6 @@
 package net.butfly.bus.impl;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import net.butfly.albacore.utils.async.Options;
@@ -12,6 +13,6 @@ final class Invoking {
 	public Options[] options;
 	public Map<String, String> context;
 	public Bus bus;
-	public Class<?>[] parameterClasses;
+	public Class<? extends Serializable>[] parameterClasses;
 	public Object[] parameters;
 }

@@ -12,15 +12,14 @@ import java.util.Map.Entry;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.serializer.Serializer;
-import net.butfly.albacore.serializer.TextSerializer;
-import net.butfly.bus.serialize.Serializers;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 
 import com.google.common.net.HttpHeaders;
+
+import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.serializer.Serializers;
+import net.butfly.albacore.serializer.TextSerializer;
 
 public class HttpUrlHandler extends HttpHandler {
 	public HttpUrlHandler(TextSerializer serializer, int connTimeout, int readTimeout) {

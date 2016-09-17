@@ -1,5 +1,6 @@
 package net.butfly.bus.impl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,11 +38,14 @@ class Cluster {
 		nodes.put(impl.id(), impl);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void invoking(Invoking invoking) {
 		invoking.bus = router.route(invoking.tx.value(), servers());
-		if (null == invoking.bus)
-			throw new RuntimeException("Server routing failure, no node found for [" + invoking.tx.value() + "].");
-		invoking.parameterClasses = ((BaseBus) invoking.bus).invokingMethod(invoking.tx).getParameterTypes();
+		if (null == invoking.bus) throw new RuntimeException("Server routing failure, no node found for [" + invoking.tx.value() + "].");
+		Class<?>[] pcs = ((BaseBus) invoking.bus).invokingMethod(invoking.tx).getParameterTypes();
+		invoking.parameterClasses = new Class[pcs.length];
+		for (int i = 0; i < pcs.length; i++)
+			invoking.parameterClasses[i] = (Class<? extends Serializable>) pcs[i];
 	}
 
 	public final Response invoke(final Invoking invoking) throws Exception {
