@@ -1,6 +1,7 @@
 package net.butfly.bus.utils.http;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.exception.NotImplementedException;
+import net.butfly.albacore.serializer.TextSerializer;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -24,7 +26,6 @@ import net.butfly.bus.Response;
 import net.butfly.bus.TX;
 import net.butfly.bus.TXs;
 import net.butfly.bus.filter.LoggerFilter;
-import net.butfly.bus.serialize.Serializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +35,9 @@ import com.google.common.reflect.TypeToken;
 
 public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
-	protected Serializer serializer;
+	protected TextSerializer serializer;
 
-	public HttpHandler(Serializer serializer) {
+	public HttpHandler(TextSerializer serializer) {
 		this.serializer = serializer;
 	}
 
@@ -45,8 +46,7 @@ public class HttpHandler {
 	}
 
 	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
-			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception)
-					throws IOException {
+			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
 		ResponseHandler resp = this.post(httpRequest);
 		contextCallback.callback(resp.context());
 		responseCallback.callback(resp.response());
@@ -85,8 +85,8 @@ public class HttpHandler {
 	public Map<String, String> context(Map<String, String> busHeaders) {
 		Map<String, String> context = new HashMap<String, String>();
 		for (String name : busHeaders.keySet()) {
-			if (name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX))
-				context.put(name.substring(BusHeaders.HEADER_CONTEXT_PREFIX.length()), busHeaders.get(name));
+			if (name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX)) context.put(name.substring(BusHeaders.HEADER_CONTEXT_PREFIX.length()),
+					busHeaders.get(name));
 		}
 		return context;
 	}
@@ -111,10 +111,9 @@ public class HttpHandler {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Object[] parameters(byte[] recv, Class<?>[] parameterClasses, Charset charset) {
-		if (logger.isTraceEnabled())
-			logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
-		Object r = serializer.deserialize(recv, parameterClasses);
+	public Object[] parameters(byte[] recv, Charset charset, Class<?>... parameterClasses) {
+		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
+		Object r = serializer.deserialize(new String(recv, charset), parameterClasses);
 		if (r == null) return new Object[0];
 		else if (r.getClass().isArray()) return (Object[]) r;
 		else if (Collection.class.isAssignableFrom(r.getClass())) {
@@ -146,16 +145,15 @@ public class HttpHandler {
 		if (error) {
 			if (!supportClass) response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(Error.class).toString());
 			response.setHeader(BusHeaders.HEADER_ERROR, Boolean.toString(true));
-			sent = serializer.serialize(resp.error());
+			sent = serializer.toBytes(resp.error());
 		} else {
-			if (!supportClass && resp.result() != null)
-				response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
-			sent = serializer.serialize(resp.result());
+			if (!supportClass && resp.result() != null) response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass())
+					.toString());
+			sent = serializer.toBytes((Serializable) resp.result());
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("HTTP Response SEND ==> HEADER: " + headers(response));
-			logger.trace(
-					"HTTP Response SEND ==> CONTENT[" + sent.length + "]: " + LoggerFilter.shrink(new String(sent, charset)));
+			logger.trace("HTTP Response SEND ==> CONTENT[" + sent.length + "]: " + LoggerFilter.shrink(new String(sent, charset)));
 		}
 		return sent;
 	}
@@ -163,8 +161,8 @@ public class HttpHandler {
 	private Opts opts = new MoreOpts();
 
 	// for client
-	public Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass,
-			Options... options) throws IOException {
+	public Map<String, String> headers(String tx, String version, Map<String, String> context, boolean supportClass, Options... options)
+			throws IOException {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put(BusHeaders.HEADER_TX_CODE, tx);
 		headers.put(BusHeaders.HEADER_TX_VERSION, version);

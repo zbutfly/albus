@@ -1,23 +1,24 @@
 package net.butfly.bus.utils.http;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.net.HttpHeaders;
+
+import net.butfly.albacore.serializer.TextSerializer;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
-import net.butfly.bus.serialize.Serializer;
-
-import com.google.common.net.HttpHeaders;
 
 public class ResponseHandler {
 	private Map<String, List<String>> headers;
 	private byte[] data;
-	private Serializer serializer;
+	private TextSerializer serializer;
 
-	public ResponseHandler(Serializer serializer, Map<String, List<String>> headers, byte[] data) {
+	public ResponseHandler(TextSerializer serializer, Map<String, List<String>> headers, byte[] data) {
 		super();
 		this.serializer = serializer;
 		this.headers = headers;
@@ -29,8 +30,7 @@ public class ResponseHandler {
 		Map<String, String> ctx = new HashMap<String, String>();
 		if (headers != null && headers.size() != 0) {
 			for (String name : headers.keySet())
-				if (name != null && name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX))
-					ctx.put(name.substring(prefixLen), header(name));
+				if (name != null && name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX)) ctx.put(name.substring(prefixLen), header(name));
 		}
 		return ctx;
 	}
@@ -47,13 +47,13 @@ public class ResponseHandler {
 		Response response = new ResponseWrapper(header(HttpHeaders.ETAG), header(BusHeaders.HEADER_REQUEST_ID));
 		response.context(context());
 		if (Boolean.parseBoolean(header(BusHeaders.HEADER_ERROR))) {
-			Error detail = serializer.deserialize(data, Error.class);
+			Error detail = (Error) serializer.fromBytes(data, Error.class);
 			response.error(detail);
 		} else {
-			if (Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT))) response.result(serializer.deserialize(data));
+			if (Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT))) response.result(serializer.fromBytes(data, null));
 			else {
-				Class<?> clazz = Reflections.forClassName(header(BusHeaders.HEADER_CLASS));
-				response.result(null != clazz ? serializer.deserialize(data, clazz) : serializer.deserialize(data));
+				Class<? extends Serializable> clazz = Reflections.forClassName(header(BusHeaders.HEADER_CLASS));
+				response.result(serializer.fromBytes(data, clazz));
 			}
 		}
 		return ((ResponseWrapper) response).unwrap();

@@ -13,7 +13,8 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.bus.serialize.Serializer;
+import net.butfly.albacore.serializer.Serializer;
+import net.butfly.albacore.serializer.TextSerializer;
 import net.butfly.bus.serialize.Serializers;
 
 import org.apache.commons.io.IOUtils;
@@ -22,7 +23,7 @@ import org.apache.http.entity.ContentType;
 import com.google.common.net.HttpHeaders;
 
 public class HttpUrlHandler extends HttpHandler {
-	public HttpUrlHandler(Serializer serializer, int connTimeout, int readTimeout) {
+	public HttpUrlHandler(TextSerializer serializer, int connTimeout, int readTimeout) {
 		super(serializer);
 	}
 
@@ -45,11 +46,9 @@ public class HttpUrlHandler extends HttpHandler {
 		conn.setChunkedStreamingMode(0);
 		for (Entry<String, String> h : httpRequest.headers.entrySet())
 			conn.setRequestProperty(h.getKey(), h.getValue());
-		if (conn.getRequestProperty(HttpHeaders.ACCEPT_ENCODING) == null)
-			conn.setRequestProperty(HttpHeaders.ACCEPT_ENCODING, "deflate");
-		if (conn.getRequestProperty(HttpHeaders.CONTENT_TYPE) == null)
-			conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, ContentType.create(httpRequest.mimeType, httpRequest.charset)
-					.toString());
+		if (conn.getRequestProperty(HttpHeaders.ACCEPT_ENCODING) == null) conn.setRequestProperty(HttpHeaders.ACCEPT_ENCODING, "deflate");
+		if (conn.getRequestProperty(HttpHeaders.CONTENT_TYPE) == null) conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, ContentType.create(
+				httpRequest.mimeType, httpRequest.charset).toString());
 
 		int statusCode = 500;
 		IOUtils.write(httpRequest.data, conn.getOutputStream());
@@ -71,6 +70,6 @@ public class HttpUrlHandler extends HttpHandler {
 	private Charset contentType(HttpURLConnection conn) {
 		String contentType = conn.getContentType();
 		if (null == contentType) contentType = conn.getRequestProperty(HttpHeaders.CONTENT_TYPE);
-		return null == contentType ? Serializers.DEFAULT_CHARSET : ContentType.parse(contentType).getCharset();
+		return null == contentType ? Serializers.DEFAULT_CONTENT_TYPE.getCharset() : ContentType.parse(contentType).getCharset();
 	}
 }

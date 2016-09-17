@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import net.butfly.albacore.serializer.TextSerializer;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.albacore.utils.async.Task.ExceptionHandler;
-import net.butfly.bus.serialize.Serializer;
 
 import org.apache.http.entity.ContentType;
 
@@ -25,18 +25,19 @@ import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 
 public class HttpNingHandler extends HttpHandler {
-	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(
-			new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
+	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
+			.setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
 
-	public HttpNingHandler(Serializer serializer) {
+	public HttpNingHandler(TextSerializer serializer) {
 		super(serializer);
-//		this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
-//			@Override
-//			public AsyncHttpClient create() {
-//				return new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
-//						.setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
-//			}
-//		});
+		// this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
+		// @Override
+		// public AsyncHttpClient create() {
+		// return new AsyncHttpClient(new NettyAsyncHttpProvider(new
+		// AsyncHttpClientConfig.Builder()
+		// .setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
+		// }
+		// });
 	}
 
 	@Override

@@ -8,6 +8,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.entity.ContentType;
+import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.butfly.albacore.serializer.TextSerializer;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -17,17 +24,10 @@ import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.policy.Router;
-import net.butfly.bus.serialize.Serializer;
 import net.butfly.bus.serialize.Serializers;
 import net.butfly.bus.utils.http.BusHeaders;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.MoreOpts;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.entity.ContentType;
-import org.eclipse.jetty.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
@@ -58,8 +58,7 @@ public class WebServiceServlet extends BusServlet {
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final ServiceContext context = this.prepare(request, response);
 		Callback<Response> cb = new Task.Callback<Response>() {
 			@Override
@@ -82,8 +81,7 @@ public class WebServiceServlet extends BusServlet {
 		}
 	}
 
-	protected ServiceContext prepare(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException {
+	protected ServiceContext prepare(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 		// XXX: goof off
 		this.doOptions(request, response);
 		response.setStatus(HttpStatus.OK_200);
@@ -91,14 +89,14 @@ public class WebServiceServlet extends BusServlet {
 		ServiceContext context = new ServiceContext();
 
 		context.reqContentType = ContentType.parse(request.getContentType());
-		if (context.reqContentType.getCharset() == null)
-			context.reqContentType = context.reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
-		if (context.reqContentType.getMimeType() == null)
-			context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, context.reqContentType.getCharset());
-		final Serializer serializer = Serializers.serializer(Serializers.serializerClass(context.reqContentType.getMimeType()),
-				context.reqContentType.getCharset());
+		if (context.reqContentType.getCharset() == null) context.reqContentType = context.reqContentType.withCharset(
+				Serializers.DEFAULT_CONTENT_TYPE.getCharset());
+		if (context.reqContentType.getMimeType() == null) context.reqContentType = ContentType.create(Serializers.DEFAULT_CONTENT_TYPE
+				.getMimeType(), context.reqContentType.getCharset());
+		final TextSerializer serializer = (TextSerializer) Serializers.serializer(Serializers.serializerClass(context.reqContentType
+				.getMimeType()), context.reqContentType.getCharset());
 		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
-		context.respContentType = ContentType.create(serializer.defaultMimeType(), context.reqContentType.getCharset());
+		context.respContentType = ContentType.create(serializer.contentType().getMimeType(), context.reqContentType.getCharset());
 		context.handler = Instances.fetch(HttpHandler.class, serializer);
 
 		// prepare invoke
@@ -107,8 +105,8 @@ public class WebServiceServlet extends BusServlet {
 		context.invoking.context = context.handler.context(busHeaders);
 		context.invoking.context.put(Context.Key.SourceHost.name(), context.handler.source(request));
 		context.invoking.tx = context.handler.tx(request.getPathInfo(), busHeaders);
-		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS)
-				? this.opts.parses(busHeaders.get(BusHeaders.HEADER_OPTIONS)) : null;
+		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS) ? this.opts.parses(busHeaders.get(
+				BusHeaders.HEADER_OPTIONS)) : null;
 
 		context.invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHeaders.HEADER_CLASS_SUPPORT));
 		cluster.invoking(context.invoking);
@@ -118,8 +116,8 @@ public class WebServiceServlet extends BusServlet {
 		} catch (IOException ex) {
 			throw new ServletException("Arguments reading I/O failure", ex);
 		}
-		context.invoking.parameters = context.handler.parameters(paramsData, context.invoking.parameterClasses,
-				context.reqContentType.getCharset());
+		context.invoking.parameters = context.handler.parameters(paramsData, context.reqContentType.getCharset(),
+				context.invoking.parameterClasses);
 		return context;
 	}
 
