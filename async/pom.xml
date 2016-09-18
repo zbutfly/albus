@@ -21,7 +21,7 @@
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
-			<artifactId>albacore-serializer-json</artifactId>
+			<artifactId>albacore-serder-json</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>

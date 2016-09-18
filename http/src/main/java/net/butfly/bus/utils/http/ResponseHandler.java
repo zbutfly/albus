@@ -8,7 +8,7 @@ import java.util.Map;
 
 import com.google.common.net.HttpHeaders;
 
-import net.butfly.albacore.serializer.TextSerializer;
+import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.Error;
 import net.butfly.bus.Response;
@@ -16,9 +16,9 @@ import net.butfly.bus.Response;
 public class ResponseHandler {
 	private Map<String, List<String>> headers;
 	private byte[] data;
-	private TextSerializer serializer;
+	private TextSerder serializer;
 
-	public ResponseHandler(TextSerializer serializer, Map<String, List<String>> headers, byte[] data) {
+	public ResponseHandler(TextSerder serializer, Map<String, List<String>> headers, byte[] data) {
 		super();
 		this.serializer = serializer;
 		this.headers = headers;

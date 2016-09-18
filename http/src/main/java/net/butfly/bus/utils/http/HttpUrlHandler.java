@@ -18,11 +18,11 @@ import org.apache.http.entity.ContentType;
 import com.google.common.net.HttpHeaders;
 
 import net.butfly.albacore.exception.SystemException;
-import net.butfly.albacore.serializer.Serializers;
-import net.butfly.albacore.serializer.TextArraySerializer;
+import net.butfly.albacore.serder.Serders;
+import net.butfly.albacore.serder.ArrableTextSerder;
 
 public class HttpUrlHandler extends HttpHandler {
-	public HttpUrlHandler(TextArraySerializer serializer, int connTimeout, int readTimeout) {
+	public HttpUrlHandler(ArrableTextSerder serializer, int connTimeout, int readTimeout) {
 		super(serializer);
 	}
 
@@ -69,6 +69,6 @@ public class HttpUrlHandler extends HttpHandler {
 	private Charset contentType(HttpURLConnection conn) {
 		String contentType = conn.getContentType();
 		if (null == contentType) contentType = conn.getRequestProperty(HttpHeaders.CONTENT_TYPE);
-		return null == contentType ? Serializers.DEFAULT_CONTENT_TYPE.getCharset() : ContentType.parse(contentType).getCharset();
+		return null == contentType ? Serders.DEFAULT_CONTENT_TYPE.getCharset() : ContentType.parse(contentType).getCharset();
 	}
 }

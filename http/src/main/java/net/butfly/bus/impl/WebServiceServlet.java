@@ -14,8 +14,8 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.butfly.albacore.serializer.Serializers;
-import net.butfly.albacore.serializer.TextSerializer;
+import net.butfly.albacore.serder.Serders;
+import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -90,10 +90,10 @@ public class WebServiceServlet extends BusServlet {
 
 		context.reqContentType = ContentType.parse(request.getContentType());
 		if (context.reqContentType.getCharset() == null) context.reqContentType = context.reqContentType.withCharset(
-				Serializers.DEFAULT_CONTENT_TYPE.getCharset());
-		if (context.reqContentType.getMimeType() == null) context.reqContentType = ContentType.create(Serializers.DEFAULT_CONTENT_TYPE
+				Serders.DEFAULT_CONTENT_TYPE.getCharset());
+		if (context.reqContentType.getMimeType() == null) context.reqContentType = ContentType.create(Serders.DEFAULT_CONTENT_TYPE
 				.getMimeType(), context.reqContentType.getCharset());
-		final TextSerializer serializer = (TextSerializer) Serializers.serializer(Serializers.contentSerializers(context.reqContentType
+		final TextSerder serializer = (TextSerder) Serders.serializer(Serders.contentSerializers(context.reqContentType
 				.getMimeType()), context.reqContentType.getCharset());
 		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.contentType().getMimeType(), context.reqContentType.getCharset());

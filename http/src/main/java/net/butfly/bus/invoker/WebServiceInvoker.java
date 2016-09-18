@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 
-import net.butfly.albacore.serializer.SerializerFactorySupport;
-import net.butfly.albacore.serializer.Serializers;
-import net.butfly.albacore.serializer.TextSerializer;
+import net.butfly.albacore.serder.SerderFactorySupport;
+import net.butfly.albacore.serder.Serders;
+import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -28,7 +28,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 	private String path;
 	private int timeout;
 
-	private TextSerializer serializer;
+	private TextSerder serializer;
 	private HttpHandler handler;
 
 	@SuppressWarnings("unchecked")
@@ -38,19 +38,19 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		String to = config.param("timeout");
 		this.timeout = to == null ? 0 : Integer.parseInt(to);
 		try {
-			Class<? extends TextSerializer> cl = Reflections.forClassName(config.param("serializer"));
-			cl = null == cl ? (Class<? extends TextSerializer>) Serializers.DEFAULT_SERIALIZER_CLASS : cl;
-			this.serializer = (TextSerializer) Serializers.serializer(cl, Serializers.DEFAULT_CONTENT_TYPE.getCharset());
+			Class<? extends TextSerder> cl = Reflections.forClassName(config.param("serializer"));
+			cl = null == cl ? (Class<? extends TextSerder>) Serders.DEFAULT_SERIALIZER_CLASS : cl;
+			this.serializer = (TextSerder) Serders.serializer(cl, Serders.DEFAULT_CONTENT_TYPE.getCharset());
 		} catch (Exception e) {
-			logger.error("Invoker initialization failure, Serializer could not be created.", e);
+			logger.error("Invoker initialization failure, Serder could not be created.", e);
 			throw Exceptions.wrap(e);
 		}
-		if (this.serializer instanceof SerializerFactorySupport) {
+		if (this.serializer instanceof SerderFactorySupport) {
 			String[] trs = config.param("typeTranslators") == null ? new String[0] : config.param("typeTranslators").split(",");
 			try {
-				((SerializerFactorySupport) this.serializer).addFactories(trs);
+				((SerderFactorySupport) this.serializer).addFactories(trs);
 			} catch (Exception e) {
-				logger.error("Serializer factory instance construction failure for class: " + Joiner.on(',').join(trs), e);
+				logger.error("Serder factory instance construction failure for class: " + Joiner.on(',').join(trs), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 		}
@@ -66,7 +66,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
-		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(), Serializers.isSupportClass(
+		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(), Serders.isSupportClass(
 				serializer.getClass()), remoteOptions);
 		byte[] data = serializer.toBytes(request.arguments());
 		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, data, serializer.contentType().getMimeType(), serializer

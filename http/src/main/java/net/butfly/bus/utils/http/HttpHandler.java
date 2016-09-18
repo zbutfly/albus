@@ -23,7 +23,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
 import net.butfly.albacore.exception.NotImplementedException;
-import net.butfly.albacore.serializer.TextArraySerializer;
+import net.butfly.albacore.serder.ArrableTextSerder;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -35,9 +35,9 @@ import net.butfly.bus.filter.LoggerFilter;
 
 public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
-	protected TextArraySerializer serializer;
+	protected ArrableTextSerder serializer;
 
-	public HttpHandler(TextArraySerializer serializer) {
+	public HttpHandler(ArrableTextSerder serializer) {
 		this.serializer = serializer;
 	}
 
