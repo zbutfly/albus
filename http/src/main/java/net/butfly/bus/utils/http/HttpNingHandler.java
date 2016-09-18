@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.butfly.albacore.serder.ArrableTextSerder;
+import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.albacore.utils.async.Task.ExceptionHandler;
@@ -28,7 +28,7 @@ public class HttpNingHandler extends HttpHandler {
 	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
 			.setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
 
-	public HttpNingHandler(ArrableTextSerder serializer) {
+	public HttpNingHandler(TextSerder serializer) {
 		super(serializer);
 		// this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
 		// @Override

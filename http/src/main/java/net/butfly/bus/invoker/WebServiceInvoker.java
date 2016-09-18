@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 
-import net.butfly.albacore.serder.SerderFactorySupport;
 import net.butfly.albacore.serder.Serders;
 import net.butfly.albacore.serder.TextSerder;
+import net.butfly.albacore.serder.support.SerderFactorySupport;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -28,7 +28,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 	private String path;
 	private int timeout;
 
-	private TextSerder serializer;
+	private TextSerder<?> serializer;
 	private HttpHandler handler;
 
 	@SuppressWarnings("unchecked")
@@ -38,9 +38,9 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		String to = config.param("timeout");
 		this.timeout = to == null ? 0 : Integer.parseInt(to);
 		try {
-			Class<? extends TextSerder> cl = Reflections.forClassName(config.param("serializer"));
-			cl = null == cl ? (Class<? extends TextSerder>) Serders.DEFAULT_SERIALIZER_CLASS : cl;
-			this.serializer = (TextSerder) Serders.serializer(cl, Serders.DEFAULT_CONTENT_TYPE.getCharset());
+			Class<? extends TextSerder<?>> cl = Reflections.forClassName(config.param("serializer"));
+			cl = null == cl ? (Class<? extends TextSerder<?>>) Serders.DEFAULT_SERIALIZER_CLASS : cl;
+			this.serializer = (TextSerder<?>) Serders.serializer(cl, Serders.DEFAULT_CONTENT_TYPE.getCharset());
 		} catch (Exception e) {
 			logger.error("Invoker initialization failure, Serder could not be created.", e);
 			throw Exceptions.wrap(e);
