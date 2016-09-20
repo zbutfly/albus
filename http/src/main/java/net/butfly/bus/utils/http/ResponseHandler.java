@@ -16,9 +16,9 @@ import net.butfly.bus.Response;
 public class ResponseHandler {
 	private Map<String, List<String>> headers;
 	private byte[] data;
-	private TextSerder serializer;
+	private TextSerder<Object> serializer;
 
-	public ResponseHandler(TextSerder serializer, Map<String, List<String>> headers, byte[] data) {
+	public ResponseHandler(TextSerder<Object> serializer, Map<String, List<String>> headers, byte[] data) {
 		super();
 		this.serializer = serializer;
 		this.headers = headers;

@@ -28,7 +28,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 	private String path;
 	private int timeout;
 
-	private TextSerder<?> serializer;
+	private TextSerder<Object> serializer;
 	private HttpHandler handler;
 
 	@SuppressWarnings("unchecked")
@@ -40,7 +40,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		try {
 			Class<? extends TextSerder<?>> cl = Reflections.forClassName(config.param("serializer"));
 			cl = null == cl ? (Class<? extends TextSerder<?>>) Serders.DEFAULT_SERIALIZER_CLASS : cl;
-			this.serializer = (TextSerder<?>) Serders.serializer(cl, Serders.DEFAULT_CONTENT_TYPE.getCharset());
+			this.serializer = (TextSerder<Object>) Serders.serializer(cl, Serders.DEFAULT_CONTENT_TYPE.getCharset());
 		} catch (Exception e) {
 			logger.error("Invoker initialization failure, Serder could not be created.", e);
 			throw Exceptions.wrap(e);
@@ -66,8 +66,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
-		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(), Serders.isSupportClass(
-				serializer.getClass()), remoteOptions);
+		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(), Serders
+				.isClassInfoSupported(serializer.getClass()), remoteOptions);
 		byte[] data = serializer.toBytes(request.arguments());
 		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, data, serializer.contentType().getMimeType(), serializer
 				.contentType().getCharset(), timeout);
