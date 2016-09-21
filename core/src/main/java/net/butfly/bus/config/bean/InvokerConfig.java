@@ -49,8 +49,12 @@ public class InvokerConfig extends Config implements Routeable {
 
 	}
 
-	public String param(String name) {
-		return params.get(name);
+	public String param(String name, String... defaults) {
+		String v = params.get(name);
+		if (null != v) return v;
+		if (defaults != null && defaults.length > 0) for (String d : defaults)
+			if (null != d) return d;
+		return null;
 	}
 
 	public Invoker invoker() {

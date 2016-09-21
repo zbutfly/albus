@@ -17,12 +17,6 @@
 			<groupId>net.butfly.albacore</groupId>
 			<artifactId>albacore-utils</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>spring-context</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>

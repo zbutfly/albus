@@ -24,6 +24,7 @@ import com.google.common.reflect.TypeToken;
 
 import net.butfly.albacore.exception.NotImplementedException;
 import net.butfly.albacore.serder.ArrableTextSerder;
+import net.butfly.albacore.utils.Generics;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -113,7 +114,7 @@ public class HttpHandler {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object[] parameters(byte[] recv, Charset charset, Class<? extends Serializable>... parameterClasses) {
 		if (logger.isTraceEnabled()) logger.trace("HTTP Request RECV <== CONTENT[" + recv.length + "]: " + new String(recv, charset));
-		Object r = serializer.der(new String(recv, charset), parameterClasses);
+		Object r = serializer.der(new String(recv, charset), Generics.tokens(parameterClasses));
 		if (r == null) return new Object[0];
 		else if (r.getClass().isArray()) return (Object[]) r;
 		else if (Collection.class.isAssignableFrom(r.getClass())) {

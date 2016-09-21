@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.net.HttpHeaders;
+import com.google.common.reflect.TypeToken;
 
 import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.utils.Reflections;
@@ -47,13 +48,13 @@ public class ResponseHandler {
 		Response response = new ResponseWrapper(header(HttpHeaders.ETAG), header(BusHeaders.HEADER_REQUEST_ID));
 		response.context(context());
 		if (Boolean.parseBoolean(header(BusHeaders.HEADER_ERROR))) {
-			Error detail = (Error) serializer.fromBytes(data, Error.class);
+			Error detail = (Error) serializer.fromBytes(data, TypeToken.of(Error.class));
 			response.error(detail);
 		} else {
 			if (Boolean.parseBoolean(header(BusHeaders.HEADER_CLASS_SUPPORT))) response.result(serializer.fromBytes(data, null));
 			else {
 				Class<? extends Serializable> clazz = Reflections.forClassName(header(BusHeaders.HEADER_CLASS));
-				response.result(serializer.fromBytes(data, clazz));
+				response.result(serializer.fromBytes(data, TypeToken.of(clazz)));
 			}
 		}
 		return ((ResponseWrapper) response).unwrap();
