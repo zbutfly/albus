@@ -13,8 +13,8 @@ import net.butfly.bus.context.Context;
 
 public class CometContext {
 	static final String CONTEXT_COMET_MANAGER_KEY = "CometContext";
-//	static final String SERVLET_REQUEST_KEY = "ServletRequest";
-//	static final String SERVLET_RESPONSE_KEY = "ServletResponse";
+	// static final String SERVLET_REQUEST_KEY = "ServletRequest";
+	// static final String SERVLET_RESPONSE_KEY = "ServletResponse";
 	static final long DEFAULT_COMET_TIMEOUT = 300000;
 	static final long DEFAULT_COMET_INTERVAL = 5000;
 
@@ -24,8 +24,8 @@ public class CometContext {
 		this.asyncContexts = new ConcurrentHashMap<String, AsyncContext>();
 
 		Context.sourceHost(request.getRemoteAddr());
-//		Context.CURRENT.put(SERVLET_REQUEST_KEY, options);
-//		Context.CURRENT.put(SERVLET_RESPONSE_KEY, response);
+		// Context.CURRENT.put(SERVLET_REQUEST_KEY, options);
+		// Context.CURRENT.put(SERVLET_RESPONSE_KEY, response);
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		final String id = Keys.key(String.class);
 		if (!request.isAsyncStarted()) {
@@ -41,11 +41,5 @@ public class CometContext {
 		AsyncContext ac = asyncContexts.get(request.getParameter("metadata.id"));
 		if (ac != null && "close".equals(request.getParameter("metadata.type"))) ac.complete();
 		return;
-	}
-
-	public static void sleep(int timeout) {
-		try {
-			Thread.sleep(timeout);
-		} catch (InterruptedException e) {}
 	}
 }
