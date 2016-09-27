@@ -14,8 +14,6 @@
 		<module>api</module>
 		<module>core</module>
 		<module>async</module>
-		<module>hessian</module>
-		<module>json</module>
 		<module>spring</module>
 		<module>http</module>
 		<module>console</module>
