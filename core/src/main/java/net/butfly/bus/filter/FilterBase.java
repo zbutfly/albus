@@ -2,14 +2,13 @@ package net.butfly.bus.filter;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import net.butfly.albacore.utils.Keys;
 import net.butfly.bus.Bus;
 
 public abstract class FilterBase implements Filter {
-	protected Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected Logger logger = Logger.getLogger(this.getClass());
 	protected String id;
 	protected Bus bus;
 	protected FilterChain chain;

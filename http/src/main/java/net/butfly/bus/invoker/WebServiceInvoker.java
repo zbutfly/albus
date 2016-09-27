@@ -2,8 +2,7 @@ package net.butfly.bus.invoker;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import com.google.common.base.Joiner;
 
@@ -24,7 +23,7 @@ import net.butfly.bus.utils.http.HttpNingHandler;
 import net.butfly.bus.utils.http.ResponseHandler;
 
 public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker {
-	private static Logger logger = LoggerFactory.getLogger(WebServiceInvoker.class);
+	private static Logger logger = Logger.getLogger(WebServiceInvoker.class);
 	private String path;
 	private int timeout;
 

@@ -1,7 +1,6 @@
 package net.butfly.bus.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import com.google.common.base.Joiner;
 
@@ -16,7 +15,7 @@ public abstract class BusTest {
 		LOCAL, REMOTE, CLIENT, SERVER
 	}
 
-	protected static final Logger logger = LoggerFactory.getLogger(BusTest.class);
+	protected static final Logger logger = Logger.getLogger(BusTest.class);
 
 	protected Mode mode;
 	protected Bus client;

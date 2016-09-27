@@ -4,8 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import net.butfly.bus.Bus;
 import net.butfly.bus.Buses;
@@ -16,7 +15,7 @@ import net.butfly.bus.context.Contexts;
 import net.butfly.bus.policy.Router;
 
 class Cluster {
-	protected static Logger logger = LoggerFactory.getLogger(Cluster.class);
+	protected static Logger logger = Logger.getLogger(Cluster.class);
 	private final Map<String, Bus> nodes = new HashMap<String, Bus>();
 	final private Mode mode;
 	final private Router router;

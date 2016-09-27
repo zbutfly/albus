@@ -36,14 +36,13 @@
 //import org.apache.http.protocol.RequestExpectContinue;
 //import org.apache.http.protocol.RequestTargetHost;
 //import org.apache.http.protocol.RequestUserAgent;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
+//import net.butfly.albacore.utils.logger.Logger;
+////
 ///**
 // * A Streaming client written using HTTPCore NIO.
 // */
 //public class HttpCoreClient {
-//	private static Logger logger = LoggerFactory.getLogger(HttpCoreClient.class);
+//	private static Logger logger = Logger.getLogger(HttpCoreClient.class);
 //	/** Host to send the message tp */
 //	private String host;
 //	/** port of the remote machine */

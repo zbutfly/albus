@@ -4,15 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import net.butfly.bus.config.bean.FilterConfig;
 import net.butfly.bus.config.bean.InvokerConfig;
 import net.butfly.bus.config.bean.RouterConfig;
 
 public class Configuration {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = Logger.getLogger(this.getClass());
 	private boolean debug;
 	private Map<String, InvokerConfig> invokers = new HashMap<String, InvokerConfig>();
 	private RouterConfig router;

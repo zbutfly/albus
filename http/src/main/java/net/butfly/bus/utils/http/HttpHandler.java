@@ -16,8 +16,7 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
@@ -35,7 +34,7 @@ import net.butfly.bus.TXs;
 import net.butfly.bus.filter.LoggerFilter;
 
 public class HttpHandler {
-	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
+	protected static Logger logger = Logger.getLogger(HttpHandler.class);
 	protected ArrableTextSerder<Object> serializer;
 
 	public HttpHandler(ArrableTextSerder<Object> serializer) {

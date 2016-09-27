@@ -7,11 +7,10 @@ import javax.servlet.AsyncContext;
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 public final class CometListener implements AsyncListener {
-	private Logger logger = LoggerFactory.getLogger(CometListener.class);
+	private Logger logger = Logger.getLogger(CometListener.class);
 	private String asyncId;
 	private Map<String, AsyncContext> asyncContexts;
 

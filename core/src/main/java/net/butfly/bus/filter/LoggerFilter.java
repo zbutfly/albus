@@ -1,7 +1,6 @@
 package net.butfly.bus.filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import net.butfly.bus.Request;
 import net.butfly.bus.context.Context;
@@ -9,7 +8,7 @@ import net.butfly.bus.context.FlowNo;
 import net.butfly.bus.service.LogService;
 
 public class LoggerFilter extends FilterBase implements Filter {
-	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
+	private final Logger logger = Logger.getLogger(LoggerFilter.class);
 
 	public void execute(final FilterContext context) throws Exception {
 		Request request = context.request();

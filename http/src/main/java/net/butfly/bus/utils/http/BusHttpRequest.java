@@ -3,7 +3,7 @@ package net.butfly.bus.utils.http;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.slf4j.Logger;
+import net.butfly.albacore.utils.logger.Logger;
 
 public class BusHttpRequest {
 	String url;

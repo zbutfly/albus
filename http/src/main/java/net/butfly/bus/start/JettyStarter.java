@@ -28,8 +28,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import com.google.common.base.Joiner;
 
@@ -41,7 +40,7 @@ import net.butfly.bus.impl.BusServlet;
 import net.butfly.bus.impl.ServletInitParams;
 
 public class JettyStarter implements Runnable {
-	protected static final Logger logger = LoggerFactory.getLogger(JettyStarter.class);
+	protected static final Logger logger = Logger.getLogger(JettyStarter.class);
 	protected static final int BUF_SIZE = 8 * 1024;
 	protected static final long DEFAULT_IDLE = 60000;
 	protected final Server server;

@@ -11,8 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.eclipse.jetty.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.butfly.albacore.utils.logger.Logger;
 
 import net.butfly.albacore.serder.Serders;
 import net.butfly.albacore.serder.TextSerder;
@@ -31,7 +30,7 @@ import net.butfly.bus.utils.http.MoreOpts;
 
 public class WebServiceServlet extends BusServlet {
 	private static final long serialVersionUID = 4533571572446977813L;
-	protected static Logger logger = LoggerFactory.getLogger(WebServiceServlet.class);
+	protected static Logger logger = Logger.getLogger(WebServiceServlet.class);
 
 	protected Cluster cluster;
 	protected Opts opts;
