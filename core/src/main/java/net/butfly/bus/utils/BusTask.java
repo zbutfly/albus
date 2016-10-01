@@ -12,28 +12,22 @@ public class BusTask<T> extends Task<T> {
 
 	public BusTask(final Task<T> task) {
 		context.putAll(Context.toMap());
-		this.call = new Task.Callable<T>() {
-			@Override
-			public T call() throws Exception {
-				// TODO: optimizing...
-				Contexts.initialize(context);
-				try {
-					return task.call().call();
-				} finally {
-					context.putAll(Context.toMap());
-				}
+		this.call = () -> {
+			// TODO: optimizing...
+			Contexts.initialize(context);
+			try {
+				return task.call().call();
+			} finally {
+				context.putAll(Context.toMap());
 			}
 		};
-		this.back = null == task.back() ? null : new Task.Callback<T>() {
-			@Override
-			public void callback(T result) {
-				// TODO: optimizing...
-				Contexts.initialize(context);
-				try {
-					task.back().callback(result);
-				} finally {
-					context.putAll(Context.toMap());
-				}
+		this.back = null == task.back() ? null : result -> {
+			// TODO: optimizing...
+			Contexts.initialize(context);
+			try {
+				task.back().accept(result);
+			} finally {
+				context.putAll(Context.toMap());
 			}
 		};
 		this.options = task.options();

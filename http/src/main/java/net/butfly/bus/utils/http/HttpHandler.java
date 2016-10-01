@@ -22,6 +22,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
 import net.butfly.albacore.exception.NotImplementedException;
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.serder.ArrableTextSerder;
 import net.butfly.albacore.utils.Generics;
 import net.butfly.albacore.utils.async.Options;
@@ -45,11 +46,11 @@ public class HttpHandler {
 		throw new NotImplementedException();
 	}
 
-	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
-			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
+	public Future<Void> post(final BusHttpRequest httpRequest, final Consumer<Map<String, String>> contextCallback,
+			final Consumer<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
 		ResponseHandler resp = this.post(httpRequest);
-		contextCallback.callback(resp.context());
-		responseCallback.callback(resp.response());
+		contextCallback.accept(resp.context());
+		responseCallback.accept(resp.response());
 		return null;
 	}
 

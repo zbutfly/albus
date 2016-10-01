@@ -1,7 +1,7 @@
 package net.butfly.bus.filter;
 
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.Mode;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -12,10 +12,10 @@ public class FilterContext {
 	private Request request;
 	private Response response;
 	private Options[] options;
-	private Task.Callback<Response> callback;
+	private Consumer<Response> callback;
 	private Invoker invoker;
 
-	public FilterContext(Invoker invoker, Request request, Task.Callback<Response> callback, Mode mode, Options... options) {
+	public FilterContext(Invoker invoker, Request request, Consumer<Response> callback, Mode mode, Options... options) {
 		this.invoker = invoker;
 		this.request = request;
 		this.callback = callback;
@@ -31,7 +31,7 @@ public class FilterContext {
 		return this.options;
 	}
 
-	public Task.Callback<Response> callback() {
+	public Consumer<Response> callback() {
 		return this.callback;
 	}
 

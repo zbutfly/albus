@@ -1,27 +1,21 @@
 package net.butfly.albacore.utils.async;
 
-import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.lambda.Callable;
+import net.butfly.albacore.lambda.Consumer;
 
 public class TaskTest {
 	public static void main(String[] args) throws Exception {
-		Task.Callable<String> call = new Task.Callable<String>() {
-			@Override
-			public String call() throws Exception {
-				System.out.println("called ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId() + "}");
-				Thread.yield();
-				return "Hello, World: " + Math.random();
-			}
+		Callable<String> call = () -> {
+			System.out.println("called ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId() + "}");
+			Thread.yield();
+			return "Hello, World: " + Math.random();
 		};
-		Task.Callback<String> back = new Task.Callback<String>() {
-			@Override
-			public void callback(String result) {
-				System.out.println("backed ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId() + "}");
-				Thread.yield();
-			}
+		Consumer<String> back = result -> {
+			System.out.println("backed ==> " + Thread.currentThread().getName() + "{" + Thread.currentThread().getId() + "}");
+			Concurrents.waitSleep(10000);
 		};
 		Task<String> task = new Task<String>(call, back, new Options().fork());
 		task.execute();
-		Tasks.waitSleep(10000);
+		Concurrents.waitSleep(10000);
 	}
 }

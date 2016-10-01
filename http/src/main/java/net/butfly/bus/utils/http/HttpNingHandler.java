@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.serder.ArrableTextSerder;
 import net.butfly.albacore.utils.Exceptions;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.albacore.utils.async.Task.ExceptionHandler;
 
 import org.apache.http.entity.ContentType;
@@ -30,7 +30,8 @@ public class HttpNingHandler extends HttpHandler {
 
 	public HttpNingHandler(ArrableTextSerder<Object> serializer) {
 		super(serializer);
-		// this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
+		// this.client = Instances.fetch(new
+		// Runnable.Callable<AsyncHttpClient>() {
 		// @Override
 		// public AsyncHttpClient create() {
 		// return new AsyncHttpClient(new NettyAsyncHttpProvider(new
@@ -56,8 +57,8 @@ public class HttpNingHandler extends HttpHandler {
 	}
 
 	@Override
-	public Future<Void> post(BusHttpRequest httpRequest, final Callback<Map<String, String>> contextCallback,
-			final Callback<net.butfly.bus.Response> responseCallback, final ExceptionHandler<ResponseHandler> exception)
+	public Future<Void> post(BusHttpRequest httpRequest, final Consumer<Map<String, String>> contextCallback,
+			final Consumer<net.butfly.bus.Response> responseCallback, final ExceptionHandler<ResponseHandler> exception)
 			throws IOException {
 		BoundRequestBuilder req = this.prepare(httpRequest);
 		return req.execute(new AsyncHandler<Void>() {
@@ -75,7 +76,7 @@ public class HttpNingHandler extends HttpHandler {
 			@Override
 			public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart) throws Exception {
 				// TODO: async
-				responseCallback.callback(new ResponseHandler(serializer, null, bodyPart.getBodyPartBytes()).response());
+				responseCallback.accept(new ResponseHandler(serializer, null, bodyPart.getBodyPartBytes()).response());
 				return STATE.CONTINUE;
 			}
 
@@ -87,7 +88,7 @@ public class HttpNingHandler extends HttpHandler {
 
 			@Override
 			public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-				contextCallback.callback(new ResponseHandler(serializer, headers.getHeaders(), null).context());
+				contextCallback.accept(new ResponseHandler(serializer, headers.getHeaders(), null).context());
 				return null;
 			}
 

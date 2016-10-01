@@ -34,12 +34,9 @@ public final class FilterChain {
 	}
 
 	public Response execute(final FilterContext context) throws Exception {
-		return new Task<Response>(new Task.Callable<Response>() {
-			@Override
-			public Response call() throws Exception {
-				executeOne(filters[0], context);
-				return context.response();
-			}
+		return new Task<Response>(() -> {
+			executeOne(filters[0], context);
+			return context.response();
 		}, context.callback(), context.invoker().localOptions(context.options())).execute();
 	}
 

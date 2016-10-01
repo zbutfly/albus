@@ -2,8 +2,8 @@ package net.butfly.bus.impl;
 
 import java.lang.reflect.Proxy;
 
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.AsyncBus;
 import net.butfly.bus.Buses;
 import net.butfly.bus.Mode;
@@ -19,7 +19,7 @@ class AsyncBusImpl extends BusImpl implements AsyncBus {
 	 * Does not start async here, <br>
 	 * but transfer it into LastFilter for handling.
 	 */
-	void invoke(final Request request, final Task.Callback<Response> callback, final Options... options) throws Exception {
+	void invoke(final Request request, final Consumer<Response> callback, final Options... options) throws Exception {
 		check(request);
 		chain.execute(new FilterContext(find(request.code()), request, callback, mode, options));
 	}
@@ -30,44 +30,34 @@ class AsyncBusImpl extends BusImpl implements AsyncBus {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T, F> F service(Class<F> facadeClass, Task.Callback<T> callback, Options... options) {
-		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass },
-				new CallbackServiceProxy<T>(callback, options));
+	public <T, F> F service(Class<F> facadeClass, Consumer<T> callback, Options... options) {
+		return (F) Proxy.newProxyInstance(facadeClass.getClassLoader(), new Class<?>[] { facadeClass }, new CallbackServiceProxy<T>(
+				callback, options));
 	}
 
 	@Override
-	public <T> void invoke(String code, Object[] arguments, Task.Callback<T> callback, Options... options) throws Exception {
+	public <T> void invoke(String code, Object[] arguments, Consumer<T> callback, Options... options) throws Exception {
 		this.invoke(TXs.impl(code), arguments, callback, options);
 	};
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T> void invoke(TX tx, Object[] arguments, final Task.Callback<T> callback, Options... options) throws Exception {
-		this.invoke(Buses.request(tx, arguments), new Task.Callback<Response>() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void callback(Response result) {
-				callback.callback((T) result.result());
-			}
-		}, options);
+	public <T> void invoke(TX tx, Object[] arguments, final Consumer<T> callback, Options... options) throws Exception {
+		this.invoke(Buses.request(tx, arguments), result -> callback.accept((T) result.result()), options);
 	}
 
 	private class CallbackServiceProxy<T> extends ServiceProxy<T> {
-		protected Task.Callback<T> callback;
+		protected Consumer<T> callback;
 
-		public CallbackServiceProxy(Task.Callback<T> callback, Options... options) {
+		public CallbackServiceProxy(Consumer<T> callback, Options... options) {
 			super(options);
 			this.callback = callback;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		protected T invoke(Request request) throws Exception {
-			AsyncBusImpl.this.invoke(request, new Task.Callback<Response>() {
-				@SuppressWarnings("unchecked")
-				@Override
-				public void callback(Response result) {
-					callback.callback((T) result.result());
-				}
-			}, options);
+			AsyncBusImpl.this.invoke(request, result -> callback.accept((T) result.result()), options);
 			return null;
 		}
 	}

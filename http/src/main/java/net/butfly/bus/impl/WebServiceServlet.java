@@ -11,16 +11,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.eclipse.jetty.http.HttpStatus;
-import net.butfly.albacore.utils.logger.Logger;
 
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.serder.Serders;
 import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
-import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callback;
+import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.policy.Router;
@@ -59,22 +58,19 @@ public class WebServiceServlet extends BusServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final ServiceContext context = this.prepare(request, response);
-		Callback<Response> cb = new Task.Callback<Response>() {
-			@Override
-			public void callback(Response resp) {
-				try {
-					response.getOutputStream().write(context.handler.response(resp, response, context.invoking.supportClass,
-							context.respContentType.getCharset()));
-					response.getOutputStream().flush();
-					response.flushBuffer();
-				} catch (IOException ex) {
-					logger.error("Response writing I/O failure", ex);
-				}
+		final Consumer<Response> cb = resp -> {
+			try {
+				response.getOutputStream().write(context.handler.response(resp, response, context.invoking.supportClass,
+						context.respContentType.getCharset()));
+				response.getOutputStream().flush();
+				response.flushBuffer();
+			} catch (final IOException ex) {
+				logger.error("Response writing I/O failure", ex);
 			}
 		};
 		try {
 			if (this.internalAsync) ((AsyncCluster) cluster).invoke(context.invoking, cb);
-			else cb.callback(cluster.invoke(context.invoking));
+			else cb.accept(cluster.invoke(context.invoking));
 		} catch (Exception ex) {
 			throw Exceptions.wrap(ex, ServletException.class);
 		}

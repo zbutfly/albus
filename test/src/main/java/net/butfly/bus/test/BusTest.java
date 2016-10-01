@@ -1,11 +1,11 @@
 package net.butfly.bus.test;
 
-import net.butfly.albacore.utils.logger.Logger;
-
 import com.google.common.base.Joiner;
 
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.Reflections;
+import net.butfly.albacore.utils.Systems;
+import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
 import net.butfly.bus.start.JettyStarter;
@@ -64,7 +64,7 @@ public abstract class BusTest {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Mode mode) throws BusinessException {
-		return (T) Reflections.construct(Reflections.getMainClass(), mode);
+		return (T) Reflections.construct(Systems.getMainClass(), mode);
 	}
 
 	private void doTestWrapper() throws BusinessException {
