@@ -17,12 +17,4 @@ class MoreTasks {
 			// Tasks.handleSignal(signal);
 		}
 	}
-
-	// public static void handleSignal(Signal signal) {
-	// // TODO
-	// if (signal instanceof Signal.Error) {
-	// Throwable cause = ((Signal.Error) signal).getCause();
-	// if (cause != null) throw Exceptions.wrap(cause);
-	// }
-	// }
 }
