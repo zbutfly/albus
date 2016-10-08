@@ -93,7 +93,7 @@ public class WebServiceServlet extends BusServlet {
 				.getMimeType()), context.reqContentType.getCharset());
 		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.contentType().getMimeType(), context.reqContentType.getCharset());
-		context.handler = Instances.fetch(HttpHandler.class, serializer);
+		context.handler = Instances.construct(HttpHandler.class, serializer);
 
 		// prepare invoke
 		context.invoking = new Invoking();
