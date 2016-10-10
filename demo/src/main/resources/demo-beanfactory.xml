@@ -5,6 +5,5 @@
 	<router class="net.butfly.bus.policy.SimpleRouter" />
 	<invoker tx="SPL_*" class="net.butfly.bus.demo.BeanFactory">
 		<module>sample</module>
-		<files>beans-demo.xml</files>
 	</invoker>
 </bus>
