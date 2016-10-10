@@ -34,6 +34,7 @@ import com.google.common.base.Joiner;
 
 import net.butfly.albacore.utils.Objects;
 import net.butfly.albacore.utils.Reflections;
+import net.butfly.albacore.utils.async.Concurrents;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.albacore.utils.more.JNDIUtils;
@@ -69,16 +70,22 @@ public class JettyStarter implements Runnable {
 			server.join();
 			logger.trace("Jetty started.");
 		} catch (InterruptedException e) {
-			logger.info("Jetty starter interrupted");
-			try {
-				server.stop();
-			} catch (Exception ex) {
-				logger.error("Jetty stopping failure: ", ex);
-			}
+			logger.info("Jetty interrupted");
 		} catch (Exception e) {
-			logger.error("Jetty starting failure: ", e);
+			logger.error("Jetty starting failure", e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void shutdown() {
+		try {
+			server.stop();
+		} catch (Exception ex) {
+			logger.error("Jetty stopping failure: ", ex);
+		}
+		while (!server.isStopped())
+			Concurrents.waitSleep(1000, logger, "Waiting jetty stopping");
+		logger.warn("JettyStarter shutdown finished, but the nio threads will not stop automatically!!!");
 	}
 
 	public JettyStarter addBusInstances(StarterConfiguration conf) throws IllegalAccessException, IllegalArgumentException,
@@ -202,9 +209,12 @@ public class JettyStarter implements Runnable {
 		start(args).run();
 	}
 
-	public static Thread thread(String... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+	public static JettyStarter fork(String... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			ParseException {
-		return new Thread(start(args), "Albus-Jetty-Starter-Thread");
+		JettyStarter j = start(args);
+		j.server.setStopAtShutdown(true);
+		Concurrents.submit(new Thread(j, "Albus-Jetty-Starter-Thread"));
+		return j;
 	}
 
 	public boolean starting() {

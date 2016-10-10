@@ -38,11 +38,11 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 				 * DO not scan tx on implementation of
 				 * facade.scanMethodsForTX(implClass, bean);
 				 */
-				for (Class<?> clazz : implClass.getInterfaces())
-					scanMethodsForTX(clazz, bean);
+				for (Class<?> intf : implClass.getInterfaces())
+					scanMethodsForTX(intf, bean);
 				for (Class<?> cl : awaredServiceClasses)
-					if (cl.isInterface() && cl.isAssignableFrom(implClass))
-						this.AWARED_POOL.put((Class<? extends Service>) cl, (Service) bean);
+					if (cl.isInterface() && cl.isAssignableFrom(implClass)) this.AWARED_POOL.put((Class<? extends Service>) cl,
+							(Service) bean);
 			}
 			logger.trace("Invoker " + this.getClass().getName() + "[" + config + "] parsed.");
 		} catch (Exception _ex) {
@@ -59,8 +59,8 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 
 	public Method getMethod(String code, String version) {
 		String key = key(code, version);
-		if (null == key) throw new SystemException(Constants.BusinessError.CONFIG_ERROR,
-				"TX [" + key + "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
+		if (null == key) throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
+				+ METHOD_POOL.keySet().toString() + "].");
 		return METHOD_POOL.get(key);
 	}
 
@@ -68,8 +68,8 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
 		Response resp = Buses.response(request);
 		String key = key(request.code(), request.version());
-		if (null == key) throw new SystemException(Constants.BusinessError.CONFIG_ERROR,
-				"TX [" + key + "] not fould in registered txes: [" + METHOD_POOL.keySet().toString() + "].");
+		if (null == key) throw new SystemException(Constants.BusinessError.CONFIG_ERROR, "TX [" + key + "] not fould in registered txes: ["
+				+ METHOD_POOL.keySet().toString() + "].");
 
 		Method method = METHOD_POOL.get(key);
 		Object bean = INSTANCE_POOL.get(key);
@@ -85,16 +85,10 @@ public abstract class AbstractLocalInvoker extends AbstractInvoker {
 	}
 
 	private String key(String code, String version) {
+		if (config == null) this.initialize();
 		if (TX_POOL.containsKey(code)) {
 			if (TX.ALL_VERSION.equals(version)) return TXs.key(code, TX_POOL.get(code).first());
 			return TXs.key(code, TX_POOL.get(code).ceiling(version));
-		}
-		if (config != null) {
-			this.initialize();
-			if (TX_POOL.containsKey(code)) {
-				if (TX.ALL_VERSION.equals(version)) return TXs.key(code, TX_POOL.get(code).first());
-				return TXs.key(code, TX_POOL.get(code).ceiling(version));
-			}
 		}
 		return null;
 	}
