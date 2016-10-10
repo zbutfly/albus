@@ -8,11 +8,10 @@ import net.butfly.albacore.utils.Systems;
 import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
-import net.butfly.bus.start.JettyStarter;
 
 public abstract class BusTest {
 	protected enum Mode {
-		LOCAL, REMOTE, CLIENT, SERVER
+		LOCAL, /* REMOTE, */CLIENT,/* SERVER */
 	}
 
 	protected static final Logger logger = Logger.getLogger(BusTest.class);
@@ -22,15 +21,13 @@ public abstract class BusTest {
 
 	protected BusTest(Mode mode) throws Exception {
 		this.mode = mode;
-		if (mode == Mode.REMOTE || mode == Mode.SERVER) {
-			System.setProperty("bus.server.waiting", "true");
-			logger.info(mode.name() + " test: bus server starting.");
-			JettyStarter.main(getServerMainArguments());
-		}
-		if (mode != Mode.SERVER) {
-			logger.info(mode.name() + " test: bus client starting.");
-			client = BusFactory.client(this.getClientConfigurationForType(this.isRemote()));
-		}
+		// if (mode == Mode.REMOTE || mode == Mode.SERVER) {
+		// System.setProperty("bus.server.waiting", "true");
+		// logger.info(mode.name() + " test: bus server starting.");
+		// JettyStarter.main(getServerMainArguments());
+		// }
+		logger.info(mode.name() + " test: bus client starting.");
+		client = BusFactory.client(this.getClientConfigurationForType(this.isRemote()));
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
@@ -38,7 +35,9 @@ public abstract class BusTest {
 	}
 
 	protected static void run(Mode... mode) throws Exception {
-		if (null == mode || mode.length == 0) mode = new Mode[] { Mode.LOCAL, Mode.REMOTE };
+		if (null == mode || mode.length == 0) mode = new Mode[] { Mode.LOCAL };
+		// if (null == mode || mode.length == 0) mode = new Mode[] { Mode.LOCAL,
+		// Mode.REMOTE };
 
 		for (Mode m : mode)
 			getTestInstance(m).doTestWrapper();
@@ -55,11 +54,11 @@ public abstract class BusTest {
 	}
 
 	protected String[] getServerMainArguments() {
-		return new String[] { "-k", Joiner.on(',').join(getServerConfiguration()) };
+		return new String[] { Joiner.on(',').join(getServerConfiguration()) };
 	}
 
 	protected boolean isRemote() {
-		return mode != Mode.LOCAL && mode != Mode.SERVER;
+		return mode == Mode.CLIENT /* || mode == Mode.REMOTE */;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -72,23 +71,24 @@ public abstract class BusTest {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e1) {}
-		if (this.mode == Mode.SERVER) {
-			logger.info("==========================");
-			logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: server ready, waiting for client...");
-			logger.info("==========================");
-			while (true)
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e1) {}
-		} else {
-			logger.info("==========================");
-			logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test starting.");
-			logger.info("==========================");
-			doAllTest();
-			logger.info("==========================");
-			logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test finished.");
-			logger.info("==========================");
-		}
+		// if (this.mode == Mode.SERVER) {
+		// logger.info("==========================");
+		// logger.info(mode.name() + "@[" + this.getClass().getName() + "] test:
+		// server ready, waiting for client...");
+		// logger.info("==========================");
+		// while (true)
+		// try {
+		// Thread.sleep(1000);
+		// } catch (InterruptedException e1) {}
+		// } else {
+		logger.info("==========================");
+		logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test starting.");
+		logger.info("==========================");
+		doAllTest();
+		logger.info("==========================");
+		logger.info(mode.name() + "@[" + this.getClass().getName() + "] test: test finished.");
+		logger.info("==========================");
+		// }
 	}
 
 	protected static final void waiting() {

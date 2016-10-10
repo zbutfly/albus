@@ -16,6 +16,7 @@ public class AsyncCluster extends Cluster {
 	public final void invoke(final Invoking invoking, Consumer<Response> callback) throws Exception {
 		Contexts.initialize(Contexts.deserialize(invoking.context));
 		Request req = Buses.request(invoking.tx, invoking.context, invoking.parameters);
-		((AsyncBusImpl) invoking.bus).invoke(req, callback, invoking.options);
+		if (invoking.bus instanceof AsyncBusImpl) ((AsyncBusImpl) invoking.bus).invoke(req, callback, invoking.options);
+		else if (invoking.bus instanceof BusImpl) callback.accept(((BusImpl) invoking.bus).invoke(req, invoking.options));
 	}
 }

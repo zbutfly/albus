@@ -1,7 +1,7 @@
 package net.butfly.bus.comet;
 
 import net.butfly.albacore.exception.BusinessException;
-import net.butfly.albacore.utils.async.Task.Callback;
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.bus.CallbackBus;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;
@@ -9,12 +9,9 @@ import net.butfly.bus.comet.facade.dto.CometEchoReponse;
 public class CallbackTest extends StandardTest {
 	protected CallbackTest(Mode mode) throws Exception {
 		super(mode);
-		this.echoCallback = new Callback<CometEchoReponse>() {
-			@Override
-			public void callback(CometEchoReponse echo) {
-				// consume one result.
-				if (echo != null) System.out.println("Callback echo: " + echo.toString());
-			}
+		this.echoCallback = echo -> {
+			// consume one result.
+			if (echo != null) System.out.println("Callback echo: " + echo.toString());
 		};
 		this.facade = ((CallbackBus) this.client).service(CometFacade.class, echoCallback);
 	}
@@ -33,5 +30,5 @@ public class CallbackTest extends StandardTest {
 
 	/*****************************************************/
 
-	protected Callback<CometEchoReponse> echoCallback;
+	protected Consumer<CometEchoReponse> echoCallback;
 }

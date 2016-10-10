@@ -24,9 +24,6 @@ class StarterParser {
 
 	private void options() {
 		options.addOption("s", "secure", false, "If presented, bus server will open https service (secure service).");
-		options.addOption("k", "fork", false,
-				"If presented, bus server will run in a forked threads (not daemon, the server will be stopped on main threads stopping)");
-
 		options.addOption("h", "help", false, "Print help for command line sterter of bus server");
 	}
 
@@ -41,22 +38,20 @@ class StarterParser {
 			f.printUsage(pw, width, "java " + className + " [option(s)] [<config[@class]:]<path> ...");
 			f.printWrapped(pw, width, "Start bus server(s) with CONFIG_FILE(s) (default bus.xml in root of classpath).");
 
-			this.printWrapped(f, pw, "Example", "java -Dbus.jndi=context.xml " + className + " -k bus-server.xml");
+			this.printWrapped(f, pw, "Example", "java -Dbus.jndi=context.xml " + className + " bus-server.xml");
 			this.printWrapped(f, pw, "Example", "java -Dbus.jndi=context.xml " + className
-					+ " -k bus1:bus-server1.xml bus2@xxx.yyy.MyBusServlet:bus-server2.xml");
+					+ " bus1:bus-server1.xml bus2@xxx.yyy.MyBusServlet:bus-server2.xml");
 			this.printWrapped(f, pw, "ContinuousOptions", null);
 			f.printOptions(pw, width, options, f.getLeftPadding(), f.getDescPadding());
 			this.printWrapped(f, pw, "Environment variables", null);
 			this.printWrapped(f, pw, "bus.port", "Port of bus server (default " + Starter.DEFAULT_PORT + ")");
-			this.printWrapped(f, pw, "bus.port.secure", "Secure port of bus server (default " + Starter.DEFAULT_SECURE_PORT
-					+ ")");
-			this.printWrapped(f, pw, "bus.threadpool.size", "Thread pool size of bus server (default "
-					+ Starter.DEFAULT_THREAD_POOL_SIZE + ", -1 for no threads pool)");
+			this.printWrapped(f, pw, "bus.port.secure", "Secure port of bus server (default " + Starter.DEFAULT_SECURE_PORT + ")");
+			this.printWrapped(f, pw, "bus.threadpool.size", "Thread pool size of bus server (default " + Starter.DEFAULT_THREAD_POOL_SIZE
+					+ ", -1 for no threads pool)");
 			this.printWrapped(f, pw, "bus.server.context", "Context path of bus server (default /" + Starter.DEFAULT_CONTEXT
 					+ "/*), only used on one argument being defined.");
 			this.printWrapped(f, pw, "bus.jndi", "Jndi context definition file (default no jndi resource attached)");
-			this.printWrapped(f, pw, "bus.server.base",
-					"Static resource root for bus server, such as index.html (default none)");
+			this.printWrapped(f, pw, "bus.server.base", "Static resource root for bus server, such as index.html (default none)");
 			this.printWrapped(f, pw, "bus.servlet.class",
 					"Class name for the servlet of container of bus deployment (default net.butfly.bus.start.WebServiceServlet)");
 			pw.flush();

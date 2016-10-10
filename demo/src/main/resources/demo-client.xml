@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus debug="true">
+	<filter title="logger-handler" class="net.butfly.bus.filter.LoggerFilter" />
+	<invoker tx="*" class="net.butfly.bus.invoker.WebServiceInvoker">
+		<path>http://127.0.0.1:19080/demo</path>
+		<serializer>net.butfly.bus.serialize.HessianSerializer</serializer>
+	</invoker>
+</bus>

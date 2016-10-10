@@ -1,7 +1,7 @@
 package net.butfly.bus.comet;
 
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.CallbackBus;
 import net.butfly.bus.comet.facade.CometFacade;
 
@@ -26,8 +26,8 @@ public class ContinuousTest extends CallbackTest {
 	private void echoString(int retries) {
 		String echo;
 		try {
-			echo = ((CallbackBus) this.client).service(CometFacade.class, echoCallback, new Options().retries(3))
-					.echoString("hello, World!");
+			echo = ((CallbackBus) this.client).service(CometFacade.class, echoCallback, new Options().retries(3)).echoString(
+					"hello, World!");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -35,11 +35,8 @@ public class ContinuousTest extends CallbackTest {
 		else System.out.println("Do be null.");
 	}
 
-	protected final Callback<String> strCallback = new Callback<String>() {
-		@Override
-		public void callback(String echo) {
-			// consume one result.
-			if (echo != null) System.out.println("Continuous echo: " + echo.toString());
-		}
+	protected final Consumer<String> strCallback = echo -> {
+		// consume one result.
+		if (echo != null) System.out.println("Continuous echo: " + echo.toString());
 	};
 }

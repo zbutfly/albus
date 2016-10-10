@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.eclipse.jetty.http.spi.DelegatingThreadPool;
 import org.eclipse.jetty.server.Connector;
@@ -28,13 +29,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import net.butfly.albacore.utils.logger.Logger;
 
 import com.google.common.base.Joiner;
 
 import net.butfly.albacore.utils.Objects;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.albacore.utils.more.JNDIUtils;
 import net.butfly.bus.impl.BusServlet;
 import net.butfly.bus.impl.ServletInitParams;
@@ -45,7 +46,6 @@ public class JettyStarter implements Runnable {
 	protected static final long DEFAULT_IDLE = 60000;
 	protected final Server server;
 	protected final ServletContextHandler handler;
-	protected boolean running = false;
 
 	public JettyStarter(StarterConfiguration conf) {
 		if (conf.threads > 0) this.server = new Server(new QueuedThreadPool(conf.threads));
@@ -61,15 +61,6 @@ public class JettyStarter implements Runnable {
 
 	}
 
-	public void run(boolean fork) {
-		if (fork) {
-			Thread th = new Thread(this);
-			th.setDaemon(true);
-			th.setName("StandardBus-Server-Jetty-Starter-Thread");
-			th.start();
-		} else this.run();
-	}
-
 	@Override
 	public void run() {
 		try {
@@ -77,19 +68,16 @@ public class JettyStarter implements Runnable {
 			server.start();
 			server.join();
 			logger.trace("Jetty started.");
+		} catch (InterruptedException e) {
+			logger.info("Jetty starter interrupted");
+			try {
+				server.stop();
+			} catch (Exception ex) {
+				logger.error("Jetty stopping failure: ", ex);
+			}
 		} catch (Exception e) {
 			logger.error("Jetty starting failure: ", e);
-			running = false;
 			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public void finalize() throws Exception {
-		if (server.isRunning()) {
-			logger.trace("Jetty stopping...");
-			server.stop();
-			logger.trace("Jetty stopped.");
 		}
 	}
 
@@ -194,7 +182,8 @@ public class JettyStarter implements Runnable {
 		server.setHandler(handlers);
 	}
 
-	public static void main(String... args) throws Exception {
+	private static JettyStarter start(String... args) throws ParseException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException {
 		StarterParser parser = new StarterParser(PosixParser.class);
 		CommandLine cmd = parser.parse(args);
 		if (null != cmd) {
@@ -204,8 +193,18 @@ public class JettyStarter implements Runnable {
 			JettyStarter j = new JettyStarter(conf);
 			j.addBusInstances(conf);
 			if (null != conf.jndi) JNDIUtils.attachContext(conf.jndi);
-			j.run(conf.fork);
-		}
+			return j;
+		} else throw new IllegalArgumentException();
+	}
+
+	public static void main(String... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			ParseException {
+		start(args).run();
+	}
+
+	public static Thread thread(String... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			ParseException {
+		return new Thread(start(args), "Albus-Jetty-Starter-Thread");
 	}
 
 	public boolean starting() {

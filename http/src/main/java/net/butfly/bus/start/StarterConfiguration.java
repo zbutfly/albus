@@ -24,20 +24,21 @@ final class StarterConfiguration {
 	int sslPort;
 	String resBase;
 	int threads;
-	boolean fork;
 	String jndi;
 	Map<String, Pair<List<String>, Class<? extends BusServlet>>> definitions;
 
 	public StarterConfiguration(CommandLine cmd) {
 		this.secure = cmd.hasOption('s');
-		this.fork = cmd.hasOption('k');
 		this.loadSystemProperties();
 		this.parseBuses(cmd.getArgs());
 	}
 
-	public void parseBuses(String... args) {
-		if (definitions == null)
-			definitions = new HashMap<String, Pair<List<String>, Class<? extends BusServlet>>>(args.length);
+	public StarterConfiguration(String... config) {
+		this.loadSystemProperties();
+	}
+
+	protected void parseBuses(String... args) {
+		if (definitions == null) definitions = new HashMap<String, Pair<List<String>, Class<? extends BusServlet>>>(args.length);
 		String[] defs;
 		for (int i = 0; i < args.length; i++) {
 			String arg = args[i];
@@ -45,8 +46,7 @@ final class StarterConfiguration {
 			if (defs.length == 1) this.addDefinition(this.defaultContextPath, this.defaultServletClass, defs);
 			else {
 				String[] newdefs = defs[0].split("@", 2);
-				if (newdefs.length == 1) this.addDefinition(defs[0], this.defaultServletClass,
-						Arrays.copyOfRange(defs, 1, defs.length));
+				if (newdefs.length == 1) this.addDefinition(defs[0], this.defaultServletClass, Arrays.copyOfRange(defs, 1, defs.length));
 				else {
 					Class<? extends BusServlet> servletClass = Reflections.forClassName(newdefs[1]);
 					this.addDefinition(newdefs[0], servletClass, Arrays.copyOfRange(defs, 1, defs.length));
@@ -59,21 +59,15 @@ final class StarterConfiguration {
 		Objects.notNull(servletClass);
 		Objects.notEmpty(contextPath);
 		Objects.notEmpty(configLocations);
-		if (!definitions.containsKey(contextPath)) definitions.put(contextPath,
-				new Pair<List<String>, Class<? extends BusServlet>>(Arrays.asList(configLocations), servletClass));
+		if (!definitions.containsKey(contextPath)) definitions.put(contextPath, new Pair<List<String>, Class<? extends BusServlet>>(Arrays
+				.asList(configLocations), servletClass));
 		else {
 			Pair<List<String>, Class<? extends BusServlet>> p = definitions.get(contextPath);
-			if (!p.value2().isAssignableFrom(servletClass))
-				throw new RuntimeException("Same context [" + contextPath + "], incompatible servlet class : ["
-						+ p.value2().getName() + "] and [" + servletClass.getName() + "]");
+			if (!p.value2().isAssignableFrom(servletClass)) throw new RuntimeException("Same context [" + contextPath
+					+ "], incompatible servlet class : [" + p.value2().getName() + "] and [" + servletClass.getName() + "]");
 			p.value2(servletClass);
 			p.value1().addAll(Arrays.asList(configLocations));
 		}
-	}
-
-	public StarterConfiguration(boolean fork, String... config) {
-		this.fork = fork;
-		this.loadSystemProperties();
 	}
 
 	private void loadSystemProperties() {
@@ -86,6 +80,30 @@ final class StarterConfiguration {
 		this.defaultContextPath = System.getProperty("bus.server.context", Starter.DEFAULT_CONTEXT);
 		this.defaultServletClass = Reflections.forClassName(System.getProperty("bus.servlet.class"));
 		if (null == this.defaultServletClass) this.defaultServletClass = scanServletClass();
+	}
+
+	private static Class<? extends BusServlet> scanServletClass() {
+		Set<Class<? extends BusServlet>> classes = Reflections.getSubClasses(BusServlet.class);
+		for (Class<? extends BusServlet> c : classes)
+			if (!c.getName().startsWith("net.butfly.bus.")) return c;
+		return WebServiceServlet.class;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !StarterConfiguration.class.isAssignableFrom(obj.getClass())) return false;
+		StarterConfiguration c2 = (StarterConfiguration) obj;
+		if (secure != c2.secure) return false;
+		if (port != c2.port) return false;
+		if (sslPort != c2.sslPort) return false;
+		if (resBase == null) {
+			if (c2.resBase != null) return false;
+		} else if (!resBase.equals(c2.resBase)) return false;
+		if (threads != c2.threads) return false;
+		if (jndi == null) {
+			if (c2.jndi != null) return false;
+		} else if (!jndi.equals(c2.jndi)) return false;
+		return true;
 	}
 
 	@Override
@@ -102,12 +120,5 @@ final class StarterConfiguration {
 				sb.append("\t").append(f.getName()).append(": ").append((Object) f.get(this)).append("\n");
 			} catch (IllegalAccessException e) {}
 		return sb.toString();
-	}
-
-	private static Class<? extends BusServlet> scanServletClass() {
-		Set<Class<? extends BusServlet>> classes = Reflections.getSubClasses(BusServlet.class);
-		for (Class<? extends BusServlet> c : classes)
-			if (!c.getName().startsWith("net.butfly.bus.")) return c;
-		return WebServiceServlet.class;
 	}
 }

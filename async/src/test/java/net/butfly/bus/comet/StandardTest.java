@@ -52,8 +52,8 @@ public class StandardTest extends BusTest {
 
 	protected void composetest(int times) {
 		CometEchoReponse resp;
-		resp = facade.echoCompose("hello, world!", Math.round(Math.random() * 100), Math.round(Math.random() * 100),
-				Math.round(Math.random() * 100));
+		resp = facade.echoCompose("hello, world!", Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math
+				.random() * 100));
 		if (resp != null) System.out.println("ECHO: " + resp.toString());
 		else System.err.println("Do be null.");
 

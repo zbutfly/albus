@@ -10,7 +10,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
-			<artifactId>albus-http</artifactId>
+			<artifactId>albus-core</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>

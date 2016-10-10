@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bus>
+	<router class="net.butfly.bus.policy.SimpleRouter" />
+	<filter title="logger-filter" class="net.butfly.bus.filter.LoggerFilter" />
+	<router class="net.butfly.bus.policy.SimpleRouter" />
+	<invoker tx="SPL_*" class="net.butfly.bus.invoker.SpringInvoker">
+		<module>sample</module>
+	</invoker>
+</bus>

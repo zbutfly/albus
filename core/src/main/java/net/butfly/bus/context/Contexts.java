@@ -26,7 +26,7 @@ public interface Contexts {
 		for (Key key : Key.values()) {
 			if (src.containsKey(key.name())) switch (key) {
 			case FlowNo:
-				dst.put(key.name(), flowNo(src.get(key.name())));
+				dst.put(key.name(), FlowNo.parse(src.get(key.name())));
 				continue;
 			case TXInfo:
 				dst.put(key.name(), TXs.impl(src.get(key.name())));
@@ -41,7 +41,7 @@ public interface Contexts {
 
 	public static FlowNo flowNo(Request request) {
 		String fn = request.context(Key.FlowNo.name());
-		FlowNo existed = null == fn ? Context.flowNo() : flowNo(fn);
+		FlowNo existed = null == fn ? Context.flowNo() : FlowNo.parse(fn);
 		FlowNo fno = new FlowNo();
 		if (null == existed) {
 			fno.serial = Keys.key(String.class);
@@ -58,22 +58,6 @@ public interface Contexts {
 		return fno;
 	}
 
-	public static FlowNo flowNo(String flowno) {
-		if (null == flowno) throw new IllegalArgumentException();
-		String[] fields = flowno.split("[#@:]");
-		if (fields.length != 5) throw new IllegalArgumentException();
-		FlowNo fno = new FlowNo();
-		try {
-			fno.timestamp = Texts.dateFormat(FlowNo.DATE_FORMAT).parse(fields[0]).getTime();
-			fno.code = fields[3];
-			fno.version = fields[4];
-			fno.serial = fields[1];
-			fno.sequence = Long.parseLong(fields[2]);
-		} catch (Exception e) {
-			throw new IllegalArgumentException(e);
-		}
-		return fno;
-	}
 
 	public static String format(FlowNo flowno) {
 		String timestamp = Texts.dateFormat(FlowNo.DATE_FORMAT).format(new Date(flowno.timestamp));
