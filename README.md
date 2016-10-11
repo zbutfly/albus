@@ -1,3 +1,1 @@
-# Description: [Description](https://github.com/zbutfly/albus/wiki/Description)
-# Specification: Not Implementted.
-# Planning: [TODO Item List](https://github.com/zbutfly/albus/wiki/TODO-Items-List)
+### <a ref="!resources/arch.md">Albus架构设计手册</a>
