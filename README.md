@@ -1,1 +1,1 @@
-### <a ref="!resources/arch.md">Albus架构设计手册</a>
+### <a href="!resources/arch.md">Albus架构设计手册</a>
