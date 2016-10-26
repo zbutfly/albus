@@ -56,7 +56,7 @@ final class StarterConfiguration {
 	}
 
 	private void addDefinition(String contextPath, Class<? extends BusServlet> servletClass, String[] configLocations) {
-		Objects.notNull(servletClass);
+		Objects.noneNull(servletClass);
 		Objects.notEmpty(contextPath);
 		Objects.notEmpty(configLocations);
 		if (!definitions.containsKey(contextPath)) definitions.put(contextPath, new Pair<List<String>, Class<? extends BusServlet>>(Arrays

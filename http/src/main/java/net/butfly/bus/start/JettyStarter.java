@@ -98,7 +98,7 @@ public class JettyStarter implements Runnable {
 	}
 
 	private void addBusInstance(String contextPath, Class<? extends BusServlet> servletClass, String... configLocation) {
-		Objects.notNull(servletClass);
+		Objects.noneNull(servletClass);
 		Objects.notEmpty(contextPath);
 		Objects.notEmpty(configLocation);
 		ServletHolder servlet = new ServletHolder(servletClass);
