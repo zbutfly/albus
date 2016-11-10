@@ -7,8 +7,8 @@ import net.butfly.albacore.utils.logger.Logger;
 import com.google.common.base.Joiner;
 
 import net.butfly.albacore.serder.Serders;
-import net.butfly.albacore.serder.TextSerder;
 import net.butfly.albacore.serder.support.SerderFactorySupport;
+import net.butfly.albacore.serder.support.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -57,7 +57,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		final Class<? extends HttpHandler> handlerClass;
 		if (null == handleClassname) handlerClass = HttpNingHandler.class;
 		else handlerClass = Reflections.forClassName(handleClassname);
-		this.handler = Instances.construct(handlerClass, serializer);
+		this.handler = Instances.fetch(handlerClass, serializer);
 		super.initialize(config, token);
 	}
 
@@ -68,8 +68,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(), Serders
 				.isClassInfoSupported(serializer.getClass()), remoteOptions);
 		byte[] data = serializer.toBytes(request.arguments());
-		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, data, serializer.contentType().getMimeType(), serializer
-				.contentType().getCharset(), timeout);
+		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, data, serializer.contentType(), timeout);
 		/**
 		 * <pre>
 		 * TODO: handle continuous, move to async proj.

@@ -19,10 +19,10 @@ import com.google.common.net.HttpHeaders;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.serder.Serders;
-import net.butfly.albacore.serder.ArrableTextSerder;
+import net.butfly.albacore.serder.support.TextSerder;
 
 public class HttpUrlHandler extends HttpHandler {
-	public HttpUrlHandler(ArrableTextSerder<Object> serializer, int connTimeout, int readTimeout) {
+	public HttpUrlHandler(TextSerder<Object> serializer, int connTimeout, int readTimeout) {
 		super(serializer);
 	}
 

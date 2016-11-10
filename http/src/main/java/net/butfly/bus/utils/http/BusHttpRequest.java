@@ -3,6 +3,8 @@ package net.butfly.bus.utils.http;
 import java.nio.charset.Charset;
 import java.util.Map;
 
+import org.apache.http.entity.ContentType;
+
 import net.butfly.albacore.utils.logger.Logger;
 
 public class BusHttpRequest {
@@ -13,6 +15,10 @@ public class BusHttpRequest {
 	Charset charset;
 
 	int timeout;
+
+	public BusHttpRequest(String path, Map<String, String> headers, byte[] data, ContentType contentType, int timeout) {
+		this(path, headers, data, contentType.getMimeType(), contentType.getCharset(), timeout);
+	}
 
 	public BusHttpRequest(String url, Map<String, String> headers, byte[] data, String mimeType, Charset charset, int timeout) {
 		super();

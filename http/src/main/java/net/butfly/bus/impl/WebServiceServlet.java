@@ -14,7 +14,7 @@ import org.eclipse.jetty.http.HttpStatus;
 
 import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.serder.Serders;
-import net.butfly.albacore.serder.TextSerder;
+import net.butfly.albacore.serder.support.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
@@ -89,11 +89,9 @@ public class WebServiceServlet extends BusServlet {
 		if (context.reqContentType.getMimeType() == null) context.reqContentType = ContentType.create(Serders.DEFAULT_CONTENT_TYPE
 				.getMimeType(), context.reqContentType.getCharset());
 		@SuppressWarnings("unchecked")
-		final TextSerder<Object> serializer = (TextSerder<Object>) Serders.serializer(Serders.getSerderByMimeType(context.reqContentType
-				.getMimeType()), context.reqContentType.getCharset());
-		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
-		context.respContentType = ContentType.create(serializer.contentType().getMimeType(), context.reqContentType.getCharset());
-		context.handler = Instances.construct(HttpHandler.class, serializer);
+		final TextSerder<Object> serializer = (TextSerder<Object>) Serders.construct(context.reqContentType);
+		context.respContentType = serializer.contentType();
+		context.handler = Instances.fetch(HttpHandler.class, serializer);
 
 		// prepare invoke
 		context.invoking = new Invoking();

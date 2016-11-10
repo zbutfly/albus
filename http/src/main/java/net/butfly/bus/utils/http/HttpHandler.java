@@ -21,7 +21,7 @@ import com.google.common.reflect.TypeToken;
 
 import net.butfly.albacore.exception.NotImplementedException;
 import net.butfly.albacore.lambda.Consumer;
-import net.butfly.albacore.serder.ArrableTextSerder;
+import net.butfly.albacore.serder.support.TextSerder;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -34,9 +34,9 @@ import net.butfly.bus.filter.LoggerFilter;
 
 public class HttpHandler {
 	protected static Logger logger = Logger.getLogger(HttpHandler.class);
-	protected ArrableTextSerder<Object> serializer;
+	protected TextSerder<Object> serializer;
 
-	public HttpHandler(ArrableTextSerder<Object> serializer) {
+	public HttpHandler(TextSerder<Object> serializer) {
 		this.serializer = serializer;
 	}
 
