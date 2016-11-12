@@ -1,6 +1,7 @@
 package net.butfly.bus.context;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import net.butfly.albacore.utils.Texts;
 
@@ -14,28 +15,31 @@ public final class FlowNo implements Serializable, Cloneable {
 	String serial;
 	long sequence;
 
-	protected FlowNo() {}
-
-	@Override
-	public String toString() {
-		return new StringBuilder().append(timestamp).append("#").append(serial).append("#").append(sequence).append("@").append(code)
-				.append(":").append(version).toString();
-	}
+	FlowNo() {}
 
 	static FlowNo parse(String flowno) {
 		if (null == flowno) throw new IllegalArgumentException();
 		String[] fields = flowno.split("[#@:]");
 		if (fields.length != 5) throw new IllegalArgumentException();
-		FlowNo fno = new FlowNo();
+		FlowNo fn = new FlowNo();
 		try {
-			fno.timestamp = Texts.dateFormat(FlowNo.DATE_FORMAT).parse(fields[0]).getTime();
-			fno.code = fields[3];
-			fno.version = fields[4];
-			fno.serial = fields[1];
-			fno.sequence = Long.parseLong(fields[2]);
+			fn.timestamp = Texts.dateFormat(DATE_FORMAT).parse(fields[0]).getTime();
+			fn.code = fields[3];
+			fn.version = fields[4];
+			fn.serial = fields[1];
+			fn.sequence = Long.parseLong(fields[2]);
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
-		return fno;
+		return fn;
 	}
+
+	@Override
+	public String toString() {
+		String timestamp;
+		timestamp = Texts.dateFormat(DATE_FORMAT).format(new Date(this.timestamp));
+		return new StringBuilder(timestamp).append("#").append(serial).append("#").append(sequence).append("@").append(code).append(":")
+				.append(version).toString();
+	}
+
 }
