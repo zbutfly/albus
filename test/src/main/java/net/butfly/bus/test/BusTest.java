@@ -11,7 +11,7 @@ import net.butfly.bus.impl.BusFactory;
 
 public abstract class BusTest {
 	protected enum Mode {
-		LOCAL, /* REMOTE, */CLIENT,/* SERVER */
+		LOCAL, @Deprecated REMOTE, CLIENT, @Deprecated SERVER
 	}
 
 	protected static final Logger logger = Logger.getLogger(BusTest.class);
