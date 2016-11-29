@@ -6,9 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.more.XMLUtils;
 import net.butfly.bus.Token;
 import net.butfly.bus.config.Configuration;
 import net.butfly.bus.config.bean.FilterConfig;
@@ -18,11 +22,6 @@ import net.butfly.bus.filter.Filter;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.utils.Constants;
-
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 
 public class XMLParser extends Parser {
 	protected Document document;
@@ -120,9 +119,9 @@ public class XMLParser extends Parser {
 	}
 
 	protected static void logAsXml(Element element) {
-		if (logger.isTraceEnabled())
-			logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
-					.replaceAll("\n$$", ""));
+//		if (logger.isTraceEnabled())
+//			logger.trace(XMLUtils.format(element.asXML()).replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "")
+//					.replaceAll("\n$$", ""));
 	}
 
 	@SuppressWarnings("unchecked")

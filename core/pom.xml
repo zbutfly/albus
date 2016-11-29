@@ -7,15 +7,22 @@
 		<version>2.0.4-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-core</artifactId>
-	<name>albus-core</name>
-	<build>
-		<finalName>albus-core</finalName>
-	</build>
+	<version>2.0.4-RC1-SNAPSHOT</version>
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-api</artifactId>
 			<version>${deps.version.albus}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-valid</artifactId>
+			<version>${deps.version.albacore}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-utils</artifactId>
+			<version>${deps.version.albacore}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
@@ -38,5 +45,13 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.2</version>
 		</dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>
 	</dependencies>
+	<properties>
+	
+	</properties>
 </project>

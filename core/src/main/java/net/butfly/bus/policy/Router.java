@@ -1,5 +1,5 @@
 package net.butfly.bus.policy;
 
 public interface Router {
-	<T extends Routeable> T route(String requestTX, T... possiable);
+	<T extends Routeable> T route(String requestTX, @SuppressWarnings("unchecked") T... possiable);
 }

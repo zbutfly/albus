@@ -6,11 +6,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.butfly.albacore.utils.Exceptions;
-import net.butfly.albacore.utils.async.Task.Callback;
-import net.butfly.albacore.utils.async.Task.ExceptionHandler;
-import net.butfly.bus.serialize.Serializer;
-
 import org.apache.http.entity.ContentType;
 
 import com.google.common.net.HttpHeaders;
@@ -24,19 +19,25 @@ import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 
+import net.butfly.albacore.lambda.Consumer;
+import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.async.Task.ExceptionHandler;
+import net.butfly.bus.serialize.Serializer;
+
 public class HttpNingHandler extends HttpHandler {
-	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(
-			new AsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
+	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
+			.setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
 
 	public HttpNingHandler(Serializer serializer) {
 		super(serializer);
-//		this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
-//			@Override
-//			public AsyncHttpClient create() {
-//				return new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()
-//						.setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
-//			}
-//		});
+		// this.client = Instances.fetch(new Task.Callable<AsyncHttpClient>() {
+		// @Override
+		// public AsyncHttpClient create() {
+		// return new AsyncHttpClient(new NettyAsyncHttpProvider(new
+		// AsyncHttpClientConfig.Builder()
+		// .setRequestTimeout(Integer.MAX_VALUE).setReadTimeout(Integer.MAX_VALUE).build()));
+		// }
+		// });
 	}
 
 	@Override
@@ -55,8 +56,8 @@ public class HttpNingHandler extends HttpHandler {
 	}
 
 	@Override
-	public Future<Void> post(BusHttpRequest httpRequest, final Callback<Map<String, String>> contextCallback,
-			final Callback<net.butfly.bus.Response> responseCallback, final ExceptionHandler<ResponseHandler> exception)
+	public Future<Void> post(BusHttpRequest httpRequest, final Consumer<Map<String, String>> contextCallback,
+			final Consumer<net.butfly.bus.Response> responseCallback, final ExceptionHandler<ResponseHandler> exception)
 			throws IOException {
 		BoundRequestBuilder req = this.prepare(httpRequest);
 		return req.execute(new AsyncHandler<Void>() {
@@ -74,7 +75,7 @@ public class HttpNingHandler extends HttpHandler {
 			@Override
 			public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart) throws Exception {
 				// TODO: async
-				responseCallback.callback(new ResponseHandler(serializer, null, bodyPart.getBodyPartBytes()).response());
+				responseCallback.accept(new ResponseHandler(serializer, null, bodyPart.getBodyPartBytes()).response());
 				return STATE.CONTINUE;
 			}
 
@@ -86,7 +87,7 @@ public class HttpNingHandler extends HttpHandler {
 
 			@Override
 			public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-				contextCallback.callback(new ResponseHandler(serializer, headers.getHeaders(), null).context());
+				contextCallback.accept(new ResponseHandler(serializer, headers.getHeaders(), null).context());
 				return null;
 			}
 

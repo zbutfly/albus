@@ -15,7 +15,15 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
+import com.google.common.net.HttpHeaders;
+import com.google.common.reflect.TypeToken;
+
 import net.butfly.albacore.exception.NotImplementedException;
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;
 import net.butfly.albacore.utils.async.Task;
@@ -25,13 +33,6 @@ import net.butfly.bus.TX;
 import net.butfly.bus.TXs;
 import net.butfly.bus.filter.LoggerFilter;
 import net.butfly.bus.serialize.Serializer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Joiner;
-import com.google.common.net.HttpHeaders;
-import com.google.common.reflect.TypeToken;
 
 public class HttpHandler {
 	protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
@@ -45,11 +46,11 @@ public class HttpHandler {
 		throw new NotImplementedException();
 	}
 
-	public Future<Void> post(final BusHttpRequest httpRequest, final Task.Callback<Map<String, String>> contextCallback,
-			final Task.Callback<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
+	public Future<Void> post(final BusHttpRequest httpRequest, final Consumer<Map<String, String>> contextCallback,
+			final Consumer<Response> responseCallback, final Task.ExceptionHandler<ResponseHandler> exception) throws IOException {
 		ResponseHandler resp = this.post(httpRequest);
-		contextCallback.callback(resp.context());
-		responseCallback.callback(resp.response());
+		contextCallback.accept(resp.context());
+		responseCallback.accept(resp.response());
 		return null;
 	}
 
@@ -85,8 +86,8 @@ public class HttpHandler {
 	public Map<String, String> context(Map<String, String> busHeaders) {
 		Map<String, String> context = new HashMap<String, String>();
 		for (String name : busHeaders.keySet()) {
-			if (name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX))
-				context.put(name.substring(BusHeaders.HEADER_CONTEXT_PREFIX.length()), busHeaders.get(name));
+			if (name.startsWith(BusHeaders.HEADER_CONTEXT_PREFIX)) context.put(name.substring(BusHeaders.HEADER_CONTEXT_PREFIX.length()),
+					busHeaders.get(name));
 		}
 		return context;
 	}
@@ -147,8 +148,8 @@ public class HttpHandler {
 			response.setHeader(BusHeaders.HEADER_ERROR, Boolean.toString(true));
 			sent = serializer.serialize(resp.error());
 		} else {
-			if (!supportClass && resp.result() != null)
-				response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass()).toString());
+			if (!supportClass && resp.result() != null) response.setHeader(BusHeaders.HEADER_CLASS, TypeToken.of(resp.result().getClass())
+					.toString());
 			sent = serializer.serialize(resp.result());
 		}
 		response.setHeader("Access-Control-Expose-Headers", Joiner.on(',').join(response.getHeaderNames()));

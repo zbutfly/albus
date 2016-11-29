@@ -1,14 +1,16 @@
 package net.butfly.bus.test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
+
 import net.butfly.albacore.exception.BusinessException;
 import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.Texts;
+import net.butfly.albacore.utils.Systems;
 import net.butfly.bus.Bus;
 import net.butfly.bus.impl.BusFactory;
 import net.butfly.bus.start.JettyStarter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BusTest {
 	protected enum Mode {
@@ -34,7 +36,7 @@ public abstract class BusTest {
 	}
 
 	protected final String getClientConfigurationForType(boolean remote) {
-		return Texts.join(',', remote ? this.getClientConfiguration() : this.getServerConfiguration());
+		return Joiner.on(",").join(remote ? this.getClientConfiguration() : this.getServerConfiguration());
 	}
 
 	protected static void run(Mode... mode) throws Exception {
@@ -55,7 +57,7 @@ public abstract class BusTest {
 	}
 
 	protected String[] getServerMainArguments() {
-		return new String[] { "-k", Texts.join(',', getServerConfiguration()) };
+		return new String[] { "-k", Joiner.on(",").join(getServerConfiguration()) };
 	}
 
 	protected boolean isRemote() {
@@ -64,7 +66,7 @@ public abstract class BusTest {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends BusTest> T getTestInstance(Mode mode) throws BusinessException {
-		return (T) Reflections.construct(Reflections.getMainClass(), mode);
+		return (T) Reflections.construct(Systems.getMainClass(), mode);
 	}
 
 	private void doTestWrapper() throws BusinessException {

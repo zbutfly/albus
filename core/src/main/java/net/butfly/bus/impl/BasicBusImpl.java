@@ -4,9 +4,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 import net.butfly.albacore.exception.SystemException;
+import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.Keys;
 import net.butfly.albacore.utils.async.Options;
-import net.butfly.albacore.utils.async.Task.Callback;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -51,8 +51,8 @@ abstract class BasicBusImpl implements Bus {
 
 	Method invokingMethod(TX tx) {
 		Invoker ivk = this.find(tx.value());
-		if (!(ivk instanceof AbstractLocalInvoker))
-			throw new UnsupportedOperationException("Only local invokers support real method fetching by options.");
+		if (!(ivk instanceof AbstractLocalInvoker)) throw new UnsupportedOperationException(
+				"Only local invokers support real method fetching by options.");
 		Method m = ((AbstractLocalInvoker) ivk).getMethod(tx.value(), tx.version());
 		if (null == m) throw new UnsupportedOperationException("Unsupported " + tx.toString() + "");
 		return m;
@@ -70,8 +70,8 @@ abstract class BasicBusImpl implements Bus {
 			if (null != tx) {
 				Request request = new Request(tx.value(), tx.version(), args);
 				return this.invoke(request);
-			} else throw new SystemException(Constants.UserError.TX_NOT_EXIST, "Request tx code not found on method ["
-					+ method.toString() + "].");
+			} else throw new SystemException(Constants.UserError.TX_NOT_EXIST, "Request tx code not found on method [" + method.toString()
+					+ "].");
 		}
 
 		protected abstract T invoke(Request request) throws Exception;
@@ -79,17 +79,16 @@ abstract class BasicBusImpl implements Bus {
 
 	protected final void check(final Request request) {
 		if (request == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request null invalid.");
-		if (request.code() == null || "".equals(request.code().trim()))
-			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx code invalid.");
-		if (request.version() == null)
-			throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
+		if (request.code() == null || "".equals(request.code().trim())) throw new SystemException(Constants.UserError.BAD_REQUEST,
+				"Request empty tx code invalid.");
+		if (request.version() == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
 		new FlowNo(request);
 		Context.txInfo(TXs.impl(request.code(), request.version()));
 	}
 
 	abstract Response invoke(Request request, Options... options) throws Exception;
 
-	abstract void invoke(Request request, Callback<Response> callback, Options... options) throws Exception;
+	abstract void invoke(Request request, Consumer<Response> callback, Options... options) throws Exception;
 
 	protected Invoker find(String tx) {
 		// TODO: handle route failure null exception

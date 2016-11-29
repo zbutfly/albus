@@ -7,10 +7,7 @@
 		<version>2.0.4-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-plus</artifactId>
-	<name>albus-plus</name>
-	<build>
-		<finalName>albus-plus</finalName>
-	</build>
+	<version>2.0.4-RC1-SNAPSHOT</version>
 	<properties>
 		<deps.version.jetty>9.3.0.M1</deps.version.jetty><!-- 9.4.0.M1 -->
 	</properties>

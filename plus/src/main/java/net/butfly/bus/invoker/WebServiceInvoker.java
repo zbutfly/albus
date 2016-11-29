@@ -2,10 +2,14 @@ package net.butfly.bus.invoker;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
+
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
-import net.butfly.albacore.utils.Texts;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.Request;
 import net.butfly.bus.Response;
@@ -18,9 +22,6 @@ import net.butfly.bus.utils.http.BusHttpRequest;
 import net.butfly.bus.utils.http.HttpHandler;
 import net.butfly.bus.utils.http.HttpNingHandler;
 import net.butfly.bus.utils.http.ResponseHandler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker {
 	private static Logger logger = LoggerFactory.getLogger(WebServiceInvoker.class);
@@ -37,8 +38,8 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		this.timeout = to == null ? 0 : Integer.parseInt(to);
 		try {
 			Class<? extends Serializer> cl = Reflections.forClassName(config.param("serializer"));
-			this.serializer = Serializers.serializer(null == cl ? Serializers.DEFAULT_SERIALIZER_CLASS : cl,
-					Serializers.DEFAULT_CHARSET);
+			if (cl == null) cl = Serializers.DEFAULT_SERIALIZER_CLASS ;
+			this.serializer = Instances.construct(cl, Serializers.DEFAULT_CHARSET);
 		} catch (Exception e) {
 			logger.error("Invoker initialization failure, Serializer could not be created.", e);
 			throw Exceptions.wrap(e);
@@ -48,7 +49,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 			try {
 				((SerializerFactorySupport) this.serializer).addFactoriesByClassName(trs);
 			} catch (Exception e) {
-				logger.error("Serializer factory instance construction failure for class: " + Texts.join(',', trs), e);
+				logger.error("Serializer factory instance construction failure for class: " + Joiner.on(",").join(trs), e);
 				logger.error("Invoker initialization continued but the factory is ignored.");
 			}
 		}
@@ -64,10 +65,10 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 
 	@Override
 	public Response invoke(final Request request, final Options... remoteOptions) throws Exception {
-		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(),
-				serializer.supportClass(), remoteOptions);
-		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, serializer.serialize(request.arguments()),
-				serializer.defaultMimeType(), serializer.charset(), timeout);
+		Map<String, String> headers = this.handler.headers(request.code(), request.version(), request.context(), serializer.supportClass(),
+				remoteOptions);
+		BusHttpRequest httpRequest = new BusHttpRequest(path, headers, serializer.serialize(request.arguments()), serializer
+				.defaultMimeType(), serializer.charset(), timeout);
 		/**
 		 * <pre>
 		 * TODO: handle continuous, move to async proj.

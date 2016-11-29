@@ -15,8 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.butfly.albacore.utils.Exceptions;
-import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.Response;
 
 public class WebServiceAsyncWriteServlet extends WebServiceServlet {
 	private static final long serialVersionUID = 5048648001222215248L;
@@ -31,18 +29,15 @@ public class WebServiceAsyncWriteServlet extends WebServiceServlet {
 		final ServiceContext context = this.prepare(request, response);
 		final Queue<byte[]> queue = this.parareAsync(request, response);
 		try {
-			cluster.invoke(context.invoking, new Task.Callback<Response>() {
-				@Override
-				public void callback(Response resp) {
-					try {
-						byte[] data = context.handler.response(resp, response, context.invoking.supportClass,
-								context.respContentType.getCharset());
-						queue.add(data);
-						response.getOutputStream().flush();
-						// response.flushBuffer();
-					} catch (IOException ex) {
-						logger.error("Response writing I/O failure", ex);
-					}
+			cluster.invoke(context.invoking, resp -> {
+				try {
+					byte[] data = context.handler.response(resp, response, context.invoking.supportClass, context.respContentType
+							.getCharset());
+					queue.add(data);
+					response.getOutputStream().flush();
+					// response.flushBuffer();
+				} catch (IOException ex) {
+					logger.error("Response writing I/O failure", ex);
 				}
 			});
 		} catch (Exception ex) {

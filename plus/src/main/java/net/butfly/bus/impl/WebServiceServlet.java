@@ -18,8 +18,6 @@ import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.Instances;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Opts;
-import net.butfly.albacore.utils.async.Task;
-import net.butfly.bus.Response;
 import net.butfly.bus.context.Context;
 import net.butfly.bus.policy.Router;
 import net.butfly.bus.serialize.Serializer;
@@ -60,17 +58,14 @@ public class WebServiceServlet extends BusServlet {
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		final ServiceContext context = this.prepare(request, response);
 		try {
-			cluster.invoke(context.invoking, new Task.Callback<Response>() {
-				@Override
-				public void callback(Response resp) {
-					try {
-						response.getOutputStream().write(context.handler.response(resp, response, context.invoking.supportClass,
-								context.respContentType.getCharset()));
-						response.getOutputStream().flush();
-						response.flushBuffer();
-					} catch (IOException ex) {
-						logger.error("Response writing I/O failure", ex);
-					}
+			cluster.invoke(context.invoking, resp -> {
+				try {
+					response.getOutputStream().write(context.handler.response(resp, response, context.invoking.supportClass,
+							context.respContentType.getCharset()));
+					response.getOutputStream().flush();
+					response.flushBuffer();
+				} catch (IOException ex) {
+					logger.error("Response writing I/O failure", ex);
 				}
 			});
 		} catch (Exception ex) {
@@ -86,15 +81,14 @@ public class WebServiceServlet extends BusServlet {
 		ServiceContext context = new ServiceContext();
 
 		context.reqContentType = ContentType.parse(request.getContentType());
-		if (context.reqContentType.getCharset() == null)
-			context.reqContentType = context.reqContentType.withCharset(Serializers.DEFAULT_CHARSET);
-		if (context.reqContentType.getMimeType() == null)
-			context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE, context.reqContentType.getCharset());
-		final Serializer serializer = Serializers.serializer(Serializers.serializerClass(context.reqContentType.getMimeType()),
+		if (context.reqContentType.getCharset() == null) context.reqContentType = context.reqContentType.withCharset(
+				Serializers.DEFAULT_CHARSET);
+		if (context.reqContentType.getMimeType() == null) context.reqContentType = ContentType.create(Serializers.DEFAULT_MIME_TYPE,
 				context.reqContentType.getCharset());
+		final Serializer serializer = Serializers.serializer(context.reqContentType.getMimeType(), context.reqContentType.getCharset());
 		if (serializer == null) throw new ServletException("Unsupported mime type: " + context.reqContentType.getMimeType());
 		context.respContentType = ContentType.create(serializer.defaultMimeType(), context.reqContentType.getCharset());
-		context.handler = Instances.fetch(HttpHandler.class, serializer);
+		context.handler = Instances.construct(HttpHandler.class, serializer);
 
 		// prepare invoke
 		context.invoking = new Invoking();
@@ -104,8 +98,8 @@ public class WebServiceServlet extends BusServlet {
 		String refer = request.getHeader("Referer");
 		if (null != refer) context.invoking.context.put(Context.Key.SourceRefer.name(), refer);
 		context.invoking.tx = context.handler.tx(request.getPathInfo(), busHeaders);
-		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS)
-				? this.opts.parses(busHeaders.get(BusHeaders.HEADER_OPTIONS)) : null;
+		context.invoking.options = busHeaders.containsKey(BusHeaders.HEADER_OPTIONS) ? this.opts.parses(busHeaders.get(
+				BusHeaders.HEADER_OPTIONS)) : null;
 
 		context.invoking.supportClass = Boolean.parseBoolean(busHeaders.get(BusHeaders.HEADER_CLASS_SUPPORT));
 		cluster.invoking(context.invoking);
@@ -115,8 +109,8 @@ public class WebServiceServlet extends BusServlet {
 		} catch (IOException ex) {
 			throw new ServletException("Arguments reading I/O failure", ex);
 		}
-		context.invoking.parameters = context.handler.parameters(paramsData, context.invoking.parameterClasses,
-				context.reqContentType.getCharset());
+		context.invoking.parameters = context.handler.parameters(paramsData, context.invoking.parameterClasses, context.reqContentType
+				.getCharset());
 		return context;
 	}
 
