@@ -4,23 +4,19 @@
 	<parent>
 		<groupId>net.butfly.bus</groupId>
 		<artifactId>albus</artifactId>
-		<version>2.0.1</version>
+		<version>2.0.4-RC1-SNAPSHOT</version>
 	</parent>
 	<artifactId>albus-console</artifactId>
-	<name>albus-console</name>
-	<build>
-		<finalName>albus-console</finalName>
-	</build>
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-core</artifactId>
-			<version>${deps.version.albus}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-plus</artifactId>
-			<version>${deps.version.albus}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>

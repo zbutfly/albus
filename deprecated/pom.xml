@@ -4,15 +4,14 @@
 	<parent>
 		<groupId>net.butfly.bus</groupId>
 		<artifactId>albus</artifactId>
-		<version>2.0.1</version>
-	</parent>
+		<version>2.0.4-RC1-SNAPSHOT</version>
+s	</parent>
 	<artifactId>albus-deprecated</artifactId>
-	<name>albus-deprecated</name>
 	<dependencies>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-plus</artifactId>
-			<version>${deps.version.albus}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.caucho</groupId>
