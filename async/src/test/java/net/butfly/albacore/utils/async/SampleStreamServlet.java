@@ -116,7 +116,7 @@ public class SampleStreamServlet extends HttpServlet {
 		request.setCharacterEncoding("utf-8");
 
 		AsyncContext ac = asyncContexts.get(request.getParameter("metadata.id"));
-		if (ac == null) { return; }
+		if (ac == null) return;
 
 		// close-options
 		if ("close".equals(request.getParameter("metadata.type"))) {
