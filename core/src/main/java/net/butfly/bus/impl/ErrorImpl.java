@@ -31,26 +31,32 @@ public class ErrorImpl implements net.butfly.bus.Error {
 		this(Exceptions.unlink(Exceptions.unwrap(ex)), debugging);
 	}
 
+	@Override
 	public String getCode() {
 		return code;
 	}
 
+	@Override
 	public String getMessage() {
 		return message;
 	}
 
+	@Override
 	public StackTraceElement[] getStackTraces() {
 		return stackTrace;
 	}
 
+	@Override
 	public ErrorImpl getCause() {
 		return cause;
 	}
 
+	@Override
 	public String toString() {
 		return toString(8, -1);
 	}
 
+	@Override
 	public String toString(int stackTraceLimit, int causeLimit) {
 		int l = stackTraceLimit;
 		StringBuilder sb = new StringBuilder();
@@ -69,6 +75,7 @@ public class ErrorImpl implements net.butfly.bus.Error {
 		return sb.toString();
 	}
 
+	@Override
 	public Exception toException() {
 		SystemException ex = new SystemException(this.code, this.message, null == this.cause ? null : this.cause.toException());
 		ex.setStackTrace(this.getStackTraces());

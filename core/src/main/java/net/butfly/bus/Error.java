@@ -11,6 +11,7 @@ public interface Error extends Serializable {
 
 	public Error getCause();
 
+	@Override
 	public String toString();
 
 	public String toString(int stackTraceLimit, int causeLimit);

@@ -16,7 +16,7 @@ public class CometAuthServiceImpl extends AuthServiceImpl implements CometAuthSe
 		if (null != token.getKey()) {
 			if (!"token".equals(token.getKey()))
 				throw new SystemException(Constants.BusinessError.AUTH_TOKEN_INVALID,
-						"Authorization failure for invalid token.");;
+						"Authorization failure for invalid token.");
 			Context.token(token);
 			return;
 		}

@@ -19,20 +19,24 @@ public final class CometListener implements AsyncListener {
 		this.asyncContexts = asyncContext;
 	}
 
+	@Override
 	public void onComplete(AsyncEvent event) throws IOException {
 		logger.trace("Comet [" + asyncId + "] completed.");
 		asyncContexts.remove(asyncId);
 	}
 
+	@Override
 	public void onTimeout(AsyncEvent event) throws IOException {
 		logger.trace("Comet [" + asyncId + "] completed.");
 		asyncContexts.remove(asyncId);
 	}
 
+	@Override
 	public void onError(AsyncEvent event) throws IOException {
 		logger.trace("Comet [" + asyncId + "] completed.");
 		asyncContexts.remove(asyncId);
 	}
 
+	@Override
 	public void onStartAsync(AsyncEvent event) throws IOException {}
 }

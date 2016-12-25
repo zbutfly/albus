@@ -22,12 +22,12 @@ class RequestContext extends WrappedContext {
 	@Override
 	protected void current(SimpleContext c) {
 		CTX_LOCAL.put(KEY_LOCAL.get(), c);
-	};
+	}
 
 	@Override
 	protected Context current() {
 		return CTX_LOCAL.get(KEY_LOCAL.get());
-	};
+	}
 
 	@Override
 	public void clear() {

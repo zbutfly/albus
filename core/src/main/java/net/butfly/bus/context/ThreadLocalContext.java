@@ -6,12 +6,12 @@ class ThreadLocalContext extends WrappedContext {
 	@Override
 	protected void current(SimpleContext c) {
 		CTX_LOCAL.set(c);
-	};
+	}
 
 	@Override
 	protected Context current() {
 		return CTX_LOCAL.get();
-	};
+	}
 
 	@Override
 	public void clear() {

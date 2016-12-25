@@ -49,6 +49,7 @@ public class WebServiceServlet extends BusServlet {
 		logger.info("Servlet [" + paramConfig + "] started.");
 	}
 
+	@Override
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.setHeader("Access-Control-Allow-Headers", req.getHeader("Access-Control-Request-Headers"));

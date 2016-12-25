@@ -38,7 +38,7 @@ class AsyncBusImpl extends BusImpl implements AsyncBus {
 	@Override
 	public <T> void invoke(String code, Object[] arguments, Consumer<T> callback, Options... options) throws Exception {
 		this.invoke(TXs.impl(code), arguments, callback, options);
-	};
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override

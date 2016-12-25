@@ -40,6 +40,7 @@ abstract class BaseBus implements Bus {
 		this.id = Keys.key(String.class);
 	}
 
+	@Override
 	public String id() {
 		return this.id;
 	}
@@ -66,6 +67,7 @@ abstract class BaseBus implements Bus {
 			this.options = options;
 		}
 
+		@Override
 		public Object invoke(Object obj, Method method, Object[] args) throws Exception {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {

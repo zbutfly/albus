@@ -50,6 +50,7 @@ public abstract class Signal extends Throwable {
 			if (null == cause) throw new NullPointerException("Error signal need a cause.");
 		}
 
+		@Override
 		public Exception getCause() {
 			return (Exception) super.getCause();
 		}

@@ -41,7 +41,7 @@ public abstract class BusTest {
 
 		for (Mode m : mode)
 			getTestInstance(m).doTestWrapper();
-	};
+	}
 
 	protected abstract void doAllTest() throws BusinessException;
 

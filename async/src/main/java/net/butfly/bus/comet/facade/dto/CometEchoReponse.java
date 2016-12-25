@@ -42,6 +42,7 @@ public class CometEchoReponse extends Response<CometEchoReponse> {
 		this.values = values;
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(title).append("\n").append("values: ");
 		for (long i : values)
