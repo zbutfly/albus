@@ -32,6 +32,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import com.google.common.base.Joiner;
 
+import net.butfly.albacore.lambda.Runnable;
 import net.butfly.albacore.utils.Objects;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Concurrents;
@@ -42,6 +43,7 @@ import net.butfly.bus.impl.BusServlet;
 import net.butfly.bus.impl.ServletInitParams;
 
 public class JettyStarter implements Runnable {
+	private static final long serialVersionUID = -7187654306012446690L;
 	protected static final Logger logger = Logger.getLogger(JettyStarter.class);
 	protected static final int BUF_SIZE = 8 * 1024;
 	protected static final long DEFAULT_IDLE = 60000;
@@ -93,7 +95,6 @@ public class JettyStarter implements Runnable {
 		for (String contextPath : conf.definitions.keySet())
 			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(), conf.definitions.get(contextPath).value1().toArray(
 					new String[0]));
-		new RuntimeException("Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
 		return this;
 	}
 
@@ -213,7 +214,7 @@ public class JettyStarter implements Runnable {
 			ParseException {
 		JettyStarter j = start(args);
 		j.server.setStopAtShutdown(true);
-		Concurrents.submit(new Thread(j, "Albus-Jetty-Starter-Thread"));
+		Concurrents.submit(j);
 		return j;
 	}
 
