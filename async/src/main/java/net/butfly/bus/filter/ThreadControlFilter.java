@@ -6,7 +6,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import net.butfly.albacore.lambda.Callable;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.bus.utils.BusTask;
@@ -39,7 +38,7 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 
 	@Override
 	public void execute(final FilterContext context) throws Exception {
-		new BusTask<Void>(new Task<Void>((Callable<Void>) () -> {
+		new BusTask<Void>(new Task<Void>(() -> {
 			ThreadControlFilter.super.execute(context);
 			return null;
 		}, new Options().fork(true).timeout(timeout))).execute(executor);
