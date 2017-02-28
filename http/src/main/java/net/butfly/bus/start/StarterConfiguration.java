@@ -63,10 +63,10 @@ final class StarterConfiguration {
 				.asList(configLocations), servletClass));
 		else {
 			Pair<List<String>, Class<? extends BusServlet>> p = definitions.get(contextPath);
-			if (!p.value2().isAssignableFrom(servletClass)) throw new RuntimeException("Same context [" + contextPath
-					+ "], incompatible servlet class : [" + p.value2().getName() + "] and [" + servletClass.getName() + "]");
-			p.value2(servletClass);
-			p.value1().addAll(Arrays.asList(configLocations));
+			if (!p.v2().isAssignableFrom(servletClass)) throw new RuntimeException("Same context [" + contextPath
+					+ "], incompatible servlet class : [" + p.v2().getName() + "] and [" + servletClass.getName() + "]");
+			p.v2(servletClass);
+			p.v1().addAll(Arrays.asList(configLocations));
 		}
 	}
 
