@@ -50,8 +50,8 @@ public final class FilterChain {
 		try {
 			filter.execute(context);
 		} catch (Exception ex) {
-			Exception exx = Exceptions.unwrap(ex);
-			if (context.mode() != Mode.SERVER) throw exx;
+			Throwable exx = Exceptions.unwrap(ex);
+			if (context.mode() != Mode.SERVER) throw Exceptions.wrap(exx);
 			context.response(new Response(context.request()).error(new Error(exx, Context.debug())));
 		}
 	}

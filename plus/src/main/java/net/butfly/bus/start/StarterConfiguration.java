@@ -36,8 +36,7 @@ final class StarterConfiguration {
 	}
 
 	public void parseBuses(String... args) {
-		if (definitions == null)
-			definitions = new HashMap<String, Pair<List<String>, Class<? extends BusServlet>>>(args.length);
+		if (definitions == null) definitions = new HashMap<String, Pair<List<String>, Class<? extends BusServlet>>>(args.length);
 		String[] defs;
 		for (int i = 0; i < args.length; i++) {
 			String arg = args[i];
@@ -45,8 +44,7 @@ final class StarterConfiguration {
 			if (defs.length == 1) this.addDefinition(this.defaultContextPath, this.defaultServletClass, defs);
 			else {
 				String[] newdefs = defs[0].split("@", 2);
-				if (newdefs.length == 1) this.addDefinition(defs[0], this.defaultServletClass,
-						Arrays.copyOfRange(defs, 1, defs.length));
+				if (newdefs.length == 1) this.addDefinition(defs[0], this.defaultServletClass, Arrays.copyOfRange(defs, 1, defs.length));
 				else {
 					Class<? extends BusServlet> servletClass = Reflections.forClassName(newdefs[1]);
 					this.addDefinition(newdefs[0], servletClass, Arrays.copyOfRange(defs, 1, defs.length));
@@ -59,15 +57,14 @@ final class StarterConfiguration {
 		Objects.noneNull(servletClass);
 		Objects.notEmpty(contextPath);
 		Objects.notEmpty(configLocations);
-		if (!definitions.containsKey(contextPath)) definitions.put(contextPath,
-				new Pair<List<String>, Class<? extends BusServlet>>(Arrays.asList(configLocations), servletClass));
+		if (!definitions.containsKey(contextPath)) definitions.put(contextPath, new Pair<List<String>, Class<? extends BusServlet>>(Arrays
+				.asList(configLocations), servletClass));
 		else {
 			Pair<List<String>, Class<? extends BusServlet>> p = definitions.get(contextPath);
-			if (!p.value2().isAssignableFrom(servletClass))
-				throw new RuntimeException("Same context [" + contextPath + "], incompatible servlet class : ["
-						+ p.value2().getName() + "] and [" + servletClass.getName() + "]");
-			p.value2(servletClass);
-			p.value1().addAll(Arrays.asList(configLocations));
+			if (!p.v2().isAssignableFrom(servletClass)) throw new RuntimeException("Same context [" + contextPath
+					+ "], incompatible servlet class : [" + p.v2().getName() + "] and [" + servletClass.getName() + "]");
+			p.v2(servletClass);
+			p.v1().addAll(Arrays.asList(configLocations));
 		}
 	}
 

@@ -97,7 +97,7 @@ public class JettyStarter implements Runnable {
 	public JettyStarter addBusInstances(StarterConfiguration conf) throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
 		for (String contextPath : conf.definitions.keySet())
-			this.addBusInstance(contextPath, conf.definitions.get(contextPath).value2(), conf.definitions.get(contextPath).value1().toArray(
+			this.addBusInstance(contextPath, conf.definitions.get(contextPath).v2(), conf.definitions.get(contextPath).v1().toArray(
 					new String[0]));
 		new RuntimeException("Command line argument should has format [busConfigFile[@busServletClass]:]<servletContextPath> ...");
 		return this;
