@@ -3,7 +3,6 @@ package net.butfly.bus.filter;
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
 import net.butfly.albacore.utils.async.Task;
-import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.Error;
@@ -33,16 +32,13 @@ public final class FilterChain {
 	}
 
 	public Response execute(final FilterContext context) throws Exception {
-		return new Task<Response>(new Callable<Response>() {
-			@Override
-			public Response call() {
-				try {
-					executeOne(filters[0], context);
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-				return context.response();
+		return new Task<Response>(() -> {
+			try {
+				executeOne(filters[0], context);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
+			return context.response();
 		}, context.callback(), context.invoker().localOptions(context.options())).execute();
 	}
 
