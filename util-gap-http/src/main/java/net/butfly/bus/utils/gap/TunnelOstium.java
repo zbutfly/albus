@@ -9,14 +9,13 @@ import java.util.UUID;
 
 import com.sun.nio.file.ExtendedOpenOption;
 
-import net.butfly.albacore.utils.Pair;
 import net.butfly.albacore.utils.logger.Loggable;
 
 @SuppressWarnings("restriction")
 public interface TunnelOstium extends Loggable {
 	void seen(UUID key, InputStream data);
 
-	default void reading(Path from) {
+	default void watch(Path from) {
 		String fname = from.getFileName().toString();
 		UUID key = UUID.fromString(fname.substring(fname.lastIndexOf(".")));
 		Path working = from.getParent().resolve(fname + ".working");
@@ -30,26 +29,5 @@ public interface TunnelOstium extends Loggable {
 		} catch (IOException e) {
 			logger().error("File read fail on [" + from.toAbsolutePath().toString() + "]", e);
 		}
-	}
-
-	@Deprecated
-	default Pair<UUID, byte[]> read(Path from) {
-		String fname = from.getFileName().toString();
-		Path working = from.getParent().resolve(fname + ".working");
-		byte[] data;
-		try {
-			Files.move(from, working, StandardCopyOption.ATOMIC_MOVE);
-			data = new byte[(int) Files.size(working)];
-			try (InputStream is = Files.newInputStream(working, ExtendedOpenOption.NOSHARE_READ)) {
-				is.read(data);
-			} finally {
-				Files.move(working, from.getParent().resolve(fname + ".finished"), StandardCopyOption.ATOMIC_MOVE);
-			}
-		} catch (IOException e) {
-			logger().error("File read fail on [" + from.toAbsolutePath().toString() + "]", e);
-			return null;
-		}
-		UUID key = UUID.fromString(fname.substring(fname.lastIndexOf(".")));
-		return new Pair<>(key, data);
 	}
 }

@@ -15,18 +15,18 @@ public abstract class GapTunnelOstium implements TunnelOstium {
 	private final String confPrefix;
 	protected final String host;
 	protected final int port;
-	protected final GapTunnel tunnel;
+	protected final GapToucher toucher;
+	protected final String touchExt;
 	protected final Watcher watcher;
-	protected final String dumpExt;
 
-	protected GapTunnelOstium(String conf, String confPrefix, String watchExt, String dumpExt) throws IOException {
+	protected GapTunnelOstium(String conf, String confPrefix, String watchExt, String touchExt) throws IOException {
 		this.confPrefix = confPrefix;
 		Configs.setConfig(conf);
 		host = conf("host", "0.0.0.0");
 		port = Integer.parseInt(conf("port", "80"));
-		this.dumpExt = dumpExt;
-		tunnel = new GapTunnel(Paths.get(conf("src", "./pool")));
-		watcher = new Watcher(this::reading, Paths.get(conf("src", "./pool")), watchExt, StandardWatchEventKinds.ENTRY_CREATE);
+		this.touchExt = touchExt;
+		toucher = new GapToucher(Paths.get(conf("src", "./pool")));
+		watcher = new Watcher(this::watch, Paths.get(conf("src", "./pool")), watchExt, StandardWatchEventKinds.ENTRY_CREATE);
 		logger().info("Starting on [" + host + ":" + port + "]");
 	}
 

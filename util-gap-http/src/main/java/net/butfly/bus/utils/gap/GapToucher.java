@@ -9,22 +9,21 @@ import java.util.function.Function;
 
 import com.sun.nio.file.ExtendedOpenOption;
 
-import net.butfly.albacore.utils.logger.Loggable;
-
 /**
  * 这是一个网闸
  * 
  * @author butfly
  */
 @SuppressWarnings("restriction")
-public class GapTunnel implements Loggable {
+public class GapToucher implements Toucher {
 	protected final Path dumpDst;
 
-	public GapTunnel(Path dumpDst) throws IOException {
+	public GapToucher(Path dumpDst) throws IOException {
 		this.dumpDst = dumpDst;
 	}
 
-	public long writing(String filename, Function<OutputStream, Long> outputing) throws IOException {
+	@Override
+	public long touch(String filename, Function<OutputStream, Long> outputing) throws IOException {
 		Path working = dumpDst.resolve(filename + ".working"), worked = dumpDst.resolve(filename);
 		try (OutputStream os = Files.newOutputStream(working, ExtendedOpenOption.NOSHARE_WRITE);) {
 			long l = outputing.apply(os);

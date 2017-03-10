@@ -27,7 +27,7 @@ public class Invoker extends GapTunnelOstium {
 	public void seen(UUID key, InputStream data) {
 		Request.readFrom(data).redirect(host, port).request(client, resp -> {
 			try {
-				tunnel.writing(key.toString() + dumpExt, new Response(resp)::writeTo);
+				toucher.touch(key.toString() + touchExt, new Response(resp)::writeTo);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

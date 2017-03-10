@@ -31,7 +31,7 @@ public class Dispatcher extends GapTunnelOstium {
 		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> {
 			UUID key = UUID.randomUUID();
 			logger().trace(exch.toString());
-			tunnel.writing(key.toString() + dumpExt, new Request(exch)::writeTo);
+			toucher.touch(key.toString() + touchExt, new Request(exch)::writeTo);
 			Response resp;
 			while ((resp = sessions.remove(key)) == null)
 				Concurrents.waitSleep();
