@@ -1,0 +1,49 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>net.butfly.bus</groupId>
+		<artifactId>albus</artifactId>
+		<version>3.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>albus-http-rapidoid</artifactId>
+	<dependencies>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-core</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.bus</groupId>
+			<artifactId>albus-async</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-utils</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-serder-hessian</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.butfly.albacore</groupId>
+			<artifactId>albacore-serder-json</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<!-- http transport and container -->
+		<dependency>
+			<groupId>com.ning</groupId>
+			<artifactId>async-http-client</artifactId>
+			<version>1.9.40</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.rapidoid/rapidoid-http -->
+		<dependency>
+			<groupId>org.rapidoid</groupId>
+			<artifactId>rapidoid-http</artifactId>
+			<version>5.0.7</version>
+		</dependency>
+	</dependencies>
+</project>

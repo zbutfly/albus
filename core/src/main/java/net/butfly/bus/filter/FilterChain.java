@@ -44,9 +44,9 @@ public final class FilterChain {
 		try {
 			filter.execute(context);
 		} catch (Exception ex) {
-			Exception exx = Exceptions.unwrap(ex);
-			if (context.mode() != Mode.SERVER) throw exx;
-			context.response(Buses.response(context.request()).error(new ErrorImpl(exx, Context.debug())));
+			Throwable th = Exceptions.unwrap(ex);
+			if (context.mode() != Mode.SERVER) throw Exceptions.wrap(th);
+			context.response(Buses.response(context.request()).error(new ErrorImpl(th, Context.debug())));
 		}
 	}
 

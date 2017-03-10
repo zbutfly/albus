@@ -23,7 +23,7 @@ public final class FlowNo implements Serializable, Cloneable {
 		if (fields.length != 5) throw new IllegalArgumentException();
 		FlowNo fn = new FlowNo();
 		try {
-			fn.timestamp = Texts.dateFormat(DATE_FORMAT).parse(fields[0]).getTime();
+			fn.timestamp = Texts.parseDate(DATE_FORMAT, fields[0]).getTime();
 			fn.code = fields[3];
 			fn.version = fields[4];
 			fn.serial = fields[1];
@@ -37,7 +37,7 @@ public final class FlowNo implements Serializable, Cloneable {
 	@Override
 	public String toString() {
 		String timestamp;
-		timestamp = Texts.dateFormat(DATE_FORMAT).format(new Date(this.timestamp));
+		timestamp = Texts.formatDate(DATE_FORMAT, new Date(this.timestamp));
 		return new StringBuilder(timestamp).append("#").append(serial).append("#").append(sequence).append("@").append(code).append(":")
 				.append(version).toString();
 	}
