@@ -21,10 +21,10 @@ public class Watcher extends Thread {
 	private static final Map<FileSystem, WatchService> watchers = new ConcurrentHashMap<>();
 	// private static final Logger logger = Logger.getLogger(Watcher.class);
 	private final Path dest;
-	private WatchService watcher;
-	private Set<WatchEvent.Kind<?>> events;
-	private Consumer<Path> handler;
-	private String ext;
+	private final WatchService watcher;
+	private final Set<WatchEvent.Kind<?>> events;
+	private final Consumer<Path> handler;
+	private final String ext;
 
 	public Watcher(Consumer<Path> using, String ext) throws IOException {
 		this(using, ext, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
@@ -59,7 +59,6 @@ public class Watcher extends Thread {
 			}
 		});
 		if (watcher == null) throw new IOException("Watcher could not be initialized.");
-		start();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -78,12 +77,12 @@ public class Watcher extends Thread {
 				break;
 			}
 			key.pollEvents().parallelStream().filter(ev -> events.contains(ev.kind())).map(ev -> ((WatchEvent<Path>) ev).context()).filter(
-					p -> p.toString().endsWith(ext)).map(p -> dest.resolve(p)).forEach(handler);
+					p -> p.toString().endsWith(ext)).map(dest::resolve).forEach(handler);
 			if (!key.reset()) break;
 		}
 	}
 
 	public static void main(String[] args) throws InterruptedException, IOException {
-		new Watcher(f -> System.out.println(f.toAbsolutePath()), ".txt", ENTRY_CREATE).join();;
+		new Watcher(f -> System.out.println(f.toAbsolutePath()), ".txt", ENTRY_CREATE).join();
 	}
 }
