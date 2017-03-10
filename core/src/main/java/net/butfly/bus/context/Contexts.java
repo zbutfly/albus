@@ -58,10 +58,9 @@ public interface Contexts {
 		return fno;
 	}
 
-
 	public static String format(FlowNo flowno) {
-		String timestamp = Texts.dateFormat(FlowNo.DATE_FORMAT).format(new Date(flowno.timestamp));
-		return new StringBuilder(timestamp).append("#").append(flowno.serial).append("#").append(flowno.sequence).append("@")
-				.append(flowno.code).append(":").append(flowno.version).toString();
+		String timestamp = Texts.formatDate(FlowNo.DATE_FORMAT, new Date(flowno.timestamp));
+		return new StringBuilder(timestamp).append("#").append(flowno.serial).append("#").append(flowno.sequence).append("@").append(
+				flowno.code).append(":").append(flowno.version).toString();
 	}
 }
