@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>com.ning</groupId>
 			<artifactId>async-http-client</artifactId>
-			<version>1.9.15</version>
+			<version>${version.ning}</version>
 		</dependency>
 		<!-- jetty dependencies. -->
 		<dependency>
