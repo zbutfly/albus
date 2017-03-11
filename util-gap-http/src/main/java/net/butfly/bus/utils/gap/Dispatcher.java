@@ -7,31 +7,34 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.undertow.Undertow;
+import net.butfly.albacore.utils.Configs.Config;
 import net.butfly.albacore.utils.parallel.Concurrents;
+import net.butfly.bus.utils.http.Request;
+import net.butfly.bus.utils.http.Response;
 
 /**
  * 这是外网口
  * 
  * @author butfly
  */
-public class Dispatcher extends GapTunnelOstium {
+@Config()
+public class Dispatcher extends WaiterImpl {
 	private final Undertow server;
 	private final Map<UUID, Response> sessions;
 
-	public static void main(String[] args) throws IOException {
-		Dispatcher inst = new Dispatcher(args.length < 1 ? "bus-gap-dispatcher.properties" : args[0]);
-		inst.watcher.run();
-		inst.server.start();
+	public static void main(String[] args) throws IOException, InterruptedException {
+		Dispatcher inst = new Dispatcher();
+		new Thread(inst).join();
 	}
 
-	protected Dispatcher(String conf) throws IOException {
-		super(conf, "bus.gap.dispatcher.", ".resp", ".req");
+	protected Dispatcher() throws IOException {
+		super("bus.gap.dispatcher.", ".resp", ".req");
 		sessions = new ConcurrentHashMap<>();
 		logger().info("GAP-Dispatcher start on [" + host + ":" + port + "]");
 		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> {
 			UUID key = UUID.randomUUID();
 			logger().trace(exch.toString());
-			toucher.touch(key.toString() + touchExt, new Request(exch)::writeTo);
+			touch(dumpDest, key.toString() + touchExt, new Request(exch)::writeTo);
 			Response resp;
 			while ((resp = sessions.remove(key)) == null)
 				Concurrents.waitSleep();
@@ -43,5 +46,10 @@ public class Dispatcher extends GapTunnelOstium {
 	public void seen(UUID key, InputStream data) {
 		sessions.put(key, Response.readFrom(data));
 		logger().debug("Pool size: " + sessions.size());
+	}
+
+	@Override
+	public void run() {
+		server.start();
 	}
 }

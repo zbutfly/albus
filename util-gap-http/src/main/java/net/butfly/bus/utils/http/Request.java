@@ -1,4 +1,4 @@
-package net.butfly.bus.utils.gap;
+package net.butfly.bus.utils.http;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,12 +20,12 @@ import io.undertow.util.HeaderValues;
  * 
  * @author butfly
  */
-final class Request extends R {
+public final class Request extends HttpWrapper {
 	private static final long serialVersionUID = 8927918437569361626L;
 	protected String method;
 	protected String url;
 
-	Request(HttpServerExchange exch) {
+	public Request(HttpServerExchange exch) {
 		method = exch.getRequestMethod().toString();
 		url = exch.getRequestURL();
 		headers = new HashMap<>();
@@ -45,7 +45,7 @@ final class Request extends R {
 		body = os.toByteArray();
 	}
 
-	void request(HttpClient client, Consumer<com.ning.http.client.Response> using) {
+	public void request(HttpClient client, Consumer<com.ning.http.client.Response> using) {
 		ListenableFuture<com.ning.http.client.Response> f = client.requestBuilder(method, url).execute();
 		f.addListener(() -> {
 			com.ning.http.client.Response r;

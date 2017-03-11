@@ -1,4 +1,4 @@
-package net.butfly.bus.utils.gap;
+package net.butfly.bus.utils.http;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,7 +15,7 @@ import io.undertow.util.HttpString;
  * 
  * @author butfly
  */
-final class Response extends R {
+public final class Response extends HttpWrapper {
 	private static final long serialVersionUID = -3206517732701548545L;
 	final int status;
 
@@ -23,7 +23,7 @@ final class Response extends R {
 		status = resp.getStatusCode();
 	}
 
-	void response(HttpServerExchange exch) {
+	public void response(HttpServerExchange exch) {
 		exch.setStatusCode(status);
 		exch.setResponseContentLength(body.length);
 		for (javax.servlet.http.Cookie c : cookies)

@@ -1,10 +1,10 @@
-package net.butfly.bus.utils.gap;
+package net.butfly.bus.utils.http;
 
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.AsyncHttpProvider;
 
-final class HttpClient extends com.ning.http.client.AsyncHttpClient {
-	HttpClient() {
+public final class HttpClient extends com.ning.http.client.AsyncHttpClient {
+	public HttpClient() {
 		super();
 	}
 
