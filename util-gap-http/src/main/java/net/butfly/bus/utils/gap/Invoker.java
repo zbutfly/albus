@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+import net.butfly.albacore.utils.Configs.Config;
 import net.butfly.bus.utils.http.HttpClient;
 import net.butfly.bus.utils.http.Request;
 import net.butfly.bus.utils.http.Response;
@@ -13,16 +14,18 @@ import net.butfly.bus.utils.http.Response;
  * 
  * @author butfly
  */
+@Config(value = "bus-gap-invoker.properties", prefix = "bus.gap.invoker")
 public class Invoker extends WaiterImpl {
 	private final HttpClient client;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		Invoker inst = new Invoker();
-		new Thread(inst).join();
+		inst.start();
+		inst.join();
 	}
 
 	protected Invoker() throws IOException {
-		super("bus.gap.invoker.", ".req", ".resp");
+		super(".req", ".resp");
 		client = new HttpClient();
 	}
 

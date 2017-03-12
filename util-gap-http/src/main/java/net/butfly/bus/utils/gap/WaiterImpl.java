@@ -24,7 +24,7 @@ import net.butfly.bus.utils.Waiter;
  * @author butfly
  */
 @SuppressWarnings("restriction")
-public abstract class WaiterImpl implements Waiter {
+public abstract class WaiterImpl extends Thread implements Waiter {
 	protected final String host;
 	protected final int port;
 	protected final String touchExt;
@@ -32,8 +32,10 @@ public abstract class WaiterImpl implements Waiter {
 	protected final Watcher watcher;
 	protected final Conf conf;
 
-	protected WaiterImpl(String confPrefix, String watchExt, String touchExt) throws IOException {
-		this.conf = Configs.MAIN;
+	protected WaiterImpl(String watchExt, String touchExt) throws IOException {
+		super();
+		setName(getClass().getSimpleName() + "Thread");
+		conf = Configs.MAIN;
 		host = conf.get("host", "0.0.0.0");
 		port = Integer.parseInt(conf.get("port", "80"));
 		this.touchExt = touchExt;

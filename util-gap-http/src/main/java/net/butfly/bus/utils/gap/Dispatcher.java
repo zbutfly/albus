@@ -17,20 +17,20 @@ import net.butfly.bus.utils.http.Response;
  * 
  * @author butfly
  */
-@Config()
+@Config(value = "bus-gap-dispatcher.properties", prefix = "bus.gap.dispatcher")
 public class Dispatcher extends WaiterImpl {
 	private final Undertow server;
 	private final Map<UUID, Response> sessions;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		Dispatcher inst = new Dispatcher();
-		new Thread(inst).join();
+		inst.start();
+		inst.join();
 	}
 
 	protected Dispatcher() throws IOException {
-		super("bus.gap.dispatcher.", ".resp", ".req");
+		super(".resp", ".req");
 		sessions = new ConcurrentHashMap<>();
-		logger().info("GAP-Dispatcher start on [" + host + ":" + port + "]");
 		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> {
 			UUID key = UUID.randomUUID();
 			logger().trace(exch.toString());
