@@ -22,7 +22,7 @@ import net.butfly.bus.utils.http.HttpResponse;
 @Config(value = "bus-gap-dispatcher.properties", prefix = "bus.gap.dispatcher")
 public class Dispatcher extends WaiterImpl {
 	private final Undertow server;
-	private final Map<UUID, HttpResponse> sessions;
+	private final Map<UUID, HttpResponse> resps;
 	private final AtomicLong count;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -34,7 +34,7 @@ public class Dispatcher extends WaiterImpl {
 	protected Dispatcher(String... args) throws IOException {
 		super(".resp", ".req", args);
 		count = new AtomicLong();
-		sessions = new ConcurrentHashMap<>();
+		resps = new ConcurrentHashMap<>();
 		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> this.handle(exch)).build();
 	}
 
@@ -45,7 +45,7 @@ public class Dispatcher extends WaiterImpl {
 			logger().trace(exch.toString());
 			touch(dumpDest, key.toString() + touchExt, new HttpRequest(exch)::save);
 			HttpResponse resp;
-			while ((resp = sessions.remove(key)) == null)
+			while ((resp = resps.remove(key)) == null)
 				Concurrents.waitSleep();
 			resp.response(exch);
 		} finally {
@@ -55,8 +55,8 @@ public class Dispatcher extends WaiterImpl {
 
 	@Override
 	public void seen(UUID key, InputStream data) {
-		sessions.put(key, new HttpResponse().load(data));
-		logger().debug("Pool size: " + sessions.size());
+		resps.put(key, new HttpResponse().load(data));
+		logger().debug("Pool size: " + resps.size());
 	}
 
 	@Override

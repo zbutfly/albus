@@ -31,19 +31,12 @@ public class Invoker extends WaiterImpl {
 
 	@Override
 	public void seen(UUID key, InputStream in) {
-		new HttpRequest().load(in).redirect(host, port).request(client, resp -> {
-			try {
-				touch(dumpDest, key.toString() + touchExt, new HttpResponse(resp)::save);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		});
+		new HttpRequest().load(in).redirect(host, port).request(client, resp -> touch(dumpDest, key.toString() + touchExt, new HttpResponse(
+				resp)::save));
 	}
 
 	@Override
 	public void run() {
-		try {
-			watcher.join();
-		} catch (InterruptedException e) {}
+		watcher.joining();
 	}
 }

@@ -3,8 +3,8 @@ package net.butfly.bus.utils.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.nio.ByteBuffer;	
+import java.util.Collection;
 import java.util.Map.Entry;
 
 import io.undertow.server.HttpServerExchange;
@@ -32,23 +32,30 @@ public final class HttpResponse extends HttpWrapper<HttpResponse> {
 
 	public void response(HttpServerExchange exch) {
 		exch.setStatusCode(status);
-		exch.setResponseContentLength(body.length);
 		for (javax.servlet.http.Cookie c : cookies)
 			exch.setResponseCookie(new ServletCookieAdaptor(c));
-		for (Entry<String, String[]> h : headers.entrySet())
-			exch.getResponseHeaders().addAll(new HttpString(h.getKey()), Arrays.asList(h.getValue()));
-		exch.getResponseSender().send(ByteBuffer.wrap(body));
+		for (Entry<String, Collection<String>> h : headers.entrySet())
+			exch.getResponseHeaders().addAll(new HttpString(h.getKey()), h.getValue());
+		exch.getResponseSender().send(ByteBuffer.wrap(null == body ? new byte[0] : body));
 	}
 
 	@Override
-	public HttpResponse save(OutputStream out) throws IOException {
-		IOs.writeInt(out, status);
+	public HttpResponse save(OutputStream out) {
+		try {
+			IOs.writeInt(out, status);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		return super.save(out);
 	}
 
 	@Override
-	public HttpResponse load(InputStream in) throws IOException {
-		status = IOs.readInt(in);
+	public HttpResponse load(InputStream in) {
+		try {
+			status = IOs.readInt(in);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		return super.load(in);
 	}
 }

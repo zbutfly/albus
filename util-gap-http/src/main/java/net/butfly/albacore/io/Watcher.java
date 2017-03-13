@@ -89,4 +89,10 @@ public class Watcher extends Thread implements Loggable {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		new Watcher(f -> System.out.println(f.toAbsolutePath()), ".txt", ENTRY_CREATE).join();
 	}
+
+	public void joining() {
+		try {
+			join();
+		} catch (InterruptedException e) {}
+	}
 }
