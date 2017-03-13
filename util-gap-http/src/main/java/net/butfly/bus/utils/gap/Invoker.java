@@ -19,13 +19,13 @@ public class Invoker extends WaiterImpl {
 	private final HttpClient client;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Invoker inst = new Invoker();
+		Invoker inst = new Invoker(args);
 		inst.start();
 		inst.join();
 	}
 
-	protected Invoker() throws IOException {
-		super(".req", ".resp");
+	protected Invoker(String... args) throws IOException {
+		super(".req", ".resp", args);
 		client = new HttpClient();
 	}
 

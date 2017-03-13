@@ -23,13 +23,13 @@ public class Dispatcher extends WaiterImpl {
 	private final Map<UUID, Response> sessions;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Dispatcher inst = new Dispatcher();
+		Dispatcher inst = new Dispatcher(args);
 		inst.start();
 		inst.join();
 	}
 
-	protected Dispatcher() throws IOException {
-		super(".resp", ".req");
+	protected Dispatcher(String... args) throws IOException {
+		super(".resp", ".req", args);
 		sessions = new ConcurrentHashMap<>();
 		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> {
 			UUID key = UUID.randomUUID();
