@@ -18,6 +18,7 @@ import com.ning.http.client.ListenableFuture;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HeaderValues;
 import net.butfly.albacore.utils.IOs;
+import net.butfly.albacore.utils.logger.Logger;
 
 /**
  * Request from Undertow to Ning
@@ -26,6 +27,7 @@ import net.butfly.albacore.utils.IOs;
  */
 public final class HttpRequest extends HttpWrapper<HttpRequest> {
 	private static final long serialVersionUID = 8927918437569361626L;
+	private static final transient Logger logger = Logger.getLogger(HttpRequest.class);
 	protected String method;
 	protected String url;
 
@@ -63,6 +65,7 @@ public final class HttpRequest extends HttpWrapper<HttpRequest> {
 			} catch (InterruptedException e) {
 				return;
 			} catch (ExecutionException e) {
+				logger.error("Http fail", e.getCause());
 				return;
 			}
 			using.accept(new HttpResponse(r));
