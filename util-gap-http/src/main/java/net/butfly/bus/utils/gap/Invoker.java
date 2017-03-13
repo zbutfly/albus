@@ -7,7 +7,6 @@ import java.util.UUID;
 import net.butfly.albacore.utils.Configs.Config;
 import net.butfly.bus.utils.http.HttpClient;
 import net.butfly.bus.utils.http.HttpRequest;
-import net.butfly.bus.utils.http.HttpResponse;
 
 /**
  * 这是内网口
@@ -31,8 +30,7 @@ public class Invoker extends WaiterImpl {
 
 	@Override
 	public void seen(UUID key, InputStream in) {
-		new HttpRequest().load(in).redirect(host, port).request(client, resp -> touch(dumpDest, key.toString() + touchExt, new HttpResponse(
-				resp)::save));
+		new HttpRequest().load(in).redirect(host, port).request(client, resp -> touch(dumpDest, key.toString() + touchExt, resp::save));
 	}
 
 	@Override

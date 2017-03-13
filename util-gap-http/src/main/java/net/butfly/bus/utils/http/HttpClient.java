@@ -28,4 +28,19 @@ public final class HttpClient extends com.ning.http.client.AsyncHttpClient {
 	public BoundRequestBuilder requestBuilder(String method, String url) {
 		return super.requestBuilder(method, url);
 	}
+
+	public static javax.servlet.http.Cookie unconv(com.ning.http.client.cookie.Cookie c) {
+		javax.servlet.http.Cookie cc = new javax.servlet.http.Cookie(c.getName(), c.getValue());
+		cc.setDomain(c.getDomain());
+		cc.setPath(c.getPath());
+		cc.setMaxAge(c.getMaxAge());
+		cc.setHttpOnly(c.isHttpOnly());
+		cc.setSecure(c.isSecure());
+		return cc;
+	}
+
+	public static com.ning.http.client.cookie.Cookie conv(javax.servlet.http.Cookie c) {
+		return new com.ning.http.client.cookie.Cookie(c.getName(), c.getValue(), c.getValue(), c.getDomain(), c.getPath(), c.getMaxAge(), c
+				.getMaxAge(), c.getSecure(), c.isHttpOnly());
+	}
 }

@@ -53,14 +53,9 @@ public final class HttpRequest extends HttpWrapper<HttpRequest> {
 		super();
 	}
 
-	private static com.ning.http.client.cookie.Cookie conv(javax.servlet.http.Cookie c) {
-		return new com.ning.http.client.cookie.Cookie(c.getName(), c.getValue(), c.getValue(), c.getDomain(), c.getPath(), c.getMaxAge(), c
-				.getMaxAge(), c.getSecure(), c.isHttpOnly());
-	}
-
-	public void request(HttpClient client, Consumer<com.ning.http.client.Response> using) {
+	public void request(HttpClient client, Consumer<HttpResponse> using) {
 		ListenableFuture<com.ning.http.client.Response> f = client.requestBuilder(method, url).setBody(body).setHeaders(headers).setCookies(
-				cookies.parallelStream().map(HttpRequest::conv).collect(Collectors.toList())).execute();
+				cookies.parallelStream().map(HttpClient::conv).collect(Collectors.toList())).execute();
 		f.addListener(() -> {
 			com.ning.http.client.Response r;
 			try {
@@ -70,7 +65,7 @@ public final class HttpRequest extends HttpWrapper<HttpRequest> {
 			} catch (ExecutionException e) {
 				return;
 			}
-			using.accept(r);
+			using.accept(new HttpResponse(r));
 		}, ForkJoinPool.commonPool());
 	}
 
