@@ -14,18 +14,19 @@ import com.ning.http.client.ListenableFuture;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HeaderValues;
+import net.butfly.albacore.utils.IOs;
 
 /**
  * Request from Undertow to Ning
  * 
  * @author butfly
  */
-public final class Request extends HttpWrapper {
+public final class HttpRequest extends HttpWrapper<HttpRequest> {
 	private static final long serialVersionUID = 8927918437569361626L;
 	protected String method;
 	protected String url;
 
-	public Request(HttpServerExchange exch) {
+	public HttpRequest(HttpServerExchange exch) {
 		method = exch.getRequestMethod().toString();
 		url = exch.getRequestURL();
 		headers = new HashMap<>();
@@ -45,6 +46,10 @@ public final class Request extends HttpWrapper {
 		body = os.toByteArray();
 	}
 
+	public HttpRequest() {
+		super();
+	}
+
 	public void request(HttpClient client, Consumer<com.ning.http.client.Response> using) {
 		ListenableFuture<com.ning.http.client.Response> f = client.requestBuilder(method, url).execute();
 		f.addListener(() -> {
@@ -60,17 +65,21 @@ public final class Request extends HttpWrapper {
 		}, ForkJoinPool.commonPool());
 	}
 
-	public static Request readFrom(InputStream data) {
-		// TODO Auto-generated method stub
-		return null;
+	@Override
+	public HttpRequest save(OutputStream out) throws IOException {
+		IOs.writeBytes(out, method.getBytes());
+		IOs.writeBytes(out, url.getBytes());
+		return super.save(out);
 	}
 
-	public long writeTo(OutputStream os) {
-		// TODO Auto-generated method stub
-		return 0;
+	@Override
+	public HttpRequest load(InputStream in) throws IOException {
+		method = new String(IOs.readBytes(in));
+		url = new String(IOs.readBytes(in));
+		return super.load(in);
 	}
 
-	public Request redirect(String host, int port) {
+	public HttpRequest redirect(String host, int port) {
 		// TODO Auto-generated method stub
 		return this;
 	}

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Joiner;
@@ -84,7 +84,7 @@ public abstract class WaiterImpl extends Thread implements Waiter {
 		return r.toArray(new String[r.size()]);
 	}
 
-	abstract void seen(UUID key, InputStream data);
+	abstract void seen(UUID key, InputStream in);
 
 	@Override
 	public void watch(Path from) {
@@ -104,14 +104,19 @@ public abstract class WaiterImpl extends Thread implements Waiter {
 	}
 
 	@Override
-	public long touch(Path dest, String filename, Function<OutputStream, Long> outputing) throws IOException {
+	public void touch(Path dest, String filename, Consumer<OutputStream> outputing) throws IOException {
 		Path working = dest.resolve(filename + ".working"), worked = dest.resolve(filename);
 		try (OutputStream os = Files.newOutputStream(working, ExtendedOpenOption.NOSHARE_WRITE);) {
-			long l = outputing.apply(os);
-			logger().debug("Data write [" + filename + "]:[" + l + " bytes].");
-			return l;
+			outputing.accept(os);
 		} finally {
 			Files.move(working, worked, StandardCopyOption.ATOMIC_MOVE);
+			logger().debug(() -> {
+				long s = 0;
+				try {
+					s = Files.size(worked);
+				} catch (IOException e) {}
+				return "Data saved: [" + filename + "], size: [" + s + "].";
+			});
 		}
 	}
 }

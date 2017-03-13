@@ -6,7 +6,6 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
@@ -18,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import net.butfly.albacore.utils.IOs;
 import net.butfly.albacore.utils.logger.Loggable;
 
 public class Watcher extends Thread implements Loggable {
@@ -45,7 +45,7 @@ public class Watcher extends Thread implements Loggable {
 	public Watcher(Consumer<Path> using, Path path, String ext, WatchEvent.Kind<?> watching, WatchEvent.Kind<?>... watchings)
 			throws IOException {
 		super();
-		dest = check(path);
+		dest = IOs.mkdirs(path);
 		logger().info("Directory [" + path + "] is being watched.");
 		setName("FileWater:" + dest.toAbsolutePath());
 		setDaemon(true);
@@ -63,16 +63,6 @@ public class Watcher extends Thread implements Loggable {
 			}
 		});
 		if (watcher == null) throw new IOException("Watcher could not be initialized.");
-	}
-
-	private Path check(Path path) {
-		if (Files.exists(path) && Files.isDirectory(path)) return path;
-		logger().info("Non-existed directory [" + path + "] is attempted to be created.");
-		try {
-			return Files.createDirectories(path);
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Non-existed directory [" + path + "] could not be created.");
-		}
 	}
 
 	@SuppressWarnings("unchecked")
