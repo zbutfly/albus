@@ -40,13 +40,14 @@ public final class HttpResponse extends HttpWrapper<HttpResponse> {
 		}
 	}
 
-	public void response(HttpServerExchange exch) {
+	public boolean response(HttpServerExchange exch) {
 		exch.setStatusCode(status);
 		for (javax.servlet.http.Cookie c : cookies)
 			exch.setResponseCookie(new ServletCookieAdaptor(c));
 		for (Entry<String, Collection<String>> h : headers.entrySet())
 			exch.getResponseHeaders().addAll(new HttpString(h.getKey()), h.getValue());
 		exch.getResponseSender().send(ByteBuffer.wrap(null == body ? new byte[0] : body));
+		return true;
 	}
 
 	@Override

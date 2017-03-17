@@ -24,13 +24,21 @@ public class Invoker extends WaiterImpl {
 	}
 
 	protected Invoker(String... args) throws IOException {
-		super(".req", ".resp", args);
+		super(EXT_REQ, EXT_RESP, args);
 		client = new HttpClient();
 	}
 
 	@Override
 	public void seen(UUID key, InputStream in) {
-		new HttpRequest().load(in).redirect(host, port).request(client, resp -> touch(dumpDest, key.toString() + touchExt, resp::save));
+		HttpRequest r = new HttpRequest().load(in);
+		if (methods.contains(r.method().toUpperCase())) r.redirect(host, port).request(client, resp -> {
+			try {
+				touch(dumpDest, key.toString() + touchExt, resp::save);
+			} catch (IOException e) {
+				logger().error("HTTP request fail", e);
+			}
+		});
+		else logger().warn("HTTP request [" + key + "] forbidden for method: " + r.method());
 	}
 
 	@Override

@@ -5,7 +5,8 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpServerExchange;
@@ -22,8 +23,7 @@ import net.butfly.bus.utils.http.HttpResponse;
 @Config(value = "bus-gap-dispatcher.properties", prefix = "bus.gap.dispatcher")
 public class Dispatcher extends WaiterImpl {
 	private final Undertow server;
-	private final Map<UUID, HttpResponse> resps;
-	private final AtomicLong count;
+	private final Map<UUID, Consumer<HttpResponse>> handlers;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		Dispatcher inst = new Dispatcher(args);
@@ -32,31 +32,37 @@ public class Dispatcher extends WaiterImpl {
 	}
 
 	protected Dispatcher(String... args) throws IOException {
-		super(".resp", ".req", args);
-		count = new AtomicLong();
-		resps = new ConcurrentHashMap<>();
+		super(EXT_RESP, EXT_REQ, args);
+		handlers = new ConcurrentHashMap<>();
 		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> this.handle(exch)).build();
 	}
 
 	private void handle(HttpServerExchange exch) throws IOException {
-		UUID key;
-		logger().debug("Req [" + (key = UUID.randomUUID()) + "] arrive, pending requests: " + count.incrementAndGet());
-		try {
+		if (methods.contains(exch.getRequestMethod().toString().toUpperCase())) {
+			UUID key = UUID.randomUUID();
 			logger().trace(exch.toString());
-			touch(dumpDest, key.toString() + touchExt, new HttpRequest(exch)::save);
-			HttpResponse resp;
-			while ((resp = resps.remove(key)) == null)
-				Concurrents.waitSleep();
-			resp.response(exch);
-		} finally {
-			logger().debug("Req [" + key + "] left, pending requests: " + count.decrementAndGet());
-		}
+			AtomicBoolean finished = new AtomicBoolean(false);
+			if (null != handlers.putIfAbsent(key, resp -> finished.set(resp.response(exch)))) {
+				logger().error("Resp/Req key [" + key + "] duplicated, current request lost...");
+				exch.setStatusCode(500);
+				exch.setReasonPhrase("HTTP request through GAP duplicate.");
+			} else {
+				logger().debug("Request [" + key + "] arrive, pool size: " + handlers.size());
+				touch(dumpDest, key.toString() + touchExt, new HttpRequest(exch)::save);
+				while (!finished.get())
+					Concurrents.waitSleep(10);
+				logger().debug("Response [" + key + "] sent.");
+			}
+		} else logger().warn("HTTP request forbidden for method: " + exch.getRequestMethod());
 	}
 
 	@Override
 	public void seen(UUID key, InputStream data) {
-		resps.put(key, new HttpResponse().load(data));
-		logger().debug("Pool size: " + resps.size());
+		Consumer<HttpResponse> h = handlers.remove(key);
+		if (null != h) {
+			logger().debug("Response [" + key + "] left, pool size: " + handlers.size());
+			h.accept(new HttpResponse().load(data));
+		} else logger().error("Resp/Req key [" + key + "] not found, current response lost...");
 	}
 
 	@Override

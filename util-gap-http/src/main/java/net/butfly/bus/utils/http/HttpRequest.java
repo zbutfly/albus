@@ -28,6 +28,7 @@ import net.butfly.albacore.utils.logger.Logger;
 public final class HttpRequest extends HttpWrapper<HttpRequest> {
 	private static final long serialVersionUID = 8927918437569361626L;
 	private static final transient Logger logger = Logger.getLogger(HttpRequest.class);
+
 	protected String method;
 	protected String url;
 
@@ -59,16 +60,14 @@ public final class HttpRequest extends HttpWrapper<HttpRequest> {
 		ListenableFuture<com.ning.http.client.Response> f = client.requestBuilder(method, url).setBody(body).setHeaders(headers).setCookies(
 				cookies.parallelStream().map(HttpClient::conv).collect(Collectors.toList())).execute();
 		f.addListener(() -> {
-			com.ning.http.client.Response r;
 			try {
-				r = f.get();
+				using.accept(new HttpResponse(f.get()));
 			} catch (InterruptedException e) {
 				return;
 			} catch (ExecutionException e) {
-				logger.error("Http fail", e.getCause());
+				logger.error("HTTP request fail", e.getCause());
 				return;
 			}
-			using.accept(new HttpResponse(r));
 		}, ForkJoinPool.commonPool());
 	}
 
@@ -109,5 +108,9 @@ public final class HttpRequest extends HttpWrapper<HttpRequest> {
 			throw new RuntimeException(e);
 		}
 		return this;
+	}
+
+	public String method() {
+		return method;
 	}
 }
