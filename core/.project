@@ -24,7 +24,7 @@
 		<link>
 			<name>albus.pom</name>
 			<type>1</type>
-			<location>C:/Workspaces/alfames-2.0.4/albus/pom.xml</location>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/pom.xml</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

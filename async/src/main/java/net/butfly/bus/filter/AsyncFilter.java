@@ -19,12 +19,9 @@ public class AsyncFilter extends FilterBase implements Filter {
 
 	@Override
 	public void execute(final FilterContext context) throws Exception {
-		new BusTask<Void>(new Task<Void>(new Task.Callable<Void>() {
-			@Override
-			public Void call() throws Exception {
-				AsyncFilter.super.execute(context);
-				return null;
-			}
+		new BusTask<Void>(new Task<Void>(() -> {
+			AsyncFilter.super.execute(context);
+			return null;
 		}, new Options().fork(true).timeout(timeout))).execute();
 	}
 }

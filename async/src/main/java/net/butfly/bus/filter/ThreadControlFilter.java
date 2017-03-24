@@ -8,13 +8,14 @@ import java.util.concurrent.TimeUnit;
 
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.async.Task.Callable;
 import net.butfly.bus.utils.BusTask;
 import net.butfly.bus.utils.Constants;
 
 /**
  * @author butfly
- * @deprecated insteaded by {@link net.butfly.bus.filter.AsyncFilter} to enable work-stealing mode (with
- *             back pattern)
+ * @deprecated insteaded by {@link net.butfly.bus.filter.AsyncFilter} to enable
+ *             work-stealing mode (with back pattern)
  */
 @Deprecated
 public class ThreadControlFilter extends FilterBase implements Filter {
@@ -38,12 +39,9 @@ public class ThreadControlFilter extends FilterBase implements Filter {
 
 	@Override
 	public void execute(final FilterContext context) throws Exception {
-		new BusTask<Void>(new Task<Void>(new Task.Callable<Void>() {
-			@Override
-			public Void call() throws Exception {
-				ThreadControlFilter.super.execute(context);
-				return null;
-			}
+		new BusTask<Void>(new Task<Void>((Callable<Void>) () -> {
+			ThreadControlFilter.super.execute(context);
+			return null;
 		}, new Options().fork(true).timeout(timeout))).execute(executor);
 	}
 }
