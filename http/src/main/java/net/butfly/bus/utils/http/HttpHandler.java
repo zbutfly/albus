@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +21,6 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.reflect.TypeToken;
 
 import net.butfly.albacore.exception.NotImplementedException;
-import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.serder.support.TextSerder;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.albacore.utils.async.Opts;

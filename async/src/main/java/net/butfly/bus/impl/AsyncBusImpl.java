@@ -1,8 +1,8 @@
 package net.butfly.bus.impl;
 
 import java.lang.reflect.Proxy;
+import java.util.function.Consumer;
 
-import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.AsyncBus;
 import net.butfly.bus.Buses;

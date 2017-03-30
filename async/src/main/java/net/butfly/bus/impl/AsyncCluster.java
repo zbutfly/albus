@@ -1,6 +1,7 @@
 package net.butfly.bus.impl;
 
-import net.butfly.albacore.lambda.Consumer;
+import java.util.function.Consumer;
+
 import net.butfly.bus.Buses;
 import net.butfly.bus.Mode;
 import net.butfly.bus.Request;

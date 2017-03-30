@@ -1,7 +1,8 @@
 package net.butfly.bus.comet;
 
+import java.util.function.Consumer;
+
 import net.butfly.albacore.exception.BusinessException;
-import net.butfly.albacore.lambda.Consumer;
 import net.butfly.bus.CallbackBus;
 import net.butfly.bus.comet.facade.CometFacade;
 import net.butfly.bus.comet.facade.dto.CometEchoReponse;

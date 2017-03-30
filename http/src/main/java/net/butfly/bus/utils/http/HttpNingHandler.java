@@ -5,11 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import net.butfly.albacore.lambda.Consumer;
-import net.butfly.albacore.serder.support.TextSerder;
-import net.butfly.albacore.utils.Exceptions;
-import net.butfly.albacore.utils.async.Task.ExceptionHandler;
+import java.util.function.Consumer;
 
 import org.apache.http.entity.ContentType;
 
@@ -23,6 +19,10 @@ import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
+
+import net.butfly.albacore.serder.support.TextSerder;
+import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.async.Task.ExceptionHandler;
 
 public class HttpNingHandler extends HttpHandler {
 	private static final AsyncHttpClient client = new AsyncHttpClient(new NettyAsyncHttpProvider(new AsyncHttpClientConfig.Builder()

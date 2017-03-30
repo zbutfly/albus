@@ -32,7 +32,6 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import com.google.common.base.Joiner;
 
-import net.butfly.albacore.lambda.Runnable;
 import net.butfly.albacore.utils.Objects;
 import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Task;
@@ -43,7 +42,6 @@ import net.butfly.bus.impl.BusServlet;
 import net.butfly.bus.impl.ServletInitParams;
 
 public class JettyStarter implements Runnable {
-	private static final long serialVersionUID = -7187654306012446690L;
 	protected static final Logger logger = Logger.getLogger(JettyStarter.class);
 	protected static final int BUF_SIZE = 8 * 1024;
 	protected static final long DEFAULT_IDLE = 60000;

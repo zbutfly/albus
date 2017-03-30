@@ -1,6 +1,7 @@
 package net.butfly.bus;
 
-import net.butfly.albacore.lambda.Consumer;
+import java.util.function.Consumer;
+
 import net.butfly.albacore.utils.async.Options;
 
 /**

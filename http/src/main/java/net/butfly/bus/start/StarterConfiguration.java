@@ -121,4 +121,9 @@ final class StarterConfiguration {
 			} catch (IllegalAccessException e) {}
 		return sb.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
 }

@@ -1,7 +1,8 @@
 package net.butfly.bus;
 
+import java.util.function.Consumer;
+
 import net.butfly.albacore.facade.Facade;
-import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.utils.async.Options;
 import net.butfly.bus.policy.Routeable;
 

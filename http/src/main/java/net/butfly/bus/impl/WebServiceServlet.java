@@ -2,6 +2,7 @@ package net.butfly.bus.impl;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -12,7 +13,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.eclipse.jetty.http.HttpStatus;
 
-import net.butfly.albacore.lambda.Consumer;
 import net.butfly.albacore.serder.Serders;
 import net.butfly.albacore.serder.support.TextSerder;
 import net.butfly.albacore.utils.Exceptions;
