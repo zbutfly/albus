@@ -47,7 +47,6 @@ public class Watcher extends Thread implements Loggable {
 		super();
 		dest = IOs.mkdirs(path);
 		logger().info("Directory [" + path + "] is being watched.");
-		System.err.println("Directory [" + path + "] is being watched.");
 		setName("FileWater:" + dest.toAbsolutePath());
 		setDaemon(true);
 		this.ext = ext;

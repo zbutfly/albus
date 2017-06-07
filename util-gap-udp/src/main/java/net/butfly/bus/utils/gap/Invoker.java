@@ -17,7 +17,7 @@ import java.util.UUID;
  * 2. 负责把返回的数据包写成文件，若超过timeout仍无响应，则返回一个空包以继续处理下一个
  * @author butfly
  */
-@Config(value = "/net/butfly/bus/gap/udp/udp-invoker-default.properties", prefix = "bus.gap.udp.invoker")
+@Config(value = "net/butfly/bus/gap/udp/udp-invoker-default.properties", prefix = "bus.gap.udp.invoker")
 public class Invoker extends WaiterImpl {
 	private final UdpServer server;
 	private final UdpClient client;

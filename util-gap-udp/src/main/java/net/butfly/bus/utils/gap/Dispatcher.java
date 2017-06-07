@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * 2. 负责解析响应的数据包，并发送到指定端口
  * @author butfly
  */
-@Config(value = "/net/butfly/bus/gap/udp/udp-dispatcher-default.properties", prefix = "bus.gap.udp.dispatcher")
+@Config(value = "net/butfly/bus/gap/udp/udp-dispatcher-default.properties", prefix = "bus.gap.udp.dispatcher")
 public class Dispatcher extends WaiterImpl {
 	private final UdpServer server;
 	private final UdpClient client;
