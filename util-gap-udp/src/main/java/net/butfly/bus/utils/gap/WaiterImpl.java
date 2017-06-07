@@ -64,10 +64,6 @@ public abstract class WaiterImpl extends Thread implements Waiter {
 		System.err.println("\tjava " + Systems.getMainClass() + " <host> <listen port> <response port>");
 		System.err.println("\tjava " + Systems.getMainClass()
 				+ " <host> <listen port> <response port> <dumping path> <watching path(support multiple later NOT NOW...)>");
-
-		for (int i = 0; i < clis.length; i++) {
-			System.err.println("clis[" + i + "]:" + clis[i]);
-		}
 		host = getn(clis[0], "host", "0.0.0.0");
 		listenPort = Integer.parseInt(getn(clis[1], "listen.port", "6000"));
 		responsePort = Integer.parseInt(getn(clis[2], "response.port", "6002"));
