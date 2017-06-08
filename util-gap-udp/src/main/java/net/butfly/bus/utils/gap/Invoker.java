@@ -50,7 +50,7 @@ public class Invoker extends WaiterImpl {
                 logger().error("udp packet response timeout");
             }
             try {
-                touch(dumpDest, key.toString() + touchExt, out -> UdpUtils.save(out, pkt));
+                touch(dumpDest, key.toString() + touchExt, out -> UdpUtils.save(out, respPacket));
             } catch (IOException e) {
                 logger().error("udp packet save failed");
             }

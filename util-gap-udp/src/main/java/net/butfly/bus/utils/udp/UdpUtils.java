@@ -8,11 +8,12 @@ import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class UdpUtils {
 
-    public static final int UDP_PACKET_SIZE = 1472;
+    public static final int UDP_PACKET_SIZE = 64 * 1024;
     public static final int UDP_SERVER_TIMEOUT = 1000;
 
     public static String bytesToHex(byte[] bytes) {
@@ -45,7 +46,7 @@ public class UdpUtils {
     public static void save(OutputStream out, DatagramPacket packet) {
         byte[] addr = packet.getAddress().getAddress();
         int port = packet.getPort();
-        byte[] data = packet.getData();
+        byte[] data = Arrays.copyOfRange(packet.getData(), packet.getOffset(), packet.getLength());
         try {
             IOs.writeBytes(out, addr);
             IOs.writeInt(out, port);

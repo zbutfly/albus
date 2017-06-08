@@ -38,7 +38,7 @@ public class UdpServer {
         t.start();
     }
 
-    void send(DatagramPacket packet) {
+    public void send(DatagramPacket packet) {
         try {
             socket.send(packet);
         } catch (IOException e) {
@@ -50,7 +50,7 @@ public class UdpServer {
         try {
             socket.receive(packet);
         } catch (SocketTimeoutException e) {
-
+            throw e;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

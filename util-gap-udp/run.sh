@@ -43,7 +43,7 @@ if [ -z ${JAVA_OPTS+x} ]; then JAVA_OPTS=; else echo "Original JAVA_OPTS: ${JAVA
 JAVA_OPTS="${JAVA_OPTS} ${_GC_G1} -d64 -server"
 echo JAVA_OPTS:	${JAVA_OPTS}
 
-_CP="./test-classes:./albus-util-gap-http.jar:./dependency/*"
+_CP="./test-classes:./albus-util-gap-udp.jar:./dependency/*"
 echo "CLASSPATH:	${_CP}"
 _MAIN=$1
 _LOG="./logs/${_MAIN,,}-${TSTR}.log"
