@@ -43,7 +43,7 @@ if [ -z ${JAVA_OPTS+x} ]; then JAVA_OPTS=; else echo "Original JAVA_OPTS: ${JAVA
 JAVA_OPTS="${JAVA_OPTS} ${_GC_G1} -d64 -server"
 echo JAVA_OPTS:	${JAVA_OPTS}
 
-_CP="./test-classes:./albus-util-gap-http.jar:./dependency/*"
+_CP="./test-classes:./albus-util-gap-udp.jar:./dependency/*"
 echo "CLASSPATH:	${_CP}"
 _MAIN=$1
 _LOG="./logs/${_MAIN,,}-${TSTR}.log"
@@ -56,7 +56,8 @@ _CMD="java ${JAVA_OPTS} -cp ${_CP} ${_MAIN} $*"
 echo "   ALL_CMD:	${_CMD}"
 echo "  LOG_FILE:	${_LOG}"
 ${_CMD} > ${_LOG} 2>&1 &
+sleep 1
 #tail -fn100 ${_LOG}
 
-#./run.sh Invoker 10.118.128.114:6060 ./pool/reps ./pool/reqs
-#./run.sh Dispatcher 0.0.0.0:28080 ./pool/reqs ./pool/reps
+#./run.sh Invoker 192.168.22.152 6000 6002 ./pool/reps ./pool/reqs
+#./run.sh Dispatcher 0.0.0.0 6001 6003 ./pool/reqs ./pool/reps
