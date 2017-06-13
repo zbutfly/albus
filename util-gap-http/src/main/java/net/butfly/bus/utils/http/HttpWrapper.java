@@ -29,8 +29,11 @@ abstract class HttpWrapper<R extends HttpWrapper<R>> implements Serializable {
 	public R load(InputStream in) {
 		try {
 			int c = IOs.readInt(in);
-			for (int i = 0; i < c; i++)
-				headers.put(new String(IOs.readBytes(in)), IOs.readBytes(in, IOs.readInt(in), b -> new String(b)));
+			for (int i = 0; i < c; i++) {
+				String key = new String(IOs.readBytes(in));
+				List<String> values = IOs.readBytes(in, b -> new String(b));
+				headers.put(key, values);
+			}
 			c = IOs.readInt(in);
 			for (int i = 0; i < c; i++)
 				cookies.add(IOs.readObj(in));
@@ -47,9 +50,8 @@ abstract class HttpWrapper<R extends HttpWrapper<R>> implements Serializable {
 			IOs.writeInt(out, headers.size());
 			for (Entry<String, Collection<String>> h : headers.entrySet()) {
 				IOs.writeBytes(out, h.getKey().getBytes());
-				IOs.writeInt(out, h.getValue().size());
-				IOs.writeBytes(out, h.getValue().parallelStream().map(v -> v.getBytes()).collect(Collectors.toList()).toArray(
-						new byte[0][]));
+				byte[][] value = h.getValue().parallelStream().map(v -> v.getBytes()).collect(Collectors.toList()).toArray(new byte[0][]);
+				IOs.writeBytes(out, value);
 			}
 			IOs.writeInt(out, cookies.size());
 			for (javax.servlet.http.Cookie c : cookies)
