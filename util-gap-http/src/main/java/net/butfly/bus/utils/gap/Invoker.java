@@ -33,7 +33,7 @@ public class Invoker extends WaiterImpl {
 		HttpRequest r = new HttpRequest().load(in);
 		if (methods.contains(r.method().toUpperCase())) r.redirect(host, port).request(client, resp -> {
 			try {
-				touch(dumpDest, key.toString() + touchExt, resp::save);
+				touch(key.toString() + touchExt, resp::save);
 			} catch (IOException e) {
 				logger().error("HTTP request fail", e);
 			}

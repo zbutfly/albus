@@ -7,22 +7,9 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
-	<artifactId>albus-util-gap-udp-simple</artifactId>
+	<artifactId>albus-util-gap-http</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<properties>
-		<version.undertow>1.4.11.Final</version.undertow><!-- 1.4.11.Final -->
-	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>io.undertow</groupId>
-			<artifactId>undertow-servlet</artifactId>
-			<version>${version.undertow}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.ning</groupId>
-			<artifactId>async-http-client</artifactId>
-			<version>${version.ning}</version>
-		</dependency>
 		<dependency>
 			<groupId>net.butfly.bus</groupId>
 			<artifactId>albus-util-gap-common</artifactId>

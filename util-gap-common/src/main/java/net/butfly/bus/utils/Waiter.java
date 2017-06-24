@@ -10,5 +10,5 @@ import net.butfly.albacore.utils.logger.Loggable;
 public interface Waiter extends Loggable, Runnable {
 	void watch(Path from);
 
-	void touch(Path dest, String filename, Consumer<OutputStream> outputing) throws IOException;
+	void touch(String filename, Consumer<OutputStream> outputing) throws IOException;
 }

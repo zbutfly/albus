@@ -118,8 +118,8 @@ public abstract class WaiterImpl extends Thread implements Waiter {
 	}
 
 	@Override
-	public void touch(Path dest, String filename, Consumer<OutputStream> outputing) throws IOException {
-		Path working = dest.resolve(filename + EXT_WORKING), worked = dest.resolve(filename);
+	public void touch(String filename, Consumer<OutputStream> outputing) throws IOException {
+		Path working = dumpDest.resolve(filename + EXT_WORKING), worked = dumpDest.resolve(filename);
 		try (OutputStream os = Files.newOutputStream(working, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);) {
 			outputing.accept(os);
 		} finally {

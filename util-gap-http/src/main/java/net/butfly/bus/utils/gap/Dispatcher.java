@@ -48,7 +48,7 @@ public class Dispatcher extends WaiterImpl {
 				exch.setReasonPhrase("HTTP request through GAP duplicate.");
 			} else {
 				logger().debug("Request [" + key + "] arrive, pool size: " + handlers.size());
-				touch(dumpDest, key.toString() + touchExt, new HttpRequest(exch)::save);
+				touch(key.toString() + touchExt, new HttpRequest(exch)::save);
 				while (!finished.get())
 					Concurrents.waitSleep(10);
 				logger().debug("Response [" + key + "] sent.");
