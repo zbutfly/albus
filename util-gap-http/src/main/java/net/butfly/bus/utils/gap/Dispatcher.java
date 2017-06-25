@@ -14,6 +14,7 @@ import net.butfly.albacore.utils.Configs.Config;
 import net.butfly.albacore.utils.parallel.Concurrents;
 import net.butfly.bus.utils.http.HttpRequest;
 import net.butfly.bus.utils.http.HttpResponse;
+import net.butfly.bus.utils.http.HttpWaiter;
 
 /**
  * 这是外网口
@@ -21,20 +22,20 @@ import net.butfly.bus.utils.http.HttpResponse;
  * @author butfly
  */
 @Config(value = "bus-gap-dispatcher.properties", prefix = "bus.gap.dispatcher")
-public class Dispatcher extends WaiterImpl {
+public class Dispatcher extends HttpWaiter {
 	private final Undertow server;
 	private final Map<UUID, Consumer<HttpResponse>> handlers;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Dispatcher inst = new Dispatcher(args);
+		Dispatcher inst = new Dispatcher(HttpWaiter.parseArgs(args));
 		inst.start();
 		inst.join();
 	}
 
-	protected Dispatcher(String... args) throws IOException {
-		super(EXT_RESP, EXT_REQ, args);
+	protected Dispatcher(HttpWaiter.HttpWaiterConfig config) throws IOException {
+		super(EXT_RESP, EXT_REQ, config);
 		handlers = new ConcurrentHashMap<>();
-		server = Undertow.builder().addHttpListener(port, host).setHandler(exch -> this.handle(exch)).build();
+		server = Undertow.builder().addHttpListener(addr.getPort(), addr.getHostName()).setHandler(exch -> this.handle(exch)).build();
 	}
 
 	private void handle(HttpServerExchange exch) throws IOException {

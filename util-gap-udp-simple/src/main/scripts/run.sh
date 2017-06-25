@@ -59,5 +59,5 @@ ${_CMD} > ${_LOG} 2>&1 &
 sleep 1
 #tail -fn100 ${_LOG}
 
-#./run.sh Invoker 192.168.22.152 6000 6002 ./pool/reps ./pool/reqs
+#./run.sh Invoker <GAP_PORT> 6002 ./pool/reps ./pool/reqs
 #./run.sh Dispatcher 0.0.0.0 6001 6003 ./pool/reqs ./pool/reps

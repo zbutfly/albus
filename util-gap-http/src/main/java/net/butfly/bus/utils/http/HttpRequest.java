@@ -95,7 +95,6 @@ public final class HttpRequest extends HttpWrapper<HttpRequest> {
 
 	public HttpRequest redirect(String host, int port) {
 		try {
-			new URL("http://127.0.0.1:213/sd/df/sdf.dsf?dsfsd=123#aaa").getFile();
 			URL orig = new URL(url);
 			StringBuilder sb = new StringBuilder(orig.getProtocol()).append("://");
 			if (orig.getUserInfo() != null) sb.append(orig.getUserInfo()).append("@");
