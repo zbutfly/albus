@@ -2,7 +2,6 @@ package net.butfly.bus.utils.gap;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 
 import net.butfly.albacore.utils.Configs.Config;
 import net.butfly.bus.utils.http.HttpClient;
@@ -33,11 +32,11 @@ public class Invoker extends HttpWaiter {
 	}
 
 	@Override
-	public void seen(UUID key, InputStream in) {
+	public void seen(String key, InputStream in) {
 		HttpRequest r = new HttpRequest().load(in);
 		if (methods.contains(r.method().toUpperCase())) r.redirect(addr.getHostName(), addr.getPort()).request(client, resp -> {
 			try {
-				touch(key.toString() + touchExt, resp::save);
+				touch(key + touchExt, resp::save);
 			} catch (IOException e) {
 				logger().error("HTTP request fail", e);
 			}

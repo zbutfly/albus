@@ -58,8 +58,8 @@ public class Dispatcher extends HttpWaiter {
 	}
 
 	@Override
-	public void seen(UUID key, InputStream data) {
-		Consumer<HttpResponse> h = handlers.remove(key);
+	public void seen(String key, InputStream data) {
+		Consumer<HttpResponse> h = handlers.remove(UUID.fromString(key));
 		if (null != h) {
 			logger().debug("Response [" + key + "] left, pool size: " + handlers.size());
 			h.accept(new HttpResponse().load(data));
