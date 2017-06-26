@@ -6,10 +6,9 @@ import java.util.List;
 
 import net.butfly.albacore.utils.Configs;
 import net.butfly.albacore.utils.Configs.Config;
-import net.butfly.bus.utils.udp.UdpWaiter;
 
 @Config(value = "bus-gap-invoker.properties", prefix = "bus.gap.invoker")
-public class Invoker extends UdpWaiter {
+public class Invoker extends KcpWaiter {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		help();
 		int gapPort = Integer.parseInt(args.length > 0 ? args[0] : Configs.get("port"));

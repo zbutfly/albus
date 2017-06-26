@@ -1,4 +1,4 @@
-package net.butfly.bus.utils.udp;
+package net.butfly.bus.utils.gap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,20 +27,16 @@ import net.butfly.albacore.utils.Systems;
 import net.butfly.albacore.utils.parallel.Concurrents;
 import net.butfly.bus.utils.gap.WaiterImpl;
 
-public abstract class UdpWaiter extends WaiterImpl {
+public abstract class KcpWaiter extends WaiterImpl {
 	protected final int gapPort;
-	// protected final int kcpPort;
 	protected final DatagramChannel server;
 	protected final Selector servers;
-	// protected final DatagramChannel client;
-	// protected final Selector clients;
 	public static final int UDP_DIAGRAM_MAX_LEN = 0xFFFF - 8 - 20;
 	private final Map<String, Consumer<InputStream>> handlers;
 
-	protected UdpWaiter(String watchExt, String touchExt, int listenPort, Path dumpDest, Path... watchs) throws IOException {
+	protected KcpWaiter(String watchExt, String touchExt, int listenPort, Path dumpDest, Path... watchs) throws IOException {
 		super(watchExt, touchExt, dumpDest, watchs);
 		this.gapPort = listenPort;
-		// this.kcpPort = kcpPort;
 		handlers = new ConcurrentHashMap<>();
 
 		server = DatagramChannel.open();
@@ -108,7 +104,7 @@ public abstract class UdpWaiter extends WaiterImpl {
 						it.remove();
 						if (k.isReadable()) {
 							DatagramChannel ch = (DatagramChannel) k.channel();
-							ByteBuffer rbuf = ByteBuffer.allocate(UdpWaiter.UDP_DIAGRAM_MAX_LEN);
+							ByteBuffer rbuf = ByteBuffer.allocate(KcpWaiter.UDP_DIAGRAM_MAX_LEN);
 							InetSocketAddress addr = (InetSocketAddress) ch.receive(rbuf);
 
 							String key = addr.getPort() + "#" + UUID.randomUUID().toString();
