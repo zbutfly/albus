@@ -7,7 +7,7 @@ export JAVA_HOME=" /usr/java/jdk1.8.0_60/"
 export PATH=${JAVA_HOME}/bin:${PATH}
 java -version
 
-TSTR=`date +"%Y%m%d%H%M%s"`
+TSTR=`date +"%F_%T"`
 _GC_LOG="./logs/gc${TSTR}.log"
 
 _GC_G1="-XX:+UnlockExperimentalVMOptions \
@@ -43,7 +43,7 @@ if [ -z ${JAVA_OPTS+x} ]; then JAVA_OPTS=; else echo "Original JAVA_OPTS: ${JAVA
 JAVA_OPTS="${JAVA_OPTS} ${_GC_G1} -d64 -server"
 echo JAVA_OPTS:	${JAVA_OPTS}
 
-_CP="./test-classes:./albus-util-gap-udp.jar:./dependency/*"
+_CP="./test-classes:./albus-util-gap-kcptun.jar:./dependency/*"
 echo "CLASSPATH:	${_CP}"
 _MAIN=$1
 _LOG="./logs/${_MAIN,,}-${TSTR}.log"
@@ -55,9 +55,10 @@ echo "      ARGS:	$*"
 _CMD="java ${JAVA_OPTS} -cp ${_CP} ${_MAIN} $*"
 echo "   ALL_CMD:	${_CMD}"
 echo "  LOG_FILE:	${_LOG}"
+if [ ! -d `dirname ${_LOG}` ]; then mkdir -p `dirname ${_LOG}`; fi
 ${_CMD} > ${_LOG} 2>&1 &
 sleep 1
-#tail -fn100 ${_LOG}
+tail -fn100 ${_LOG}
 
 #./run.sh Invoker <GAP_PORT> 6002 ./pool/reps ./pool/reqs
 #./run.sh Dispatcher 0.0.0.0 6001 6003 ./pool/reqs ./pool/reps
