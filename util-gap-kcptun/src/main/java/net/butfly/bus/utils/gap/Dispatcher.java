@@ -30,9 +30,9 @@ public class Dispatcher extends WaiterImpl {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		KcpWaiter.help(args);
-		int gapPort = Integer.parseInt(args.length > 0 ? args[0] : Configs.get("port"));
+		int dispatcherPort = Integer.parseInt(args.length > 0 ? args[0] : Configs.get("port"));
 		List<Path> paths = parse(args);
-		Dispatcher inst = new Dispatcher(gapPort, paths.remove(0), paths.toArray(new Path[paths.size()]));
+		Dispatcher inst = new Dispatcher(dispatcherPort, paths.remove(0), paths.toArray(new Path[paths.size()]));
 		inst.start();
 		inst.join();
 	}
@@ -42,7 +42,6 @@ public class Dispatcher extends WaiterImpl {
 		this.gapPort = gapPort;
 		server = new DatagramSocket(this.gapPort, InetAddress.getByName("127.0.0.1"));
 	}
-
 
 	@Override
 	public void run() {
@@ -54,7 +53,7 @@ public class Dispatcher extends WaiterImpl {
 				remoteAddr = packet.getAddress();
 				remotePort = packet.getPort();
 				logger().debug("server receive packet:" + packet.getLength() + " from " + packet.getAddress() + ":" + packet.getPort());
-				String key = packet.getPort() + "#" + UUID.randomUUID().toString();
+				String key = UUID.randomUUID().toString();
 				byte[] data = Arrays.copyOf(packet.getData(), packet.getLength());
 				AtomicBoolean finished = new AtomicBoolean(false);
 				touch(key + touchExt, out -> write(out, data, finished));
