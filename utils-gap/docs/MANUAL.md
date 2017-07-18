@@ -50,7 +50,16 @@ java -d64 -server -cp ./test-classes;./albus-util-gap-http.jar;./dependency/* ne
 # <dumping path>   中间文件写入的目录
 # <watching path>  监控的目录
 ```
+3. 示例
+``` shell
+# 1 外网配置
+java -d64 -server -cp ./test-classes;./albus-util-gap-http.jar;./dependency/* net.butfly.bus.utils.gap.Invoker 115.239.210.27:80
 
+# 2 内网配置
+java -d64 -server -cp ./test-classes;./albus-util-gap-http.jar;./dependency/* net.butfly.bus.utils.gap.Dispatcher 172.16.16.116:9988
+
+# 3 通过内网172.16.16.116:9988访问百度
+```
 #### albus-gap-kcptun
 1. 在内网启动Invoker
 ``` shell
