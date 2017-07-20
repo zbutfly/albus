@@ -22,10 +22,10 @@ import static net.butfly.bus.utils.gap.KcpWaiter.parse;
 @Config(value = "bus-gap-dispatcher.properties", prefix = "bus.gap.dispatcher")
 public class Dispatcher extends WaiterImpl {
 
-	private final int gapPort;
-	private final DatagramSocket server;
+	private final int kcptunClientRemotePort;
+	private final DatagramSocket server; // virtual udp server, as kcptun low level server
 	public static final int UDP_DIAGRAM_MAX_LEN = 0xFFFF - 8 - 20;
-	private InetAddress remoteAddr;
+	private InetAddress remoteAddress;
 	private int remotePort;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -37,10 +37,10 @@ public class Dispatcher extends WaiterImpl {
 		inst.join();
 	}
 
-	protected Dispatcher(int gapPort, Path dumpDest, Path... watchs) throws IOException {
+	protected Dispatcher(int kcptunClientRemotePort, Path dumpDest, Path... watchs) throws IOException {
 		super(EXT_RESP, EXT_REQ, dumpDest, watchs);
-		this.gapPort = gapPort;
-		server = new DatagramSocket(this.gapPort, InetAddress.getByName("127.0.0.1"));
+		this.kcptunClientRemotePort = kcptunClientRemotePort;
+		server = new DatagramSocket(this.kcptunClientRemotePort, InetAddress.getByName("127.0.0.1"));
 	}
 
 	@Override
@@ -50,11 +50,12 @@ public class Dispatcher extends WaiterImpl {
 		while (true) {
 			try {
 				server.receive(packet);
-				remoteAddr = packet.getAddress();
+				remoteAddress = packet.getAddress();
 				remotePort = packet.getPort();
-				logger().debug("server receive packet:" + packet.getLength() + " from " + packet.getAddress() + ":" + packet.getPort());
-				String key = UUID.randomUUID().toString();
 				byte[] data = Arrays.copyOf(packet.getData(), packet.getLength());
+				logger().debug("server receive packet [" + data.length + " bytes] from " +
+						remoteAddress + ":" + remotePort);
+				String key = UUID.randomUUID().toString();
 				AtomicBoolean finished = new AtomicBoolean(false);
 				touch(key + touchExt, out -> write(out, data, finished));
 				while (!finished.get()) {
@@ -69,8 +70,8 @@ public class Dispatcher extends WaiterImpl {
 	@Override
 	protected void seen(String key, InputStream in) throws IOException {
 		byte[] buf = IOs.readAll(in);
-		logger().debug("seen " + key + " size:" + buf.length + " and send to " + remoteAddr + ":" + remotePort);
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, remoteAddr, remotePort);
+		logger().debug("seen " + key + " size:" + buf.length + " and send to " + remoteAddress + ":" + remotePort);
+		DatagramPacket packet = new DatagramPacket(buf, buf.length, remoteAddress, remotePort);
 		server.send(packet);
 	}
 

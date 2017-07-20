@@ -24,3 +24,11 @@ yum -y install ftp
 
 # access ftp via ie or firefox
 ftp://taidl:123456@172.16.16.242
+
+
+242 用户
+taidl 123456
+taideli !@#QAZ123qaz
+
+windows 用户
+ftp1 123456
