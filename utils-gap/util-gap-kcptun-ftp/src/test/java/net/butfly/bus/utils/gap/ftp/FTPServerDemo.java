@@ -3,28 +3,24 @@ package net.butfly.bus.utils.gap.ftp;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.command.CommandFactoryFactory;
-import org.apache.ftpserver.command.impl.STOR;
 import org.apache.ftpserver.ftplet.*;
-import org.apache.ftpserver.impl.*;
+import org.apache.ftpserver.impl.IODataConnectionFactory;
+import org.apache.ftpserver.impl.LocalizedDataTransferFtpReply;
+import org.apache.ftpserver.impl.LocalizedFtpReply;
+import org.apache.ftpserver.impl.ServerFtpStatistics;
 import org.apache.ftpserver.listener.Listener;
 import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.message.MessageResource;
 import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.apache.ftpserver.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class FTPServerDemo {
 
@@ -44,44 +40,6 @@ public class FTPServerDemo {
         user.setAuthorities(authorities);
         serverFactory.getUserManager().save(user);
 
-        Map<String, Ftplet> m = new HashMap<>();
-        m.put("miaFtplet", new Ftplet() {
-            @Override
-            public void init(FtpletContext ftpletContext) throws FtpException {
-                Stream.of(ftpletContext.getUserManager().getAllUserNames()).forEach(System.out::println);
-            }
-
-            @Override
-            public void destroy() {
-                System.out.println("destory");
-            }
-
-            @Override
-            public FtpletResult beforeCommand(FtpSession ftpSession, FtpRequest ftpRequest) throws FtpException, IOException {
-                System.out.println("b CMD " + ftpRequest.getRequestLine());
-//                Stream.of(Thread.currentThread().getStackTrace()).forEach(ste -> {
-//                    System.out.println(ste.toString());
-//                });
-                return FtpletResult.DEFAULT;
-            }
-
-            @Override
-            public FtpletResult afterCommand(FtpSession ftpSession, FtpRequest ftpRequest, FtpReply ftpReply) throws FtpException, IOException {
-                System.out.println("a CMD " + ftpRequest.getCommand() + " : " + ftpReply);
-                return FtpletResult.DEFAULT;
-            }
-
-            @Override
-            public FtpletResult onConnect(FtpSession ftpSession) throws FtpException, IOException {
-                return FtpletResult.DEFAULT;
-            }
-
-            @Override
-            public FtpletResult onDisconnect(FtpSession ftpSession) throws FtpException, IOException {
-                return FtpletResult.DEFAULT;
-            }
-        });
-        serverFactory.setFtplets(m);
         CommandFactoryFactory factoryFactory = new CommandFactoryFactory();
         factoryFactory.addCommand("STOR", (session, context, request) -> {
             try {
@@ -164,7 +122,7 @@ public class FTPServerDemo {
                 // 传输数据
                 // transfer data
                 boolean failure = false;
-                OutputStream outStream = null;
+//                OutputStream outStream = null;
                 long transSz = 0L;
                 try {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -174,7 +132,7 @@ public class FTPServerDemo {
 
                     // attempt to close the output stream so that errors in
                     // closing it will return an error to the client (FTPSERVER-119)
-                    outStream.close();
+//                    outStream.close();
 
                     byte[] bytes = baos.toByteArray();
                     System.out.println("store size: " + bytes.length + " with name " + fileName);
@@ -206,7 +164,7 @@ public class FTPServerDemo {
                                             "STOR", fileName, file));
                 } finally {
                     // make sure we really close the output stream
-                    IoUtils.close(outStream);
+//                    IoUtils.close(outStream);
                 }
 
                 // 告诉 client 已经传输完成且结果正确。
@@ -222,19 +180,7 @@ public class FTPServerDemo {
                 session.getDataConnection().closeDataConnection();
             }
         });
-
- /*       factoryFactory.addCommand("STOR", new STOR() {
-            @Override
-            public void execute(FtpIoSession session, FtpServerContext context, FtpRequest request) throws IOException, FtpException {
-//                super.execute(session, context, request);
-                System.out.println("tdl... STOR cmd " + request.getRequestLine() + " executed");
-            }
-        });*/
         serverFactory.setCommandFactory(factoryFactory.createCommandFactory());
-        serverFactory.getFtplets().forEach((key, fl) -> {
-            System.out.println(" ftplet key: " + key);
-            System.out.println(" ftplet    : " + fl.getClass().getName());
-        });
 
         ListenerFactory factory = new ListenerFactory();
         factory.setPort(2221);
@@ -244,6 +190,6 @@ public class FTPServerDemo {
         serverFactory.addListener("default", listener);
         FtpServer server = serverFactory.createServer();
         server.start();
-        System.out.println("ftp server started...");
+        LOG.info("ftp server started....");
     }
 }
