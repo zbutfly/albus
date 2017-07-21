@@ -121,8 +121,7 @@ public class FTPServerDemo {
 
                 // 传输数据
                 // transfer data
-                boolean failure = false;
-//                OutputStream outStream = null;
+                boolean success = true;
                 long transSz = 0L;
                 try {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -147,33 +146,24 @@ public class FTPServerDemo {
 
                 } catch (SocketException ex) {
                     LOG.debug("Socket exception during data transfer", ex);
-                    failure = true;
-                    session.write(LocalizedDataTransferFtpReply.translate(session, request, context,
-                            FtpReply.REPLY_426_CONNECTION_CLOSED_TRANSFER_ABORTED,
+                    success = false;
+                    session.write(LocalizedDataTransferFtpReply.translate(
+                            session, request, context, FtpReply.REPLY_426_CONNECTION_CLOSED_TRANSFER_ABORTED,
                             "STOR", fileName, file));
                 } catch (IOException ex) {
                     LOG.debug("IOException during data transfer", ex);
-                    failure = true;
-                    session
-                            .write(LocalizedDataTransferFtpReply
-                                    .translate(
-                                            session,
-                                            request,
-                                            context,
-                                            FtpReply.REPLY_551_REQUESTED_ACTION_ABORTED_PAGE_TYPE_UNKNOWN,
-                                            "STOR", fileName, file));
-                } finally {
-                    // make sure we really close the output stream
-//                    IoUtils.close(outStream);
+                    success = false;
+                    session.write(LocalizedDataTransferFtpReply.translate(
+                            session, request, context, FtpReply.REPLY_551_REQUESTED_ACTION_ABORTED_PAGE_TYPE_UNKNOWN,
+                            "STOR", fileName, file));
                 }
 
                 // 告诉 client 已经传输完成且结果正确。
                 // if data transfer ok - send transfer complete message
-                if (!failure) {
-                    session.write(LocalizedDataTransferFtpReply.translate(session, request, context,
-                            FtpReply.REPLY_226_CLOSING_DATA_CONNECTION, "STOR",
-                            fileName, file, transSz));
-
+                if (success) {
+                    session.write(LocalizedDataTransferFtpReply.translate(
+                            session, request, context, FtpReply.REPLY_226_CLOSING_DATA_CONNECTION,
+                            "STOR", fileName, file, transSz));
                 }
             } finally {
                 session.resetState();
