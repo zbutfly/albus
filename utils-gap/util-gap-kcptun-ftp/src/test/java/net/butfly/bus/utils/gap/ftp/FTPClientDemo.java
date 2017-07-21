@@ -28,9 +28,6 @@ public class FTPClientDemo {
             System.out.println("Connected to " + server + "., port: " + ftp.getRemotePort());
             System.out.print(ftp.getReplyString());
 
-            ftp.setFileTransferMode(FTP.BINARY_FILE_TYPE);
-            ftp.setFileType(FTP.BINARY_FILE_TYPE);
-
             // After connection attempt, you should check the reply code to verify
             // success.
             reply = ftp.getReplyCode();
@@ -54,11 +51,13 @@ public class FTPClientDemo {
             // 上传文件 storeFile 下载文件 retrieveFile
             File file = new File(filename);
             FileInputStream fis = new FileInputStream(file);
-            boolean success = ftp.storeFile(file.getName() + "-" + file.length(), fis);
+            ftp.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+            boolean success = ftp.storeFile(file.length() + "-" + file.getName(), fis);
             fis.close();
             if (!success) System.out.println("failed to store file:  " + file.getName());
 
-//            ftp.storeFile(UUID.randomUUID().toString(), new ByteArrayInputStream("good morning every".getBytes()));
+            ftp.storeFile(UUID.randomUUID().toString(), new ByteArrayInputStream("good morning every".getBytes()));
 
             ftp.logout();
         } catch(IOException e) {
