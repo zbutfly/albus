@@ -41,23 +41,20 @@ public class FTPServerDemo {
         serverFactory.getUserManager().save(user);
 
         CommandFactoryFactory factoryFactory = new CommandFactoryFactory();
+
         factoryFactory.addCommand("STOR", (session, context, request) -> {
             try {
 
                 // get state variable
                 long skipLen = session.getFileOffset();
+                if (0L < skipLen) LOG.info("STOR offset [" + skipLen + "] will ignore.");
 
                 // argument check
                 String fileName = request.getArgument();
                 if (fileName == null) {
-                    session
-                            .write(LocalizedDataTransferFtpReply
-                                    .translate(
-                                            session,
-                                            request,
-                                            context,
-                                            FtpReply.REPLY_501_SYNTAX_ERROR_IN_PARAMETERS_OR_ARGUMENTS,
-                                            "STOR", null, null));
+                    session.write(LocalizedDataTransferFtpReply.translate(session, request, context,
+                            FtpReply.REPLY_501_SYNTAX_ERROR_IN_PARAMETERS_OR_ARGUMENTS,
+                            "STOR", null, null));
                     return;
                 }
 
@@ -78,7 +75,7 @@ public class FTPServerDemo {
                 // 不需要获取文件及其权限了。
                 // get filename
                 FtpFile file = null;
-                try {
+                /*try {
                     file = session.getFileSystemView().getFile(fileName);
                 } catch (Exception ex) {
                     LOG.debug("Exception getting file object", ex);
@@ -97,7 +94,7 @@ public class FTPServerDemo {
                             FtpReply.REPLY_550_REQUESTED_ACTION_NOT_TAKEN,
                             "STOR.permission", fileName, file));
                     return;
-                }
+                }*/
                 // 上面内容可以不要了。
 
                 // 告诉client可以传输
@@ -132,9 +129,7 @@ public class FTPServerDemo {
                     // attempt to close the output stream so that errors in
                     // closing it will return an error to the client (FTPSERVER-119)
 //                    outStream.close();
-
                     byte[] bytes = baos.toByteArray();
-                    System.out.println("store size: " + bytes.length + " with name " + fileName);
 
                     LOG.info("File uploaded {}", fileName);
 
