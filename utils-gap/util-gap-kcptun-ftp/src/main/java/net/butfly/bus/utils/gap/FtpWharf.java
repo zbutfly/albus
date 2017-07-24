@@ -52,7 +52,6 @@ public abstract class FtpWharf extends Thread implements Wharf {
         FtpServerFactory serverFactory = new FtpServerFactory();
         // 1. set users and their properties
         PropertiesUserManagerFactory umFactory = new PropertiesUserManagerFactory();
-//        System.out.println("==.." + new File("").getAbsolutePath());
         umFactory.setFile(new File(umPropFile));
         serverFactory.setUserManager(umFactory.createUserManager());
         // 2. override STOR cmd to receive data using a buffer instead of writing to a file
@@ -61,7 +60,7 @@ public abstract class FtpWharf extends Thread implements Wharf {
             try {
                 // get state variable
                 long skipLen = session.getFileOffset();
-                if (0L < skipLen) logger().info("STOR offset [" + skipLen + "] will ignore.");
+                if (0L < skipLen) logger().warn("STOR offset [{}] will ignore.", skipLen);
 
                 // argument check
                 String fileName = request.getArgument();
@@ -93,7 +92,7 @@ public abstract class FtpWharf extends Thread implements Wharf {
                 try {
                     dataConnection = session.getDataConnection().openConnection();
                 } catch (Exception e) {
-                    logger().debug("Exception getting the input data stream", e);
+                    logger().error("Exception getting the input data stream", e);
                     session.write(LocalizedDataTransferFtpReply.translate(session, request, context,
                             FtpReply.REPLY_425_CANT_OPEN_DATA_CONNECTION,
                             "STOR", fileName, null));
@@ -107,7 +106,7 @@ public abstract class FtpWharf extends Thread implements Wharf {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     transSize = dataConnection.transferFromClient(session.getFtpletSession(), baos);
                     byte[] bytes = baos.toByteArray();
-                    logger().info("File uploaded {} size :{}", fileName, transSize);
+                    logger().debug("ftp receive [{} bytes] with key {}.", transSize, fileName);
 
                     InputStream in = new ByteArrayInputStream(bytes);
                     seen(fileName, in);
@@ -117,13 +116,13 @@ public abstract class FtpWharf extends Thread implements Wharf {
                     ServerFtpStatistics ftpStat = (ServerFtpStatistics) context.getFtpStatistics();
                     ftpStat.setUpload(session, null, transSize);
                 } catch (SocketException ex) {
-                    logger().debug("Socket exception during data transfer", ex);
+                    logger().error("Socket exception during data transfer", ex);
                     success = false;
                     session.write(LocalizedDataTransferFtpReply.translate(
                             session, request, context, FtpReply.REPLY_426_CONNECTION_CLOSED_TRANSFER_ABORTED,
                             "STOR", fileName, null));
                 } catch (IOException ex) {
-                    logger().debug("IOException during data transfer", ex);
+                    logger().error("IOException during data transfer", ex);
                     success = false;
                     session.write(LocalizedDataTransferFtpReply.translate(
                             session, request, context, FtpReply.REPLY_551_REQUESTED_ACTION_ABORTED_PAGE_TYPE_UNKNOWN,
@@ -144,7 +143,6 @@ public abstract class FtpWharf extends Thread implements Wharf {
         serverFactory.setCommandFactory(cfFactory.createCommandFactory());
         // 3. config ftp server ip and port
         ListenerFactory lrFactory = new ListenerFactory();
-        System.out.println("server: " + ftpServerAddress + ", port: " + ftpServerPort);
         lrFactory.setPort(ftpServerPort);
         lrFactory.setServerAddress(ftpServerAddress);
         serverFactory.addListener("default", lrFactory.createListener());
@@ -152,7 +150,6 @@ public abstract class FtpWharf extends Thread implements Wharf {
         ftpServer = serverFactory.createServer();
         ftpServer.start();
         logger().info("FTP server [" + ftpServerAddress + "@" + ftpServerPort + "] started.");
-        System.out.println("FTP server [" + ftpServerAddress + "@" + ftpServerPort + "] started.");
     }
 
     @Override
@@ -185,6 +182,6 @@ public abstract class FtpWharf extends Thread implements Wharf {
         ftpClient.logout();
         ftpClient.disconnect();
 
-        System.out.println("ftp client send [" + data.length + " bytes] with key " + key);
+        logger().debug("ftp send [{} bytes] with key {}.", data.length, key);
     }
 }

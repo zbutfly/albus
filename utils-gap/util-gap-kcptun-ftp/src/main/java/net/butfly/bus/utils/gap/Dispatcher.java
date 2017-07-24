@@ -4,7 +4,6 @@ import net.butfly.albacore.utils.Configs;
 import net.butfly.albacore.utils.Configs.Config;
 import net.butfly.albacore.utils.IOs;
 import net.butfly.albacore.utils.parallel.Concurrents;
-import org.apache.ftpserver.ftplet.FtpException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +15,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Config(value = "utils-gap/util-gap-kcptun-ftp/src/main/resources/dispatcher-default.properties", prefix = "bus.gap.dispatcher")
+//@Config(value = "utils-gap/util-gap-kcptun-ftp/src/main/resources/dispatcher-default.properties", prefix = "bus.gap.dispatcher")
+@Config(value = "classes/dispatcher-default.properties", prefix = "bus.gap.dispatcher")
 public class Dispatcher extends FtpWharf {
 
     private final DatagramSocket server; // virtual udp server, as kcptun low level server
@@ -37,7 +37,7 @@ public class Dispatcher extends FtpWharf {
 	}
 
 	protected Dispatcher(int kcptunClientRemotePort, String umPropFile, String ftpServer, String ftpRemote,
-                         String ftpAccount) throws IOException, FtpException {
+                         String ftpAccount) throws Exception {
         super(umPropFile, ftpServer, ftpRemote, ftpAccount);
         server = new DatagramSocket(kcptunClientRemotePort, InetAddress.getByName("127.0.0.1"));
 	}
@@ -52,8 +52,7 @@ public class Dispatcher extends FtpWharf {
 				remoteAddress = packet.getAddress();
 				remotePort = packet.getPort();
 				byte[] data = Arrays.copyOf(packet.getData(), packet.getLength());
-				logger().debug("server receive packet [" + data.length + " bytes] from " + remoteAddress + ":" + remotePort);
-				System.out.println("server receive packet [" + data.length + " bytes] from " + remoteAddress + ":" + remotePort);
+				logger().debug("kcptun receive [{} bytes] from {}:{}.", data.length, remoteAddress, remotePort);
 				String key = UUID.randomUUID().toString();
 				AtomicBoolean finished = new AtomicBoolean(false);
 				touch(key, out -> write(out, data, finished));
@@ -69,8 +68,7 @@ public class Dispatcher extends FtpWharf {
 	@Override
     public void seen(String key, InputStream in) throws IOException {
         byte[] buf = IOs.readAll(in);
-        System.out.println("dispatcher seen " + key + " size: " + buf.length);
-		logger().debug("seen " + key + " size:" + buf.length + " and send to " + remoteAddress + ":" + remotePort);
+		logger().debug("seen [{} bytes] data with key {} and send to {}:{}.", buf.length, key, remoteAddress, remotePort);
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, remoteAddress, remotePort);
 		server.send(packet);
 	}
