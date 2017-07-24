@@ -10,12 +10,14 @@ import org.apache.ftpserver.impl.LocalizedFtpReply;
 import org.apache.ftpserver.impl.ServerFtpStatistics;
 import org.apache.ftpserver.listener.Listener;
 import org.apache.ftpserver.listener.ListenerFactory;
+import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
 import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -28,13 +30,18 @@ public class FTPServerDemo {
 
     public static void main(String[] args) throws FtpException {
         FtpServerFactory serverFactory = new FtpServerFactory();
+
+        PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
+        // todo use @Config to set user properties file
+        String usersPropFile = "src/test/resources/users.properties";
+        userManagerFactory.setFile(new File(usersPropFile));
+        serverFactory.setUserManager(userManagerFactory.createUserManager());
+
         // add a user and set his home dir
         BaseUser user = new BaseUser();
         user.setName("abc");
         user.setPassword("123456");
         user.setHomeDirectory("E:\\ftp_server");
-
-        // set user authority
         List<Authority> authorities = new ArrayList<>();
         authorities.add(new WritePermission());
         user.setAuthorities(authorities);
