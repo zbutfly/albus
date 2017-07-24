@@ -1,6 +1,5 @@
-package net.butfly.bus.utils.gap.ftp;
+package net.butfly.bus.utils.gap;
 
-import net.butfly.bus.utils.gap.Wharf;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
@@ -21,9 +20,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.function.Consumer;
 
-public abstract class FtpFerry implements Wharf {
+public abstract class FtpWharf extends Thread implements Wharf {
     private FtpServer ftpServer;
-    private FTPClient ftpClient;
 
     private String umPropFile;       // server的用户配置文件
     private String ftpServerAddress; // 要创建的ftp server ip
@@ -33,26 +31,28 @@ public abstract class FtpFerry implements Wharf {
     private String ftpAccessUser;    // 访问对端server使用的用户
     private String ftpAccessPasswd;  // 访问对端server使用的密码
 
-    public FtpFerry(String umPropFile, String ftpServerAddress, int ftpServerPort,
-                    String ftpRemoteAddress, int ftpRemotePort, String ftpAccessUser, String ftpAccessPasswd) {
-        this.umPropFile = umPropFile;
-        this.ftpServerAddress = ftpServerAddress;
-        this.ftpServerPort = ftpServerPort;
-        this.ftpRemoteAddress = ftpRemoteAddress;
-        this.ftpRemotePort = ftpRemotePort;
-        this.ftpAccessUser = ftpAccessUser;
-        this.ftpAccessPasswd = ftpAccessPasswd;
-    }
+    static final int UDP_DIAGRAM_MAX_LEN = 0xFFFF - 8 - 20;
 
-    public void init() throws Exception {
+    public FtpWharf(String umPropFile, String ftpServer, String ftpRemote, String ftpAccount) throws FtpException {
+        this.umPropFile = umPropFile;
+        String[] tuple = ftpServer.split(":", 2);
+        this.ftpServerAddress = tuple[0];
+        this.ftpServerPort = Integer.parseInt(tuple[1]);
+        tuple = ftpRemote.split(":", 2);
+        this.ftpRemoteAddress = tuple[0];
+        this.ftpRemotePort = Integer.parseInt(tuple[1]);
+        tuple = ftpAccount.split(":", 2);
+        this.ftpAccessUser = tuple[0];
+        this.ftpAccessPasswd = tuple[1];
+
         initFtpServer();
-        initFtpClient();
     }
 
     private void initFtpServer() throws FtpException {
         FtpServerFactory serverFactory = new FtpServerFactory();
         // 1. set users and their properties
         PropertiesUserManagerFactory umFactory = new PropertiesUserManagerFactory();
+//        System.out.println("==.." + new File("").getAbsolutePath());
         umFactory.setFile(new File(umPropFile));
         serverFactory.setUserManager(umFactory.createUserManager());
         // 2. override STOR cmd to receive data using a buffer instead of writing to a file
@@ -144,21 +144,31 @@ public abstract class FtpFerry implements Wharf {
         serverFactory.setCommandFactory(cfFactory.createCommandFactory());
         // 3. config ftp server ip and port
         ListenerFactory lrFactory = new ListenerFactory();
-        lrFactory.setServerAddress(ftpServerAddress);
+        System.out.println("server: " + ftpServerAddress + ", port: " + ftpServerPort);
         lrFactory.setPort(ftpServerPort);
-        serverFactory.addListener("default#" + ftpServerAddress + "@" + ftpServerPort, lrFactory.createListener());
+        lrFactory.setServerAddress(ftpServerAddress);
+        serverFactory.addListener("default", lrFactory.createListener());
         // 4. create the server and start
         ftpServer = serverFactory.createServer();
         ftpServer.start();
         logger().info("FTP server [" + ftpServerAddress + "@" + ftpServerPort + "] started.");
+        System.out.println("FTP server [" + ftpServerAddress + "@" + ftpServerPort + "] started.");
     }
 
-    private void initFtpClient() throws Exception {
-        ftpClient = new FTPClient();
-        int reply;
+    @Override
+    public void touch(String key, Consumer<OutputStream> outing) throws IOException {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            outing.accept(os);
+            byte[] bytes = os.toByteArray();
+            send(key, bytes);
+        } catch (IOException e) {
+            logger().error("failed to send data via ftp.");
+        }
+    }
 
+    private void send(String key, byte[] data) throws IOException {
+        FTPClient ftpClient = new FTPClient();
         FTPClientConfig config = new FTPClientConfig();
-//        config.setXXX();
         ftpClient.configure(config);
         ftpClient.connect(ftpRemoteAddress, ftpRemotePort);
         if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
@@ -167,21 +177,14 @@ public abstract class FtpFerry implements Wharf {
         ftpClient.login(ftpAccessUser, ftpAccessPasswd);
         if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
             ftpClient.disconnect();
-//            break __abc;
             throw new RuntimeException("user [" + ftpAccessUser + "] authentication failed");
         }
-    }
+        ftpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        ftpClient.storeFile(key, new ByteArrayInputStream(data));
+        ftpClient.logout();
+        ftpClient.disconnect();
 
-    @Override
-    public void touch(String key, Consumer<OutputStream> outing) throws IOException {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            outing.accept(os);
-            byte[] bytes = os.toByteArray();
-            ftpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-            ftpClient.storeFile(key, new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            logger().error("failed to send data via ftp.");
-        }
+        System.out.println("ftp client send [" + data.length + " bytes] with key " + key);
     }
 }

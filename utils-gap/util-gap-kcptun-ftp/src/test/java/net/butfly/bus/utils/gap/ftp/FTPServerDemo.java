@@ -33,15 +33,17 @@ public class FTPServerDemo {
 
         PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
         // todo use @Config to set user properties file
-        String usersPropFile = "src/test/resources/users.properties";
+/*
+        String usersPropFile = "src/test/resources/dispatcher-users.properties";
         userManagerFactory.setFile(new File(usersPropFile));
         serverFactory.setUserManager(userManagerFactory.createUserManager());
+*/
 
         // add a user and set his home dir
         BaseUser user = new BaseUser();
         user.setName("abc");
         user.setPassword("123456");
-        user.setHomeDirectory("E:\\ftp_server");
+        user.setHomeDirectory("E:\\ftp_server\\abc");
         List<Authority> authorities = new ArrayList<>();
         authorities.add(new WritePermission());
         user.setAuthorities(authorities);
@@ -132,7 +134,7 @@ public class FTPServerDemo {
         serverFactory.setCommandFactory(factoryFactory.createCommandFactory());
 
         ListenerFactory factory = new ListenerFactory();
-        factory.setPort(2221);
+        factory.setPort(2223);
         factory.setServerAddress("172.16.16.116");
         Listener listener = factory.createListener();
         // replace the default listener

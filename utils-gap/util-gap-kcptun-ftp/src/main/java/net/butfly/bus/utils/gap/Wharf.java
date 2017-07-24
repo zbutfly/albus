@@ -24,5 +24,5 @@ public interface Wharf extends Loggable, Runnable {
      * @param key 数据唯一ID
      * @param in 收到的数据
      */
-    void seen(String key, InputStream in);
+    void seen(String key, InputStream in) throws IOException;
 }
