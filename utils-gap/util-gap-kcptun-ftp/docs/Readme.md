@@ -1,3 +1,4 @@
+# 杭州匡信网闸系统（CI-GAP via ftp）部署和运维手册
 
 ## 编译发布
 ```bash
@@ -43,6 +44,7 @@ test-classes/log4j.xml
 
 ### 启动
 ```bash
+# windows下
 # 1. 在内网启动Invoker
 java -d64 -server -cp ./test-classes;/classes;./albus-util-gap-kcptun-ftp.jar;./dependency/* net.butfly.bus.utils.gap.Invoker
 # 2. 在外网启动Dispatcher
@@ -51,6 +53,23 @@ java -d64 -server -cp ./test-classes;/classes;./albus-util-gap-kcptun-ftp.jar;./
 .\kcptun\server_windows_amd64 -t "172.16.16.242:22" -l ":29991" -mode fast2
 # 4. 在外网启动kcptun_client
 .\kcptun\client_windows_amd64 -r "127.0.0.1:29992" -l ":29990" -mode fast2
+
+# 5. 等待kcptun server 出现'remote address: 127.0.0.1:xxxx', 'stream opened',即可使用
+ssh root@172.16.16.116 29990
+
+############################################################################################################
+
+# Linux下
+# 0. 增加可执行权限
+chmod +x ./kcptun/*linux*
+# 1. 在内网启动Invoker
+java -d64 -server -cp ./test-classes:/classes:./albus-util-gap-kcptun-ftp.jar:./dependency/* net.butfly.bus.utils.gap.Invoker
+# 2. 在外网启动Dispatcher
+java -d64 -server -cp ./test-classes:/classes:./albus-util-gap-kcptun-ftp.jar:./dependency/* net.butfly.bus.utils.gap.Dispatcher
+# 3. 在内网启动kcptun_server
+.\kcptun\server_linux_amd64.bin -t "172.16.16.242:22" -l ":29991" -mode fast2
+# 4. 在外网启动kcptun_client
+.\kcptun\client_linux_amd64.bin -r "127.0.0.1:29992" -l ":29990" -mode fast2
 
 # 5. 等待kcptun server 出现'remote address: 127.0.0.1:xxxx', 'stream opened',即可使用
 ssh root@172.16.16.116 29990
