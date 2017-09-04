@@ -2,7 +2,9 @@ package net.butfly.bus.filter;
 
 import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Exceptions;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Task;
+import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.bus.Bus;
 import net.butfly.bus.Bus.Mode;
 import net.butfly.bus.Error;
@@ -12,6 +14,7 @@ import net.butfly.bus.context.Context;
 import net.butfly.bus.utils.Constants;
 
 public final class FilterChain {
+	private final static Logger logger = Logger.getLogger(FilterChain.class);
 	private Filter[] filters;
 
 	public FilterChain(Bus bus, FilterConfig... bean) {
@@ -42,12 +45,15 @@ public final class FilterChain {
 		}, context.callback(), context.invoker().localOptions(context.options())).execute();
 	}
 
+	private static final Class<?> c = Reflections.forClassName("org.eclipse.jetty.io.EofException");
+
 	private void executeOne(final Filter filter, final FilterContext context) throws Exception {
 		try {
 			filter.execute(context);
 		} catch (Exception ex) {
 			Throwable exx = Exceptions.unwrap(ex);
-			if (context.mode() != Mode.SERVER) throw Exceptions.wrap(exx);
+			if (context.mode() != Mode.SERVER) throw Exceptions.wrap(exx); // only throw on client
+			if (!exx.getClass().equals(c)) logger.error("Bus invoking failed.", exx);
 			context.response(new Response(context.request()).error(new Error(exx, Context.debug())));
 		}
 	}

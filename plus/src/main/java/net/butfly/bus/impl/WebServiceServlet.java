@@ -46,6 +46,7 @@ public class WebServiceServlet extends BusServlet {
 		logger.info("Servlet [" + paramConfig + "] started.");
 	}
 
+	@Override
 	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) {
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		String headers = req.getHeader("Access-Control-Request-Headers");
@@ -59,13 +60,13 @@ public class WebServiceServlet extends BusServlet {
 		final ServiceContext context = this.prepare(request, response);
 		try {
 			cluster.invoke(context.invoking, resp -> {
+				byte[] data = context.handler.response(resp, response, context.invoking.supportClass, context.respContentType.getCharset());
 				try {
-					response.getOutputStream().write(context.handler.response(resp, response, context.invoking.supportClass,
-							context.respContentType.getCharset()));
+					response.getOutputStream().write(data);
 					response.getOutputStream().flush();
 					response.flushBuffer();
 				} catch (IOException ex) {
-					logger.error("Response writing I/O failure", ex);
+					logger.warn("Response writing I/O failure [" + new String(data, context.respContentType.getCharset()) + "]");
 				}
 			});
 		} catch (Exception ex) {
