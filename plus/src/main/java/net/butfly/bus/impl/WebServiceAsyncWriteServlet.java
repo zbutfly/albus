@@ -49,18 +49,22 @@ public class WebServiceAsyncWriteServlet extends WebServiceServlet {
 	private Queue<byte[]> parareAsync(HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		final AsyncContext ac = request.startAsync();
 		ac.addListener(new AsyncListener() {
+			@Override
 			public void onComplete(AsyncEvent event) throws IOException {
-				logger.trace("Http async handle complet.");;
+				logger.trace("Http async handle complet.");
 			}
 
+			@Override
 			public void onError(AsyncEvent event) {
 				logger.error("Http async handle failure", event.getThrowable());
 			}
 
+			@Override
 			public void onStartAsync(AsyncEvent event) {
-				logger.trace("Http async handle start.");;
+				logger.trace("Http async handle start.");
 			}
 
+			@Override
 			public void onTimeout(AsyncEvent event) {
 				logger.error("Http async handle timeout", event.getThrowable());
 			}
@@ -68,12 +72,14 @@ public class WebServiceAsyncWriteServlet extends WebServiceServlet {
 		final ServletOutputStream output = response.getOutputStream();
 		final Queue<byte[]> queue = new LinkedBlockingQueue<byte[]>();
 		output.setWriteListener(new WriteListener() {
+			@Override
 			public void onWritePossible() throws IOException {
 				while (queue.peek() != null && output.isReady())
 					output.write(queue.poll());
 				if (queue.peek() == null) ac.complete();
 			}
 
+			@Override
 			public void onError(final Throwable t) {
 				ac.complete();
 				logger.error("Http async write failure", t);

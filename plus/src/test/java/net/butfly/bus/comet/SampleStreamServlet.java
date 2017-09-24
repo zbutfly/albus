@@ -28,6 +28,7 @@ public class SampleStreamServlet extends HttpServlet {
 	private Map<String, AsyncContext> asyncContexts = new ConcurrentHashMap<String, AsyncContext>();
 	private BlockingQueue<String> messages = new LinkedBlockingQueue<String>();
 	private Thread notifier = new Thread(new Runnable() {
+		@Override
 		public void run() {
 			while (true) {
 				try {
@@ -91,21 +92,23 @@ public class SampleStreamServlet extends HttpServlet {
 
 		final AsyncContext ac = request.startAsync();
 		ac.addListener(new AsyncListener() {
+			@Override
 			public void onComplete(AsyncEvent event) throws IOException {
 				asyncContexts.remove(id);
 			}
 
+			@Override
 			public void onTimeout(AsyncEvent event) throws IOException {
 				asyncContexts.remove(id);
 			}
 
+			@Override
 			public void onError(AsyncEvent event) throws IOException {
 				asyncContexts.remove(id);
 			}
 
-			public void onStartAsync(AsyncEvent event) throws IOException {
-
-			}
+			@Override
+			public void onStartAsync(AsyncEvent event) throws IOException {}
 		});
 		asyncContexts.put(id, ac);
 	}

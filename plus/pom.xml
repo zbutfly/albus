@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>albus-plus</artifactId>
 	<properties>
-		<deps.version.jetty>9.3.0.M1</deps.version.jetty><!-- 9.4.0.M1 -->
+		<deps.version.jetty>9.4.6.v20170531</deps.version.jetty><!-- 9.4.0.M1 -->
 	</properties>
 	<dependencies>
 		<dependency>

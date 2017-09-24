@@ -12,7 +12,7 @@ public abstract class SerializerBase implements Serializer {
 	@Override
 	public String defaultMimeType() {
 		return this.supportedMimeTypes()[0];
-	};
+	}
 
 	@Override
 	public Charset charset() {

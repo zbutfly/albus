@@ -69,7 +69,7 @@ public final class FilterChain {
 		if (pos == -1) // not found
 			throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "Filter not found.");
 		if (pos == this.filters.length - 1) // last
-			throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "LastFilter should not run executeNext.");;
+			throw new SystemException(Constants.BusinessError.INVOKE_ERROR, "LastFilter should not run executeNext.");
 		executeOne(filters[pos + 1], context);
 	}
 
@@ -81,7 +81,7 @@ public final class FilterChain {
 		public void execute(FilterContext context) throws Exception {
 			context.response(context.invoker().invoke(context.request(), context.invoker().remoteOptions(context.options())));
 		}
-	};
+	}
 
 	/**
 	 * <ul>

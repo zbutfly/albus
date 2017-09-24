@@ -39,6 +39,7 @@ abstract class BasicBusImpl implements Bus {
 		this.id = Keys.key(String.class);
 	}
 
+	@Override
 	public String id() {
 		return this.id;
 	}
@@ -65,6 +66,7 @@ abstract class BasicBusImpl implements Bus {
 			this.options = options;
 		}
 
+		@Override
 		public Object invoke(Object obj, Method method, Object[] args) throws Exception {
 			TX tx = method.getAnnotation(TX.class);
 			if (null != tx) {
@@ -82,7 +84,7 @@ abstract class BasicBusImpl implements Bus {
 		if (request.code() == null || "".equals(request.code().trim())) throw new SystemException(Constants.UserError.BAD_REQUEST,
 				"Request empty tx code invalid.");
 		if (request.version() == null) throw new SystemException(Constants.UserError.BAD_REQUEST, "Request empty tx version invalid.");
-		new FlowNo(request);
+		assert null != new FlowNo(request);
 		Context.txInfo(TXs.impl(request.code(), request.version()));
 	}
 

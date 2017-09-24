@@ -48,6 +48,7 @@ public class Error implements Serializable {
 		return cause;
 	}
 
+	@Override
 	public String toString() {
 		return toString(8, -1);
 	}

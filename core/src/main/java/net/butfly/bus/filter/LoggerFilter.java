@@ -11,6 +11,7 @@ import net.butfly.bus.service.LogService;
 public class LoggerFilter extends FilterBase implements Filter {
 	private final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);
 
+	@Override
 	public void execute(final FilterContext context) throws Exception {
 		Request request = context.request();
 		String prefix = null;

@@ -9,7 +9,7 @@ class SimpleContext extends Context {
 	@Override
 	protected Context current() {
 		return this;
-	};
+	}
 
 	@Override
 	protected Map<String, Object> impl() {

@@ -37,7 +37,7 @@ class BusImpl extends StandardBusImpl {
 	@Override
 	public <T> void invoke(String code, Object[] arguments, Consumer<T> callback, Options... options) throws Exception {
 		this.invoke(TXs.impl(code), arguments, callback, options);
-	};
+	}
 
 	@Override
 	public <T> void invoke(TX tx, Object[] arguments, final Consumer<T> callback, Options... options) throws Exception {

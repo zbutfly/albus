@@ -17,7 +17,7 @@
 		<url>https://github.com/zbutfly/albus</url>
 	</scm>
 	<properties>
-		<deps.version.albacore>3.0.0-SNAPSHOT</deps.version.albacore>
+		<deps.version.albacore>3.0.1-SNAPSHOT</deps.version.albacore>
 	</properties>
 	<modules>
 		<module>api</module>

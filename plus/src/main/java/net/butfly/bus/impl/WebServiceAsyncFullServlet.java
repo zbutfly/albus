@@ -20,34 +20,38 @@ public class WebServiceAsyncFullServlet extends WebServiceServlet {
 	private static final long serialVersionUID = 5048648001222215248L;
 
 	@Override
-	public void init(ServletConfig config) throws ServletException {
+	public void init(final ServletConfig config) throws ServletException {
 		super.init(config);
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		AsyncContext ac = request.startAsync();
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+		final AsyncContext ac = request.startAsync();
 		ac.addListener(new AsyncListener() {
-			public void onComplete(AsyncEvent event) throws IOException {
-				logger.trace("Http async handle complet.");;
+			@Override
+			public void onComplete(final AsyncEvent event) throws IOException {
+				logger.trace("Http async handle complet.");
 			}
 
-			public void onError(AsyncEvent event) {
+			@Override
+			public void onError(final AsyncEvent event) {
 				logger.error("Http async handle failure", event.getThrowable());
 			}
 
-			public void onStartAsync(AsyncEvent event) {
-				logger.trace("Http async handle start.");;
+			@Override
+			public void onStartAsync(final AsyncEvent event) {
+				logger.trace("Http async handle start.");
 			}
 
-			public void onTimeout(AsyncEvent event) {
+			@Override
+			public void onTimeout(final AsyncEvent event) {
 				logger.error("Http async handle timeout", event.getThrowable());
 			}
 		});
 
 		// set up ReadListener to read data for processing
-		ServletInputStream input = request.getInputStream();
-		ReadListener readListener = new ReadListenerImpl(input, response, ac);
+		final ServletInputStream input = request.getInputStream();
+		final ReadListener readListener = new ReadListenerImpl(input, response, ac);
 		input.setReadListener(readListener);
 		super.doPost(request, response);
 	}
@@ -56,32 +60,35 @@ public class WebServiceAsyncFullServlet extends WebServiceServlet {
 		private ServletInputStream input = null;
 		private HttpServletResponse res = null;
 		private AsyncContext ac = null;
-		private Queue<String> queue = new LinkedBlockingQueue<String>();
+		private final Queue<String> queue = new LinkedBlockingQueue<String>();
 
-		ReadListenerImpl(ServletInputStream in, HttpServletResponse r, AsyncContext c) {
+		ReadListenerImpl(final ServletInputStream in, final HttpServletResponse r, final AsyncContext c) {
 			input = in;
 			res = r;
 			ac = c;
 		}
 
+		@Override
 		public void onDataAvailable() throws IOException {
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			int len = -1;
-			byte b[] = new byte[1024];
+			final byte b[] = new byte[1024];
 			while (input.isReady() && (len = input.read(b)) != -1) {
-				String data = new String(b, 0, len);
+				final String data = new String(b, 0, len);
 				sb.append(data);
 			}
 			queue.add(sb.toString());
 		}
 
+		@Override
 		public void onAllDataRead() throws IOException {
 			// now all data are read, set up a WriteListener to write
-			ServletOutputStream output = res.getOutputStream();
-			WriteListener writeListener = new WriteListenerImpl(output, queue, ac);
+			final ServletOutputStream output = res.getOutputStream();
+			final WriteListener writeListener = new WriteListenerImpl(output, queue, ac);
 			output.setWriteListener(writeListener);
 		}
 
+		@Override
 		public void onError(final Throwable t) {
 			ac.complete();
 			logger.error("Http async read failure", t);
@@ -93,16 +100,17 @@ public class WebServiceAsyncFullServlet extends WebServiceServlet {
 		private Queue<String> queue = null;
 		private AsyncContext ac = null;
 
-		WriteListenerImpl(ServletOutputStream sos, Queue<String> q, AsyncContext c) {
+		WriteListenerImpl(final ServletOutputStream sos, final Queue<String> q, final AsyncContext c) {
 			output = sos;
 			queue = q;
 			ac = c;
 		}
 
+		@Override
 		public void onWritePossible() throws IOException {
 			// write while there is data and is ready to write
 			while (queue.peek() != null && output.isReady()) {
-				String data = queue.poll();
+				final String data = queue.poll();
 				output.print(data);
 			}
 			// complete the async process when there is no more data to write
@@ -111,6 +119,7 @@ public class WebServiceAsyncFullServlet extends WebServiceServlet {
 			}
 		}
 
+		@Override
 		public void onError(final Throwable t) {
 			ac.complete();
 			logger.error("Http async write failure", t);
