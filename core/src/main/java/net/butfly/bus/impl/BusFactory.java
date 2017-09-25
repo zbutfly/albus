@@ -46,7 +46,7 @@ public final class BusFactory {
 
 	static Cluster cluster(Mode mode, Class<? extends Router> routerClass, String... configs) {
 		try {
-			return new Cluster(Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.newInstance(), configs);
+			return new Cluster(Mode.SERVER, routerClass == null ? new SimpleRouter() : routerClass.getConstructor().newInstance(), configs);
 		} catch (Exception e) {
 			throw Exceptions.wrap(e);
 		}
@@ -60,7 +60,7 @@ public final class BusFactory {
 
 	static Router createRouter(Configuration config) {
 		try {
-			return config.getRouter().getRouterClass().newInstance();
+			return config.getRouter().getRouterClass().getConstructor().newInstance();
 		} catch (Throwable e) {
 			return new SimpleRouter();
 		}

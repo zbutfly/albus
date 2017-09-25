@@ -14,7 +14,7 @@ class StarterParser {
 
 	public StarterParser(Class<? extends CommandLineParser> parserClass) {
 		try {
-			this.parser = parserClass.newInstance();
+			this.parser = parserClass.getConstructor().newInstance();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -48,15 +48,13 @@ class StarterParser {
 			f.printOptions(pw, width, options, f.getLeftPadding(), f.getDescPadding());
 			this.printWrapped(f, pw, "Environment variables", null);
 			this.printWrapped(f, pw, "bus.port", "Port of bus server (default " + Starter.DEFAULT_PORT + ")");
-			this.printWrapped(f, pw, "bus.port.secure", "Secure port of bus server (default " + Starter.DEFAULT_SECURE_PORT
-					+ ")");
-			this.printWrapped(f, pw, "bus.threadpool.size", "Thread pool size of bus server (default "
-					+ Starter.DEFAULT_THREAD_POOL_SIZE + ", -1 for no threads pool)");
+			this.printWrapped(f, pw, "bus.port.secure", "Secure port of bus server (default " + Starter.DEFAULT_SECURE_PORT + ")");
+			this.printWrapped(f, pw, "bus.threadpool.size", "Thread pool size of bus server (default " + Starter.DEFAULT_THREAD_POOL_SIZE
+					+ ", -1 for no threads pool)");
 			this.printWrapped(f, pw, "bus.server.context", "Context path of bus server (default /" + Starter.DEFAULT_CONTEXT
 					+ "/*), only used on one argument being defined.");
 			this.printWrapped(f, pw, "bus.jndi", "Jndi context definition file (default no jndi resource attached)");
-			this.printWrapped(f, pw, "bus.server.base",
-					"Static resource root for bus server, such as index.html (default none)");
+			this.printWrapped(f, pw, "bus.server.base", "Static resource root for bus server, such as index.html (default none)");
 			this.printWrapped(f, pw, "bus.servlet.class",
 					"Class name for the servlet of container of bus deployment (default net.butfly.bus.start.WebServiceServlet)");
 			pw.flush();
