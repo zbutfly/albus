@@ -18,7 +18,7 @@ public class FilterConfig extends Config {
 		this.title = title;
 		this.params = params;
 		try {
-			this.instance = clazz.newInstance();
+			this.instance = clazz.getConstructor().newInstance();
 		} catch (Throwable ex) {
 			throw new SystemException(Constants.UserError.FILTER_INVOKE, "Filter [" + clazz.getName()
 					+ "] instance creation failed .");

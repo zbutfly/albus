@@ -14,7 +14,7 @@ class StarterParser {
 
 	public StarterParser(Class<? extends CommandLineParser> parserClass) {
 		try {
-			this.parser = parserClass.newInstance();
+			this.parser = parserClass.getConstructor().newInstance();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

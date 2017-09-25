@@ -27,7 +27,7 @@ public class InvokerConfig extends Config implements Routeable {
 		else throw new RuntimeException("invalid txs for remote invoker");
 
 		try {
-			this.instance = invokeClass.newInstance();
+			this.instance = invokeClass.getConstructor().newInstance();
 		} catch (Exception e) {
 			throw new SystemException(Constants.UserError.NODE_CONFIG, "Invoker " + invokeClass.getName()
 					+ " initialization failed for invalid Invoker instance.", e);
