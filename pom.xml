@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>net.butfly</groupId>
 		<artifactId>parent</artifactId>
-		<version>2.0.4-SNAPSHOT</version>
+		<version>3.0.0-JDK6-SNAPSHOT</version>
 	</parent>
 	<groupId>net.butfly.bus</groupId>
 	<artifactId>albus</artifactId>
-	<version>2.0.4-RC1-SNAPSHOT</version>
+	<version>2.0.4-RC1-jdk6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<scm>
 		<connection>git@github.com:zbutfly/albus.git</connection>
@@ -17,7 +17,7 @@
 		<url>https://github.com/zbutfly/albus</url>
 	</scm>
 	<properties>
-		<deps.version.albacore>3.0.1-SNAPSHOT</deps.version.albacore>
+		<deps.version.albacore>3.0.1-JDK6</deps.version.albacore>
 	</properties>
 	<modules>
 		<module>api</module>
