@@ -37,7 +37,7 @@ import net.butfly.albacore.utils.Reflections;
 import net.butfly.albacore.utils.async.Task;
 import net.butfly.albacore.utils.logger.Logger;
 import net.butfly.albacore.utils.more.JNDIUtils;
-import net.butfly.albacore.utils.parallel.Concurrents;
+import net.butfly.albacore.utils.async.Concurrents;
 import net.butfly.bus.impl.BusServlet;
 import net.butfly.bus.impl.ServletInitParams;
 
@@ -84,7 +84,7 @@ public class JettyStarter implements Runnable {
 			logger.error("Jetty stopping failure: ", ex);
 		}
 		while (!server.isStopped())
-			Concurrents.waitSleep(1000, logger, "Waiting jetty stopping");
+			Concurrents.waitSleep(1000);
 		logger.warn("JettyStarter shutdown finished, but the nio threads will not stop automatically!!!");
 	}
 
