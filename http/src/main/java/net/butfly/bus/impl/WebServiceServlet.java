@@ -92,7 +92,7 @@ public class WebServiceServlet extends BusServlet {
 		@SuppressWarnings("unchecked")
 		final TextSerder<Object> serializer = (TextSerder<Object>) Serders.construct(context.reqContentType);
 		context.respContentType = serializer.contentType();
-		context.handler = Instances.fetch(HttpHandler.class, serializer);
+		context.handler = Instances.construct(HttpHandler.class, serializer);
 
 		// prepare invoke
 		context.invoking = new Invoking();
