@@ -29,7 +29,7 @@
 		</dependency>
 	</dependencies>
 	<properties>
-		<version.albacore>3.0.3-SNAPSHOT</version.albacore>
+		<version.albacore>3.0.3</version.albacore>
 	</properties>
 	<scm>
 		<connection>https://bitbucket.org/butfly/albus.git</connection>
