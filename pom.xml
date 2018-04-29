@@ -24,10 +24,13 @@
 		<dependency>
 			<groupId>net.butfly.albacore</groupId>
 			<artifactId>albacore-test</artifactId>
-			<version>3.0.3-SNAPSHOT</version>
+			<version>${version.albacore}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<version.albacore>3.0.3-SNAPSHOT</version.albacore>
+	</properties>
 	<scm>
 		<connection>https://bitbucket.org/butfly/albus.git</connection>
 		<developerConnection>https://butfly@bitbucket.org/butfly/albus.git</developerConnection>

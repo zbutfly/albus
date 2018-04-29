@@ -2,8 +2,8 @@ package net.butfly.albacore.utils.async;
 
 import java.util.function.Consumer;
 
-import net.butfly.albacore.lambda.Callable;
-import net.butfly.albacore.utils.parallel.Concurrents;
+import net.butfly.albacore.utils.async.Task.Callable;
+
 
 public class TaskTest {
 	public static void main(String[] args) throws Exception {
