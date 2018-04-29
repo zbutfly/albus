@@ -54,8 +54,8 @@ public final class BusFactory {
 		try {
 			Class<? extends Cluster> c = Reflections.forClassName("net.butfly.bus.impl.AsyncCluster");
 			if (null == c) c = Cluster.class;
-			return Reflections.construct(c, Mode.SERVER, routerClass == null ? new SimpleRouter()
-					: routerClass.getConstructor().newInstance(), configs);
+			return Reflections.construct(c, Mode.SERVER, routerClass == null ? new SimpleRouter() : Reflections.construct(routerClass),
+					configs);
 		} catch (Exception e) {
 			throw Exceptions.wrap(e);
 		}
@@ -69,7 +69,7 @@ public final class BusFactory {
 
 	static Router createRouter(Configuration config) {
 		try {
-			return config.getRouter().getRouterClass().getConstructor().newInstance();
+			return Reflections.construct(config.getRouter().getRouterClass());
 		} catch (Throwable e) {
 			return new SimpleRouter();
 		}

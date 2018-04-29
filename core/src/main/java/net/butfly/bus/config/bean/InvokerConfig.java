@@ -2,14 +2,13 @@ package net.butfly.bus.config.bean;
 
 import java.util.Map;
 
-import net.butfly.albacore.exception.SystemException;
 import net.butfly.albacore.utils.Keys;
+import net.butfly.albacore.utils.Reflections;
 import net.butfly.bus.TXs;
 import net.butfly.bus.context.Token;
 import net.butfly.bus.invoker.AbstractLocalInvoker;
 import net.butfly.bus.invoker.Invoker;
 import net.butfly.bus.policy.Routeable;
-import net.butfly.bus.utils.Constants;
 
 public class InvokerConfig extends Config implements Routeable {
 	private static final long serialVersionUID = 1333442276226287430L;
@@ -25,13 +24,7 @@ public class InvokerConfig extends Config implements Routeable {
 		if (null != tx) this.txs = tx.split(",");
 		else if (AbstractLocalInvoker.class.isAssignableFrom(invokeClass)) this.txs = null;
 		else throw new RuntimeException("invalid txs for remote invoker");
-
-		try {
-			this.instance = invokeClass.getConstructor().newInstance();
-		} catch (Exception e) {
-			throw new SystemException(Constants.UserError.NODE_CONFIG, "Invoker " + invokeClass.getName()
-					+ " initialization failed for invalid Invoker instance.", e);
-		}
+		this.instance = Reflections.construct(invokeClass);
 		this.instance.initialize(this, token);
 		if (!this.instance.lazy()) this.instance.initialize();
 	}

@@ -57,7 +57,7 @@ public class WebServiceInvoker extends AbstractRemoteInvoker implements Invoker 
 		final Class<? extends HttpHandler> handlerClass;
 		if (null == handleClassname) handlerClass = HttpNingHandler.class;
 		else handlerClass = Reflections.forClassName(handleClassname);
-		this.handler = Instances.fetch(handlerClass, serializer);
+		this.handler = Instances.construct(handlerClass, serializer);
 		super.initialize(config, token);
 	}
 
