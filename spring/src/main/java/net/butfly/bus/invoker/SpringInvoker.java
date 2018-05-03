@@ -25,7 +25,7 @@ public class SpringInvoker extends AbstractLocalInvoker implements Invoker {
 	public Object[] getBeanList() {
 		List<Object> beans = new ArrayList<Object>();
 		for (String name : spring.getBeanDefinitionNames())
-			if (!Unit.class.isAssignableFrom(spring.getType(name)) && !((BeanDefinitionRegistry) spring).getBeanDefinition(name)
+			if (Unit.class.isAssignableFrom(spring.getType(name)) && !((BeanDefinitionRegistry) spring).getBeanDefinition(name)
 					.isAbstract()) beans.add(spring.getBean(name));
 		return beans.toArray(new Object[beans.size()]);
 	}
